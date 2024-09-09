@@ -1,0 +1,23 @@
+{
+  "name": "@xsbcme/vue-tab-router",
+  "version": "1.0.1",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/vue-tab-router.umd.cjs",
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "vue3",
+    "router",
+    "tab"
+  ],
+  "author": "xsbcme",
+  "license": "ISC",
+  "dependencies": {
+    "vue": ">=3.0.0"
+  },
+  "scripts": {
+    "build": "vue-tsc --noEmit && vite build"
+  }
+}

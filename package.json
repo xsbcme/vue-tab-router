@@ -1,0 +1,37 @@
+{
+  "name": "@xsbcme/vue-tab-router",
+  "version": "0.0.49",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/vue-tab-router.umd.cjs",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vue-tsc --noEmit && vite build"
+  },
+  "publishConfig": {
+    "registry": "http://118.89.165.225:8891/repository/npm-hosted/"
+  },
+  "keywords": [],
+  "author": "xsbcme",
+  "license": "ISC",
+  "dependencies": {
+    "@headlessui/vue": "^1.7.22",
+    "vue": "3.4.21"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "@unocss/transformer-variant-group": "0.58.0",
+    "@vitejs/plugin-vue": "5.0.4",
+    "sass": "1.59.3",
+    "typescript": "^5.3.3",
+    "unocss": "0.58.0",
+    "vite": "5.2.8",
+    "vite-plugin-dts": "^3.1.1",
+    "vue-tsc": "^2.0.3",
+    
+    "@vue/runtime-core": "3.4.21",
+    "@vue/shared": "3.4.21"
+  }
+}
