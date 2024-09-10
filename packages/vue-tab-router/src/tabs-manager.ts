@@ -397,28 +397,32 @@ export class TabsManager extends Plugin {
             const findTabByViewUrl = this.getTabByViewUrl(viewUrl);
             if (!findTabByViewUrl || (findTabByViewUrl && !newTab._single)) {
                 this._tabs.push(newTab);
-                await this.preloadLoadComponent(newTab);
-                await nextTick(async () => {
-                    await this.updateTabLoaing(newTab._id, async () => {
-                        try {
-                            typeof newTab._onBeforeTabOpen === 'function' && await newTab._onBeforeTabOpen();
-                        } catch (error) {
-                            await this.closeTab(newTab._id);
-                            return Promise.reject(error);
-                        }
-                        try {
-                            typeof newTab._onBeforeTabEnter === 'function' && await newTab._onBeforeTabEnter();
-                        } catch (error) {
-                            if (newTab._sourceId) {
-                                // await this.changeActiveTab(newTab._sourceId, false);
-                                return Promise.reject(error);
-                            } else {
+
+                if (!this.isHttpUrl(newTab.viewUrl)) {
+                    await this.preloadLoadComponent(newTab);
+                    await nextTick(async () => {
+                        await this.updateTabLoaing(newTab._id, async () => {
+                            try {
+                                typeof newTab._onBeforeTabOpen === 'function' && await newTab._onBeforeTabOpen();
+                            } catch (error) {
                                 await this.closeTab(newTab._id);
+                                return Promise.reject(error);
                             }
-                            return Promise.reject(error);
-                        }
+                            try {
+                                typeof newTab._onBeforeTabEnter === 'function' && await newTab._onBeforeTabEnter();
+                            } catch (error) {
+                                if (newTab._sourceId) {
+                                    // await this.changeActiveTab(newTab._sourceId, false);
+                                    return Promise.reject(error);
+                                } else {
+                                    await this.closeTab(newTab._id);
+                                }
+                                return Promise.reject(error);
+                            }
+                        });
                     });
-                });
+                }
+
                 return await this.changeActiveTab(newTab._id, false);
             }
 
