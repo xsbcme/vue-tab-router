@@ -6,6 +6,7 @@
     "dist"
   ],
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "build": "vue-tsc --noEmit && vite build",
     "docs:dev": "vitepress dev --force",
     "docs:build": "vitepress build",
