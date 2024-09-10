@@ -41,6 +41,10 @@ export default defineComponent({
 
                 provide(INJECT_CURRENT_TAB_KEY, activeTab);
 
+                if (activeTab._isRefresh) {
+                    return () => null;
+                }
+
                 // activeTab._loading
 
                 if (activeTab.viewUrl.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(activeTab.viewUrl)) {
