@@ -1,6 +1,6 @@
 {
   "name": "@xsbcme/vue-tab-router",
-  "version": "0.0.49",
+  "version": "0.0.50",
   "type": "module",
   "types": "./dist/index.d.ts",
   "main": "./dist/vue-tab-router.umd.cjs",
