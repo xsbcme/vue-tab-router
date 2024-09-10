@@ -406,16 +406,17 @@ export class TabsManager extends Plugin {
                             await this.closeTab(newTab._id);
                             return Promise.reject(error);
                         }
-                        // try {
-                        //     typeof newTab._onBeforeTabEnter === 'function' && await newTab._onBeforeTabEnter();
-                        // } catch (error) {
-                        //     if (newTab._sourceId) {
-                        //         await this.changeActiveTab(newTab._sourceId, false);
-                        //     } else {
-                        //         await this.closeTab(newTab._id);
-                        //     }
-                        //     return Promise.reject(error);
-                        // }
+                        try {
+                            typeof newTab._onBeforeTabEnter === 'function' && await newTab._onBeforeTabEnter();
+                        } catch (error) {
+                            if (newTab._sourceId) {
+                                // await this.changeActiveTab(newTab._sourceId, false);
+                                return Promise.reject(error);
+                            } else {
+                                await this.closeTab(newTab._id);
+                            }
+                            return Promise.reject(error);
+                        }
                     });
                 });
                 return await this.changeActiveTab(newTab._id, false);
@@ -525,9 +526,7 @@ export class TabsManager extends Plugin {
             }
             Object.assign<Tab, Partial<Tab>>(findTab, { _isRefresh: true });
             return nextTick(() => {
-                setTimeout(() => {
-                    Object.assign<Tab, Partial<Tab>>(findTab, { _isRefresh: undefined });
-                }, 60);
+                Object.assign<Tab, Partial<Tab>>(findTab, { _isRefresh: undefined });
             });
         });
     }
@@ -651,6 +650,7 @@ export class TabsManager extends Plugin {
         const mountApp = app.mount;
         app.mount = (...args) => {
             this.registerModules();
+            // todo 这里应该将标签页列表遍历一遍提取参数缓存进内存中
             return mountApp(...args);
         }
         const unmountApp = app.unmount;

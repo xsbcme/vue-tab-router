@@ -41,10 +41,6 @@ export default defineComponent({
 
                 provide(INJECT_CURRENT_TAB_KEY, activeTab);
 
-                if (activeTab._isRefresh) {
-                    return () => null;
-                }
-
                 // activeTab._loading
 
                 if (activeTab.viewUrl.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(activeTab.viewUrl)) {
@@ -73,7 +69,7 @@ export default defineComponent({
         const keepAliveRender = () => createVNode(KeepAliveEnhanceComponent, {
             ...keepAliveProps,
             includeKey: getKeepTabKeys.value
-        }, () => createVNode(dynamicComponent, { key: tabsManager.activeTab?._id }));
+        }, () => tabsManager.activeTab?._isRefresh ? null : createVNode(dynamicComponent, { key: tabsManager.activeTab?._id }));
 
         const transitionRender = () => createVNode(Transition, {
             appear: true,

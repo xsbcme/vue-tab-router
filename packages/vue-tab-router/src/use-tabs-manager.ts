@@ -43,6 +43,11 @@ export function defineTabOptions(options: IDefineTabOptions) {
     }
 }
 
+
+// export function defineTabEvents() {
+
+// }
+
 /**
  * 路由守卫 - 标签页打开前条用
  * @param guard 执行回调
