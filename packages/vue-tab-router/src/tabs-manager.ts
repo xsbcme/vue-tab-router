@@ -5,6 +5,7 @@ import { DefineEvents, IOpenTabOptions, ITabsManagerOptions, IUpdateTabOptions, 
 import { isHttpUrl, jsonToObject, createRandomString, clone, findParentPathsByPath } from "./utils";
 import { INJECT_ACTIVE_TAB_KEY, INJECT_CURRENT_TAB_KEY, PEALTIVE_VIEW_URL_PREFIX_KEY, STORAGE_TABS_KEY } from "./constant";
 import { useEventManager } from "./use-event-manager";
+import { StorageAdapter } from "./storage-adapter";
 
 export class TabsManager extends Plugin {
     private static _instance: TabsManager | null = null;
@@ -22,7 +23,11 @@ export class TabsManager extends Plugin {
     }
 
     get storage() {
-        return this._options?.storageAdapter;
+        let storageAdapter = this._options?.storageAdapter;
+        if (!storageAdapter) {
+            storageAdapter = new StorageAdapter();
+        }
+        return storageAdapter;
     }
 
     get refreshAllTabFlag() {

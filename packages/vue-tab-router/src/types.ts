@@ -4,7 +4,7 @@ import { Tab } from "./tab";
 
 export interface ITabsManagerOptions {
     modules: Record<string, () => Promise<Component>> | Record<string, Component>;
-    storageAdapter: AbstractStorageAdapter;
+    storageAdapter?: AbstractStorageAdapter;
     source?: Partial<AsyncComponentOptions>,
     transitionProps?: TransitionProps;
     keepAliveProps?: {
