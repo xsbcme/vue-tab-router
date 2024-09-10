@@ -3,7 +3,7 @@
     "target": "esnext",
     "module": "esnext",
     "allowJs": false,
-    "strict": true,
+    "strict": false,
     "moduleResolution": "bundler",
     "skipLibCheck": true,
     "noUnusedLocals": true,
@@ -18,14 +18,5 @@
     "types": [
       "vite/client"
     ],
-    "baseUrl": "./",
-    "paths": {
-      "@/*": [
-        "src/*"
-      ]
-    },
   },
-  "include": [
-    "src",
-  ],
 }

@@ -2,7 +2,6 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import Vue from '@vitejs/plugin-vue';
 import Dts from 'vite-plugin-dts';
-// import Unocss from 'unocss/vite';
 
 export default defineConfig({
     resolve: {
@@ -31,7 +30,6 @@ export default defineConfig({
     },
     plugins: [
         Vue(),
-        // Unocss(),
         Dts({ rollupTypes: false })
     ],
     define: {

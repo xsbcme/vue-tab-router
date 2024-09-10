@@ -1,6 +1,8 @@
 node_modules
 pnpm-lock.yaml
 dist
+.vitepress/dist
+.vitepress/cache
 .turbo
 .changeset/*
 !.changeset/config.json
