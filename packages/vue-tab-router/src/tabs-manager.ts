@@ -2,7 +2,7 @@ import { App, defineAsyncComponent, nextTick, createVNode, defineComponent, comp
 import { Plugin } from './base/plugin';
 import { Tab } from "./tab";
 import { DefineEvents, IOpenTabOptions, ITabsManagerOptions, IUpdateTabOptions, Modules, TabGuard, TabGuardName } from "./types";
-import { isHttpUrl, jsonToObject, createRandomString, clone } from "./utils";
+import { isHttpUrl, jsonToObject, createRandomString, clone, findParentPathsByPath } from "./utils";
 import { INJECT_ACTIVE_TAB_KEY, INJECT_CURRENT_TAB_KEY, PEALTIVE_VIEW_URL_PREFIX_KEY, STORAGE_TABS_KEY } from "./constant";
 import { useEventManager } from "./use-event-manager";
 
@@ -43,6 +43,19 @@ export class TabsManager extends Plugin {
         return this._tabs.find(item => item._isActive);
     }
 
+    /**
+     * 获取全部注册的标签页路径
+     */
+    get registerTabPaths() {
+        return Object.keys(this._options.modules || {});
+    }
+
+    /**
+     * 获取当前激活的标签页的父路径
+     */
+    get activeTabParentPaths() {
+        return findParentPathsByPath(this.registerTabPaths, this.activeTab?.viewUrl);
+    }
 
     private constructor() {
         super();
@@ -85,7 +98,7 @@ export class TabsManager extends Plugin {
         });
         Object.keys(modules).forEach(viewId => {
             if (!this._app) return;
-            if (this._app._context.components[viewId]) return;
+            if (this.getAppComponentByName(viewId)) return;
             let component = modules[viewId];
             if (typeof component === 'function') {
                 component = defineAsyncComponent<Object>({
@@ -107,7 +120,7 @@ export class TabsManager extends Plugin {
      */
     private preloadLoadComponent(tab: Tab) {
         return new Promise<void>((resolve) => {
-            const component = this._app!._context.components[tab.viewUrl];
+            const component = this.getAppComponentByName(tab.viewUrl);
             if (!component) return Promise.reject(new Error(`组件不存在[${tab.viewUrl}]`));
             const containerEl = document.createDocumentFragment();
             const getActiveTab = computed(() => this.activeTab);
@@ -146,6 +159,10 @@ export class TabsManager extends Plugin {
 
     private getTabByViewUrl(viewUrl: string) {
         return this._tabs.find(item => item.viewUrl == viewUrl);
+    }
+
+    private getAppComponentByName(name: string) {
+        return this._app!._context.components[name];
     }
 
     private getTabByViewUrlAndProps(viewUrl: string, props: Record<string, any> | undefined) {
@@ -313,7 +330,7 @@ export class TabsManager extends Plugin {
                     const { target, features } = _viewOutsideProps || {};
                     return window.open(newViewUrl, target, features);
                 }
-            } else if (!this._app!._context.components[viewUrl]) {
+            } else if (!this.getAppComponentByName(viewUrl)) {
                 return Promise.reject(new Error(`视图未注册[${viewUrl}]`));
             }
 
