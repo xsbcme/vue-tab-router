@@ -170,6 +170,24 @@ export class TabsManager extends Plugin {
         return this._app!._context.components[name];
     }
 
+    private isHttpUrl(url: string) {
+        return url.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(url);
+    }
+
+    private getHttpUrl(url: string) {
+        if (this.isHttpUrl(url)) {
+            if (url.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(url)) {
+                let newUrl = '';
+                if (url.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY)) {
+                    newUrl = url.replace(PEALTIVE_VIEW_URL_PREFIX_KEY, '');
+                } else {
+                    newUrl = url;
+                }
+                return newUrl;
+            }
+        }
+    }
+
     private getTabByViewUrlAndProps(viewUrl: string, props: Record<string, any> | undefined) {
         const filterTabsByComponent = this._tabs.filter(tab => tab.viewUrl === viewUrl);
         return filterTabsByComponent.find(tab => {
@@ -222,6 +240,19 @@ export class TabsManager extends Plugin {
             // 如果目标组件还在加载中不允许激活
             if (findTab._loading) return Promise.reject(new Error(`组件还在加载中[${tabId}]`));
 
+            if (triggerHook && !this.isHttpUrl(findTab.viewUrl)) {
+                await this.preloadLoadComponent(findTab);
+                await nextTick(async () => {
+                    await this.updateTabLoaing(findTab._id, async () => {
+                        try {
+                            typeof findTab._onBeforeTabEnter === 'function' && await findTab._onBeforeTabEnter();
+                        } catch (error) {
+                            return Promise.reject(error);
+                        }
+                    });
+                });
+            }
+
             this._tabs.forEach(item => {
                 if (item._id === tabId) {
                     Object.assign<Tab, Partial<Tab>>(item, { _isActive: true });
@@ -230,13 +261,6 @@ export class TabsManager extends Plugin {
                 }
             });
             this.storage?.set(STORAGE_TABS_KEY, this._tabs);
-
-            if (triggerHook) {
-                await this.preloadLoadComponent(findTab);
-                await nextTick(async () => {
-                    typeof findTab._onBeforeTabEnter === 'function' && await findTab._onBeforeTabEnter();
-                });
-            }
 
             return tabId;
         });
@@ -259,7 +283,7 @@ export class TabsManager extends Plugin {
      * @param options 标签页参数
      * @param tabId 标签页ID
      */
-    public updateTabOptions(options: IUpdateTabOptions | string, tabId: string) {
+    public updateTabOptions(options: IUpdateTabOptions | string, tabId?: string) {
         return nextTick(() => {
             const findTab = tabId ? this.getTabById(tabId) : this.activeTab;
             if (!findTab) return;
@@ -290,7 +314,6 @@ export class TabsManager extends Plugin {
      * 将指定标签页设置为加载状态，回调执行完后自动取消加载状态
      * @param tabId 标签页ID
      * @param taskCallbak 执行回调
-     * @returns 
      */
     public updateTabLoaing(tabId: string, taskCallbak: () => Promise<void>) {
         const findTab = this.getTabById(tabId);
@@ -324,13 +347,8 @@ export class TabsManager extends Plugin {
             } = jsonToObject(tabOptions || {}, {}) as IOpenTabOptions;
 
             // 判断是否为超链接
-            if (viewUrl.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(viewUrl)) {
-                let newViewUrl = '';
-                if (viewUrl.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY)) {
-                    newViewUrl = viewUrl.replace(PEALTIVE_VIEW_URL_PREFIX_KEY, '');
-                } else {
-                    newViewUrl = viewUrl;
-                }
+            if (this.isHttpUrl(viewUrl)) {
+                const newViewUrl = this.getHttpUrl(viewUrl);
                 if (_viewOutside) {
                     const { target, features } = _viewOutsideProps || {};
                     return window.open(newViewUrl, target, features);
@@ -366,7 +384,7 @@ export class TabsManager extends Plugin {
             const eventManager = useEventManager();
             Object.keys(_viewEvents || {}).forEach(eventName => {
                 // 当前标签页_上级标签页_事件名称
-                const _key = `${newTab._id}_${this.activeTab?._id || ''}_${eventName}`;
+                const _key = `${newTab?._id || ''}_${this.activeTab?._id || ''}_${eventName}`;
                 eventManager.off(_key);
                 eventManager.on(_key, _viewEvents[eventName]);
             });
@@ -386,12 +404,18 @@ export class TabsManager extends Plugin {
                             typeof newTab._onBeforeTabOpen === 'function' && await newTab._onBeforeTabOpen();
                         } catch (error) {
                             await this.closeTab(newTab._id);
+                            return Promise.reject(error);
                         }
-                        try {
-                            typeof newTab._onBeforeTabEnter === 'function' && await newTab._onBeforeTabEnter();
-                        } catch (error) {
-                            newTab._sourceId && await this.changeActiveTab(newTab._sourceId, false);
-                        }
+                        // try {
+                        //     typeof newTab._onBeforeTabEnter === 'function' && await newTab._onBeforeTabEnter();
+                        // } catch (error) {
+                        //     if (newTab._sourceId) {
+                        //         await this.changeActiveTab(newTab._sourceId, false);
+                        //     } else {
+                        //         await this.closeTab(newTab._id);
+                        //     }
+                        //     return Promise.reject(error);
+                        // }
                     });
                 });
                 return await this.changeActiveTab(newTab._id, false);
@@ -492,7 +516,6 @@ export class TabsManager extends Plugin {
     /**
      * 刷新标签页
      * @param tabId 标签页ID，不填时默认为当前激活的标签页
-     * @returns 
      */
     public refreshTab(tabId?: string) {
         return nextTick(() => {
@@ -502,7 +525,9 @@ export class TabsManager extends Plugin {
             }
             Object.assign<Tab, Partial<Tab>>(findTab, { _isRefresh: true });
             return nextTick(() => {
-                Object.assign<Tab, Partial<Tab>>(findTab, { _isRefresh: undefined });
+                setTimeout(() => {
+                    Object.assign<Tab, Partial<Tab>>(findTab, { _isRefresh: undefined });
+                }, 60);
             });
         });
     }
@@ -529,7 +554,7 @@ export class TabsManager extends Plugin {
         const findTab = this.getTabById(tabId || this.activeTab?._id);
         if (findTab && findTab._sourceId) {
             const eventManager = useEventManager();
-            eventManager.emit(`${tabId}_${findTab._sourceId || ''}_${eventName}`, data);
+            eventManager.emit(`${findTab._id || ''}_${findTab._sourceId || ''}_${eventName}`, data);
         }
     }
 

@@ -50,7 +50,3 @@ export function createRandomString(length: number = 4): string {
     }
     return result;
 }
-
-// export function getAppComponentByName(app: App, name: string) {
-//     return app._context.components[name];
-// }
