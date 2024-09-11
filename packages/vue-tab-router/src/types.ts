@@ -16,7 +16,7 @@ export interface ITabsManagerOptions {
     onBeforeTabEnter?: TabGuard;
 }
 
-export type TabGuard = (toTab: Tab, oldTab?: Tab) => Promise<void>;
+export type TabGuard = (toTab: Partial<Tab>, oldTab?: Partial<Tab>) => Promise<void>;
 // export type TabGuardName = '_onBeforeTabOpen' | '_onBeforeTabEnter' | '_onBeforeTabLeave' | '_onBeforeTabClose';
 export type TabGuardName = '_onBeforeTabLeave' | '_onBeforeTabClose';
 export type Modules<T = any> = Record<string, () => Promise<T>> | Record<string, T>;

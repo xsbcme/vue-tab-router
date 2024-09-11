@@ -256,7 +256,9 @@ export class TabsManager extends Plugin {
             if (triggerHook) {
                 try {
                     const onBeforeTabEnter = this._options?.onBeforeTabEnter;
-                    typeof onBeforeTabEnter === 'function' && await onBeforeTabEnter(findTab, this.getTabById(findTab._sourceId));
+                    typeof onBeforeTabEnter === 'function' && await onBeforeTabEnter(
+                        clone(findTab),
+                        clone(this.getTabById(findTab._sourceId)));
                 } catch (error) {
                     return Promise.reject(error);
                 }
@@ -384,7 +386,10 @@ export class TabsManager extends Plugin {
 
             // 检查当前Tab页是否可以离开
             if (newTab._id !== this.activeTab?._id) {
-                typeof this.activeTab?._onBeforeTabLeave === 'function' && await this.activeTab._onBeforeTabLeave(newTab, this.getTabById(newTab._sourceId));
+                typeof this.activeTab?._onBeforeTabLeave === 'function' && await this.activeTab._onBeforeTabLeave(
+                    clone(newTab),
+                    clone(this.getTabById(newTab._sourceId))
+                );
             }
 
             if (findTabByProps) {
@@ -395,9 +400,11 @@ export class TabsManager extends Plugin {
             const findTabByViewUrl = this.getTabByViewUrl(viewUrl);
             if (!findTabByViewUrl || (findTabByViewUrl && !newTab._single)) {
 
-
                 const onBeforeTabOpen = this._options?.onBeforeTabOpen;
-                typeof onBeforeTabOpen === 'function' && await onBeforeTabOpen(newTab, this.getTabById(newTab._sourceId));
+                typeof onBeforeTabOpen === 'function' && await onBeforeTabOpen(
+                    clone(newTab),
+                    clone(this.getTabById(newTab._sourceId))
+                );
 
                 this._tabs.push(newTab);
 
@@ -487,7 +494,9 @@ export class TabsManager extends Plugin {
                     return;
                 }
 
-                typeof findTab._onBeforeTabClose === 'function' && await findTab._onBeforeTabClose(this.getTabById(findTab._sourceId), findTab);
+                typeof findTab._onBeforeTabClose === 'function' && await findTab._onBeforeTabClose(
+                    clone(this.getTabById(findTab._sourceId)),
+                    clone(findTab));
 
                 const eventManager = useEventManager();
                 eventManager.eventNames.forEach((eventName: string) => {
@@ -565,11 +574,30 @@ export class TabsManager extends Plugin {
 
     /**
      * 交换标签页位置
+     * @param tabIndex1 标签页索引
+     * @param tabIndex2 标签页索引
+     */
+    public swapTabByIndex(tabIndex1: number, tabIndex2: number) {
+        return nextTick(() => {
+            if (tabIndex1 >= 0 && tabIndex2 >= 0) {
+                const temp = this._tabs[tabIndex1];
+                this._tabs[tabIndex1] = this._tabs[tabIndex2];
+                this._tabs[tabIndex2] = temp;
+            }
+        });
+    }
+
+    /**
+     * 交换标签页位置
      * @param tabId1 标签页ID
      * @param tabId2 标签页ID
      */
-    public swapTab(tabId1: string, tabId2: string) {
-
+    public swapTabById(tabId1: string, tabId2: string) {
+        return nextTick(() => {
+            const findTab1Index = this._tabs.findIndex(tab => tab._id = tabId1);
+            const findTab2Index = this._tabs.findIndex(tab => tab._id = tabId2);
+            return this.swapTabByIndex(findTab1Index, findTab2Index);
+        });
     }
 
     /**

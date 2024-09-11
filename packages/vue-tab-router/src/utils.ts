@@ -40,7 +40,11 @@ export function isHttpUrl(url: string | undefined) {
 }
 
 export function clone<T = any>(obj: T): T {
-    return JSON.parse(JSON.stringify(obj));
+    try {
+        return JSON.parse(JSON.stringify(obj));
+    } catch (error) {
+        return obj;
+    }
 }
 
 export function createRandomString(length: number = 4): string {
