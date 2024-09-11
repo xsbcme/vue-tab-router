@@ -45,7 +45,7 @@ export function defineTabOptions(options: IDefineTabOptions) {
 }
 
 /**
- * 定义标签页事件
+ * 定义标签页事件 子页面通过emit触发事件
  * @param options 定义事件
  */
 export function defineTabEvents(events: DefineEvents) {
@@ -53,35 +53,35 @@ export function defineTabEvents(events: DefineEvents) {
     if (tab) {
         const eventManager = useEventManager();
         Object.keys(events || {}).forEach(eventName => {
-            // 当前标签页_上级标签页_事件名称
-            const _key = `${tab?._id || ''}_${tab?._sourceId || ''}_${eventName}`;
+            // 当前标签页_事件名称
+            const _key = `${tab?._id || ''}_${eventName}`;
             eventManager.off(_key);
             eventManager.on(_key, events[eventName]);
         });
     }
 }
 
-/**
- * 路由守卫 - 标签页打开前条用
- * @param guard 执行回调
- */
-export function onBeforeTabOpen(guard: TabGuard) {
-    const id = useTabId();
-    if (id) {
-        useTabsManager()._registerTabGuard(id, '_onBeforeTabOpen', guard);
-    }
-}
+// /**
+//  * 路由守卫 - 标签页打开前条用
+//  * @param guard 执行回调
+//  */
+// export function onBeforeTabOpen(guard: TabGuard) {
+//     const id = useTabId();
+//     if (id) {
+//         useTabsManager()._registerTabGuard(id, '_onBeforeTabOpen', guard);
+//     }
+// }
 
-/**
- * 路由守卫 - 标签页进入前条用
- * @param guard 执行回调
- */
-export function onBeforeTabEnter(guard: TabGuard) {
-    const id = useTabId();
-    if (id) {
-        useTabsManager()._registerTabGuard(id, '_onBeforeTabEnter', guard);
-    }
-}
+// /**
+//  * 路由守卫 - 标签页进入前条用
+//  * @param guard 执行回调
+//  */
+// export function onBeforeTabEnter(guard: TabGuard) {
+//     const id = useTabId();
+//     if (id) {
+//         useTabsManager()._registerTabGuard(id, '_onBeforeTabEnter', guard);
+//     }
+// }
 
 /**
  * 路由守卫 - 标签页离开前条用

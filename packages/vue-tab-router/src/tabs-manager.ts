@@ -1,9 +1,9 @@
-import { App, defineAsyncComponent, nextTick, createVNode, defineComponent, computed, createApp, provide } from "vue";
+import { App, defineAsyncComponent, nextTick, createVNode, defineComponent } from "vue";
 import { Plugin } from './base/plugin';
 import { Tab } from "./tab";
 import { IOpenTabOptions, ITabsManagerOptions, IUpdateTabOptions, Modules, TabGuard, TabGuardName } from "./types";
 import { isHttpUrl, jsonToObject, createRandomString, clone, findParentPathsByPath } from "./utils";
-import { INJECT_ACTIVE_TAB_KEY, INJECT_CURRENT_TAB_KEY, PEALTIVE_VIEW_URL_PREFIX_KEY, STORAGE_TABS_KEY } from "./constant";
+import { PEALTIVE_VIEW_URL_PREFIX_KEY, STORAGE_TABS_KEY } from "./constant";
 import { useEventManager } from "./use-event-manager";
 import { StorageAdapter } from "./storage-adapter";
 
@@ -118,41 +118,41 @@ export class TabsManager extends Plugin {
         });
     }
 
-    /**
-     * 预加载组件 - 加载完成后自动会调用组件与自定义钩子关联
-     * todo 期望能直接读取到注册的函数
-     * @param tab 预加载标签页
-     */
-    private preloadLoadComponent(tab: Tab) {
-        return new Promise<void>((resolve) => {
-            const component = this.getAppComponentByName(tab.viewUrl);
-            if (!component) return Promise.reject(new Error(`组件不存在[${tab.viewUrl}]`));
-            const containerEl = document.createDocumentFragment();
-            const getActiveTab = computed(() => this.activeTab);
-            const wrapperComponent = defineComponent({
-                setup() {
-                    provide(INJECT_ACTIVE_TAB_KEY, getActiveTab);
-                    provide(INJECT_CURRENT_TAB_KEY, tab);
-                    // return () => createVNode(Suspense, {
-                    //     onFallback: (error: any) => {
-                    //         reject(error);
-                    //     }
-                    // }, () => createVNode({ ...component }, {
-                    //     onVnodeMounted() {
-                    //         resolve();
-                    //     }
-                    // }));
-                    return () => createVNode({ ...component }, {
-                        onVnodeMounted() {
-                            resolve();
-                        }
-                    });
-                }
-            });
-            const runContainer = createApp(wrapperComponent);
-            runContainer.mount(containerEl as unknown as Element);
-        });
-    }
+    // /**
+    //  * 预加载组件 - 加载完成后自动会调用组件与自定义钩子关联
+    //  * todo 期望能直接读取到注册的函数
+    //  * @param tab 预加载标签页
+    //  */
+    // private preloadLoadComponent(tab: Tab) {
+    //     return new Promise<void>((resolve) => {
+    //         const component = this.getAppComponentByName(tab.viewUrl);
+    //         if (!component) return Promise.reject(new Error(`组件不存在[${tab.viewUrl}]`));
+    //         const containerEl = document.createDocumentFragment();
+    //         const getActiveTab = computed(() => this.activeTab);
+    //         const wrapperComponent = defineComponent({
+    //             setup() {
+    //                 provide(INJECT_ACTIVE_TAB_KEY, getActiveTab);
+    //                 provide(INJECT_CURRENT_TAB_KEY, tab);
+    //                 // return () => createVNode(Suspense, {
+    //                 //     onFallback: (error: any) => {
+    //                 //         reject(error);
+    //                 //     }
+    //                 // }, () => createVNode({ ...component }, {
+    //                 //     onVnodeMounted() {
+    //                 //         resolve();
+    //                 //     }
+    //                 // }));
+    //                 return () => createVNode({ ...component }, {
+    //                     onVnodeMounted() {
+    //                         resolve();
+    //                     }
+    //                 });
+    //             }
+    //         });
+    //         const runContainer = createApp(wrapperComponent);
+    //         runContainer.mount(containerEl as unknown as Element);
+    //     });
+    // }
 
     /**
      * 根据标签页ID获取标签
@@ -240,18 +240,18 @@ export class TabsManager extends Plugin {
             // 如果目标组件还在加载中不允许激活
             if (findTab._loading) return Promise.reject(new Error(`组件还在加载中[${tabId}]`));
 
-            if (triggerHook && !this.isHttpUrl(findTab.viewUrl)) {
-                await this.preloadLoadComponent(findTab);
-                await nextTick(async () => {
-                    await this.updateTabLoaing(findTab._id, async () => {
-                        try {
-                            typeof findTab._onBeforeTabEnter === 'function' && await findTab._onBeforeTabEnter();
-                        } catch (error) {
-                            return Promise.reject(error);
-                        }
-                    });
-                });
-            }
+            // if (triggerHook && !this.isHttpUrl(findTab.viewUrl)) {
+            //     await this.preloadLoadComponent(findTab);
+            //     await nextTick(async () => {
+            //         await this.updateTabLoaing(findTab._id, async () => {
+            //             try {
+            //                 typeof findTab._onBeforeTabEnter === 'function' && await findTab._onBeforeTabEnter();
+            //             } catch (error) {
+            //                 return Promise.reject(error);
+            //             }
+            //         });
+            //     });
+            // }
 
             this._tabs.forEach(item => {
                 if (item._id === tabId) {
@@ -387,30 +387,30 @@ export class TabsManager extends Plugin {
             if (!findTabByViewUrl || (findTabByViewUrl && !newTab._single)) {
                 this._tabs.push(newTab);
 
-                if (!this.isHttpUrl(newTab.viewUrl)) {
-                    await this.preloadLoadComponent(newTab);
-                    await nextTick(async () => {
-                        await this.updateTabLoaing(newTab._id, async () => {
-                            try {
-                                typeof newTab._onBeforeTabOpen === 'function' && await newTab._onBeforeTabOpen();
-                            } catch (error) {
-                                await this.closeTab(newTab._id);
-                                return Promise.reject(error);
-                            }
-                            try {
-                                typeof newTab._onBeforeTabEnter === 'function' && await newTab._onBeforeTabEnter();
-                            } catch (error) {
-                                if (newTab._sourceId) {
-                                    // await this.changeActiveTab(newTab._sourceId, false);
-                                    return Promise.reject(error);
-                                } else {
-                                    await this.closeTab(newTab._id);
-                                }
-                                return Promise.reject(error);
-                            }
-                        });
-                    });
-                }
+                // if (!this.isHttpUrl(newTab.viewUrl)) {
+                //     await this.preloadLoadComponent(newTab);
+                //     await nextTick(async () => {
+                //         await this.updateTabLoaing(newTab._id, async () => {
+                //             try {
+                //                 typeof newTab._onBeforeTabOpen === 'function' && await newTab._onBeforeTabOpen();
+                //             } catch (error) {
+                //                 await this.closeTab(newTab._id);
+                //                 return Promise.reject(error);
+                //             }
+                //             try {
+                //                 typeof newTab._onBeforeTabEnter === 'function' && await newTab._onBeforeTabEnter();
+                //             } catch (error) {
+                //                 if (newTab._sourceId) {
+                //                     // await this.changeActiveTab(newTab._sourceId, false);
+                //                     return Promise.reject(error);
+                //                 } else {
+                //                     await this.closeTab(newTab._id);
+                //                 }
+                //                 return Promise.reject(error);
+                //             }
+                //         });
+                //     });
+                // }
 
                 return await this.changeActiveTab(newTab._id, false);
             }
@@ -545,7 +545,7 @@ export class TabsManager extends Plugin {
         const findTab = this.getTabById(tabId || this.activeTab?._id);
         if (findTab && findTab._sourceId) {
             const eventManager = useEventManager();
-            eventManager.emit(`${findTab._id || ''}_${findTab._sourceId || ''}_${eventName}`, data);
+            eventManager.emit(`${findTab._sourceId || ''}_${eventName}`, data);
         }
     }
 
