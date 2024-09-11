@@ -1,3 +1,4 @@
+import { Component } from "vue";
 
 export function findParentPathsByPath(paths: string[], path: string) {
     if (!path) return [];
@@ -49,4 +50,13 @@ export function createRandomString(length: number = 4): string {
         result += characters.charAt(Math.floor(Math.random() * characters.length));
     }
     return result;
+}
+
+export async function preloadComponent(component: Component) {
+    const __asyncLoader = Reflect.get(component, '__asyncLoader');
+    if (typeof __asyncLoader === 'function') {
+        return await __asyncLoader.call(component) as Component;
+    } else {
+        return component;
+    }
 }

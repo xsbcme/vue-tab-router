@@ -12,10 +12,13 @@ export interface ITabsManagerOptions {
     };
     noActiveComponent?: Component;
     onIframeLoad?: (e: Event, tab: Tab) => void;
+    onBeforeTabOpen?: TabGuard;
+    onBeforeTabEnter?: TabGuard;
 }
 
-export type TabGuard = () => Promise<void>;
-export type TabGuardName = '_onBeforeTabOpen' | '_onBeforeTabEnter' | '_onBeforeTabLeave' | '_onBeforeTabClose';
+export type TabGuard = (toTab: Tab, oldTab?: Tab) => Promise<void>;
+// export type TabGuardName = '_onBeforeTabOpen' | '_onBeforeTabEnter' | '_onBeforeTabLeave' | '_onBeforeTabClose';
+export type TabGuardName = '_onBeforeTabLeave' | '_onBeforeTabClose';
 export type Modules<T = any> = Record<string, () => Promise<T>> | Record<string, T>;
 export type DefineEvents = { [key: string]: (data: any) => void };
 

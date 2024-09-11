@@ -10,7 +10,7 @@ export class Tab {
     _isFirst?: boolean;
     _single?: boolean;
     _noCahce?: boolean;
-    _loading?: boolean;
+    // _loading?: boolean;
     // _onBeforeTabOpen?: TabGuard;
     // _onBeforeTabEnter?: TabGuard;
     _onBeforeTabLeave?: TabGuard;

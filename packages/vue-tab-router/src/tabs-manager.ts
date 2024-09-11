@@ -237,8 +237,8 @@ export class TabsManager extends Plugin {
             const findTab = this.getTabById(tabId);
             if (!findTab) return Promise.reject(new Error(`标签页不存在[${tabId}]`));
 
-            // 如果目标组件还在加载中不允许激活
-            if (findTab._loading) return Promise.reject(new Error(`组件还在加载中[${tabId}]`));
+            // // 如果目标组件还在加载中不允许激活
+            // if (findTab._loading) return Promise.reject(new Error(`组件还在加载中[${tabId}]`));
 
             // if (triggerHook && !this.isHttpUrl(findTab.viewUrl)) {
             //     await this.preloadLoadComponent(findTab);
@@ -252,6 +252,15 @@ export class TabsManager extends Plugin {
             //         });
             //     });
             // }
+
+            if (triggerHook) {
+                try {
+                    const onBeforeTabEnter = this._options?.onBeforeTabEnter;
+                    typeof onBeforeTabEnter === 'function' && await onBeforeTabEnter(findTab, this.getTabById(findTab._sourceId));
+                } catch (error) {
+                    return Promise.reject(error);
+                }
+            }
 
             this._tabs.forEach(item => {
                 if (item._id === tabId) {
@@ -310,20 +319,20 @@ export class TabsManager extends Plugin {
         });
     }
 
-    /**
-     * 将指定标签页设置为加载状态，回调执行完后自动取消加载状态
-     * @param tabId 标签页ID
-     * @param taskCallbak 执行回调
-     */
-    public updateTabLoaing(tabId: string, taskCallbak: () => Promise<void>) {
-        const findTab = this.getTabById(tabId);
-        if (findTab) {
-            Object.assign<Tab, Partial<Tab>>(findTab, { _loading: true });
-            return taskCallbak().finally(() => {
-                Object.assign<Tab, Partial<Tab>>(findTab, { _loading: undefined });
-            });
-        }
-    }
+    // /**
+    //  * 将指定标签页设置为加载状态，回调执行完后自动取消加载状态
+    //  * @param tabId 标签页ID
+    //  * @param taskCallbak 执行回调
+    //  */
+    // public updateTabLoaing(tabId: string, taskCallbak: () => Promise<void>) {
+    //     const findTab = this.getTabById(tabId);
+    //     if (findTab) {
+    //         Object.assign<Tab, Partial<Tab>>(findTab, { _loading: true });
+    //         return taskCallbak().finally(() => {
+    //             Object.assign<Tab, Partial<Tab>>(findTab, { _loading: undefined });
+    //         });
+    //     }
+    // }
 
     /**
      * 打开标签页
@@ -375,7 +384,7 @@ export class TabsManager extends Plugin {
 
             // 检查当前Tab页是否可以离开
             if (newTab._id !== this.activeTab?._id) {
-                typeof this.activeTab?._onBeforeTabLeave === 'function' && await this.activeTab._onBeforeTabLeave();
+                typeof this.activeTab?._onBeforeTabLeave === 'function' && await this.activeTab._onBeforeTabLeave(newTab, this.getTabById(newTab._sourceId));
             }
 
             if (findTabByProps) {
@@ -385,6 +394,11 @@ export class TabsManager extends Plugin {
             // 如果路径都不存在|存在且是多例，则直接添加
             const findTabByViewUrl = this.getTabByViewUrl(viewUrl);
             if (!findTabByViewUrl || (findTabByViewUrl && !newTab._single)) {
+
+
+                const onBeforeTabOpen = this._options?.onBeforeTabOpen;
+                typeof onBeforeTabOpen === 'function' && await onBeforeTabOpen(newTab, this.getTabById(newTab._sourceId));
+
                 this._tabs.push(newTab);
 
                 // if (!this.isHttpUrl(newTab.viewUrl)) {
@@ -473,7 +487,7 @@ export class TabsManager extends Plugin {
                     return;
                 }
 
-                typeof findTab._onBeforeTabClose === 'function' && await findTab._onBeforeTabClose();
+                typeof findTab._onBeforeTabClose === 'function' && await findTab._onBeforeTabClose(this.getTabById(findTab._sourceId), findTab);
 
                 const eventManager = useEventManager();
                 eventManager.eventNames.forEach((eventName: string) => {
