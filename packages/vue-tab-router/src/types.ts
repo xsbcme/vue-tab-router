@@ -16,8 +16,8 @@ export interface ITabsManagerOptions {
 
 export type TabGuard = () => Promise<void>;
 export type TabGuardName = '_onBeforeTabOpen' | '_onBeforeTabEnter' | '_onBeforeTabLeave' | '_onBeforeTabClose';
-export type Modules = Record<string, () => Promise<any>> | Record<string, any>;
-export type DefineEvents = { [key: string]: (data: any) => void };
+export type Modules<T = any> = Record<string, () => Promise<T>> | Record<string, T>;
+export type DefineEvents = { [key: string]: (data: unknown) => void };
 
 export interface IDefineTabOptions {
     viewName?: string;
@@ -52,8 +52,8 @@ export interface IOpenTabOptions extends Record<string, any> {
     /** 标签页是否缓存 */
     _viewNoCahce?: boolean;
 
-    /** 标签页打开前后事件通讯 */
-    _viewEvents?: DefineEvents;
+    // /** 标签页打开前后事件通讯 - 使用defineTabEvents定义 */
+    // _viewEvents?: DefineEvents;
 
     /** 标签页是否以浏览器标签方式打开 */
     _viewOutside?: boolean;

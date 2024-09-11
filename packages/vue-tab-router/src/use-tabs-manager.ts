@@ -1,7 +1,8 @@
 import { reactive, UnwrapRef, inject } from "vue";
 import { TabsManager } from "./tabs-manager";
 import { INJECT_CURRENT_TAB_KEY } from "./constant";
-import { IDefineTabOptions, ITabsManagerOptions, TabGuard } from "./types";
+import { DefineEvents, IDefineTabOptions, ITabsManagerOptions, TabGuard } from "./types";
+import { useEventManager } from "./use-event-manager";
 
 /**
  * 创建标签页路由服务
@@ -43,10 +44,22 @@ export function defineTabOptions(options: IDefineTabOptions) {
     }
 }
 
-
-// export function defineTabEvents() {
-
-// }
+/**
+ * 定义标签页事件
+ * @param options 定义事件
+ */
+export function defineTabEvents(events: DefineEvents) {
+    const tab = inject(INJECT_CURRENT_TAB_KEY);
+    if (tab) {
+        const eventManager = useEventManager();
+        Object.keys(events || {}).forEach(eventName => {
+            // 当前标签页_上级标签页_事件名称
+            const _key = `${tab?._id || ''}_${tab?._sourceId || ''}_${eventName}`;
+            eventManager.off(_key);
+            eventManager.on(_key, events[eventName]);
+        });
+    }
+}
 
 /**
  * 路由守卫 - 标签页打开前条用

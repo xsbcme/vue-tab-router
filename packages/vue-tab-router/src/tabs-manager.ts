@@ -1,7 +1,7 @@
 import { App, defineAsyncComponent, nextTick, createVNode, defineComponent, computed, createApp, provide } from "vue";
 import { Plugin } from './base/plugin';
 import { Tab } from "./tab";
-import { DefineEvents, IOpenTabOptions, ITabsManagerOptions, IUpdateTabOptions, Modules, TabGuard, TabGuardName } from "./types";
+import { IOpenTabOptions, ITabsManagerOptions, IUpdateTabOptions, Modules, TabGuard, TabGuardName } from "./types";
 import { isHttpUrl, jsonToObject, createRandomString, clone, findParentPathsByPath } from "./utils";
 import { INJECT_ACTIVE_TAB_KEY, INJECT_CURRENT_TAB_KEY, PEALTIVE_VIEW_URL_PREFIX_KEY, STORAGE_TABS_KEY } from "./constant";
 import { useEventManager } from "./use-event-manager";
@@ -332,7 +332,6 @@ export class TabsManager extends Plugin {
      */
     public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions): Promise<string>;
     public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions & { _viewOutside: true }): Promise<Window>;
-    public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions & { _viewEvents: DefineEvents }): Promise<string>;
     public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions) {
         return nextTick(async () => {
             const {
@@ -342,7 +341,6 @@ export class TabsManager extends Plugin {
                 _viewIcon,
                 _viewNoCahce,
                 _viewSingle,
-                _viewEvents = {},
                 ...viewProps
             } = jsonToObject(tabOptions || {}, {}) as IOpenTabOptions;
 
@@ -379,15 +377,6 @@ export class TabsManager extends Plugin {
             if (newTab._id !== this.activeTab?._id) {
                 typeof this.activeTab?._onBeforeTabLeave === 'function' && await this.activeTab._onBeforeTabLeave();
             }
-
-            // 注册页面事件
-            const eventManager = useEventManager();
-            Object.keys(_viewEvents || {}).forEach(eventName => {
-                // 当前标签页_上级标签页_事件名称
-                const _key = `${newTab?._id || ''}_${this.activeTab?._id || ''}_${eventName}`;
-                eventManager.off(_key);
-                eventManager.on(_key, _viewEvents[eventName]);
-            });
 
             if (findTabByProps) {
                 return await this.changeActiveTab(findTabByProps._id);
@@ -445,12 +434,11 @@ export class TabsManager extends Plugin {
      * @param viewUrl 路由地址
      * @param tabOptions 打开标签页参数
      */
-    public async openFristTab<Url extends string>(viewUrl: Url, tabOptions?: Omit<IOpenTabOptions, '_viewOutside' | '_viewOutsideProps' | '_viewEvents'>) {
+    public async openFristTab<Url extends string>(viewUrl: Url, tabOptions?: Omit<IOpenTabOptions, '_viewOutside' | '_viewOutsideProps'>) {
         const tabId = await this.openTab(viewUrl, {
             ...tabOptions,
             _viewOutside: false,
             _viewOutsideProps: undefined,
-            _viewEvents: undefined,
             _viewSingle: true,
         });
         await this.setTabNoAllowClose(true, tabId);
