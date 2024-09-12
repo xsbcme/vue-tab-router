@@ -27,4 +27,4 @@ tabsManager.openTab('relative:./home',{
     username: '王五'
 });
 ```
-
+与内联导航处理链接的方式一致，唯一区别是将会以浏览器的标签页显示。
