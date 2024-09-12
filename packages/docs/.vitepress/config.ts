@@ -63,6 +63,9 @@ export default defineConfig({
           text: '基础',
           items: [
             { text: '入门', link: '/views/guide/introduction' },
+            { text: '基础导航', link: '/views/guide/basic-navigation' },
+            { text: '内联导航', link: '/views/guide/inline-navigation' },
+            { text: '外链导航', link: '/views/guide/outside-navigation' },
           ]
         },
         // {

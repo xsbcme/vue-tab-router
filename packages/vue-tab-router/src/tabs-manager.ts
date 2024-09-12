@@ -693,7 +693,7 @@ export class TabsManager extends Plugin {
             return unmountApp(...args);
         }
         super.loadPlugin();
-        app.config.globalProperties.$tabRouter = this;
+        app.config.globalProperties.$tabsManager = this;
     }
 
 }

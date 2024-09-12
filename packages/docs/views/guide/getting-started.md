@@ -149,14 +149,14 @@ run().catch(err => {
 
 如果你是从 ES 模块导出路由器实例的，你可以将路由器实例直接导入到你需要它的地方。在一些情况下这是最好的方法，但如果我们在组件内部，那么我们还有其他选择。
 
-在组件模板中，路由器实例将被暴露为 `$tabRouter`。
+在组件模板中，路由器实例将被暴露为 `$tabsManager`。
 
-如果我们使用选项式 API，我们可以在 JavaScript 中如下访问这属性：this.$tabRouter
+如果我们使用选项式 API，我们可以在 JavaScript 中如下访问这属性：this.$tabsManager
 ```ts
 export default {
   methods: {
     goToAbout() {
-      this.$tabRouter.openTab('/src/views/about/page-index.vue',{
+      this.$tabsManager.openTab('/src/views/about/page-index.vue',{
         _viewName: '关于页面'
       });
     },
