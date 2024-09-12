@@ -29,6 +29,7 @@ tabsManager.openTab('relative:./home',{
     username: '王五'
 });
 ```
+`relative:` 为约定相对路径标识，期望以相对路径的方式打开超链接。
 
 ## 内联导航事件
 其内部以 `Iframe` 标签渲染超链接内容，当需要个性化 `Iframe` 时，VueTabRouter 提供了 `onIframeLoad` 事件，在 `Iframe` 加载完毕时触发。
