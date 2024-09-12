@@ -10,9 +10,6 @@
     "publish": "pnpm run build && pnpm changeset && pnpm changeset version && pnpm changeset publish",
     "publish:beta": "pnpm run build && pnpm changeset pre enter beta && pnpm changeset && pnpm changeset version && pnpm changeset pre exit && pnpm changeset publish"
   },
-  "publishConfig": {
-    "registry": "http://118.89.165.225:8891/repository/npm-hosted/"
-  },
   "author": "xsbcme",
   "license": "ISC",
   "devDependencies": {

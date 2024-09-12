@@ -60,6 +60,7 @@ export default defineComponent({
                     });
                 }
 
+                // todo 创建dom容器记录滚动条位置
                 return () => createVNode(resolveComponent(activeTab.viewUrl), {
                     ...clone(activeTab.viewProps || {}),
                 });
