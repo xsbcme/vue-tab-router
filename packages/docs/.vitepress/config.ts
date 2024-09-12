@@ -40,6 +40,10 @@ export default defineConfig({
       prev: '上一页',
       next: '下一页'
     },
+    outline: {
+      level: [2, 3],
+      label: '页面导航'
+    },
     nav: [
       { text: '指南', link: '/views/guide/' },
       { text: 'API', link: '/views/api/' },
@@ -54,7 +58,34 @@ export default defineConfig({
             { text: '什么是 VueTabRouter？', link: '/views/guide/' },
             { text: '快速开始', link: '/views/guide/getting-started' },
           ]
-        }
+        },
+        {
+          text: '基础',
+          items: [
+            { text: '入门', link: '/views/guide/introduction' },
+          ]
+        },
+        // {
+        //   text: '进阶',
+        //   items: [
+        //     { text: '什么是 VueTabRouter？', link: '/views/guide/' },
+        //     { text: '快速开始', link: '/views/guide/getting-started' },
+        //   ]
+        // },
+        // {
+        //   text: '个性化',
+        //   items: [
+        //     { text: '什么是 VueTabRouter？', link: '/views/guide/' },
+        //     { text: '快速开始', link: '/views/guide/getting-started' },
+        //   ]
+        // },
+        // {
+        //   text: '解决方案',
+        //   items: [
+        //     { text: '什么是 VueTabRouter？', link: '/views/guide/' },
+        //     { text: '快速开始', link: '/views/guide/getting-started' },
+        //   ]
+        // },
       ],
       '/views/api/': [
         {

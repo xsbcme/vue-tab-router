@@ -26,9 +26,9 @@ features:
     details: 内置插件扩展功能，轻松扩展功能。
 ---
 
-## 快速安装
+<!-- ## 快速安装
 ```sh
 npm  install @xsbcme/vue-tab-router
 pnpm install @xsbcme/vue-tab-router
 yarn install @xsbcme/vue-tab-router
-```
+``` -->
