@@ -55,7 +55,7 @@ export default defineComponent({
                         link: viewUrl,
                         linkProps: activeTab.viewProps,
                         onLoad: (e: Event) => {
-                            onIframeLoad && onIframeLoad(e, activeTab);
+                            onIframeLoad && onIframeLoad(e, clone(activeTab));
                         }
                     });
                 }

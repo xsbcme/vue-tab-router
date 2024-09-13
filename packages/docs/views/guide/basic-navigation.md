@@ -36,15 +36,15 @@ tabsManager.refreshTab('aXGc');
 // 刷新所有标签页
 tabsManager.refreshTabAll();
 ```
-默认情况下，打开的标签页默认是启用缓存的，组件的生命周期函数如 `onMounted` 只会在新打开的标签页触发一次，后面再此激活将不会触发，但 `onActivated` 和 `onDeactivated` 可正常触发。
+默认情况下，打开的标签页默认启用缓存，组件的生命周期函数如 `onMounted` 只会在新打开的标签页触发一次，后面再次激活将不会触发，但 `onActivated` 和 `onDeactivated` 可正常触发。
 
 **注意：** 关于 `tabId` 如何获：
 - `tabsManager.tabs`将提供当前打开的标签页列表。
-- VueTabRouter 中导出了一个 `useTabId` 的hook函数。
+- 使用 VueTabRouter 中导出的 `useTabId` 的函数。
 
 
 ## 关闭导航页面
-想要关闭标签页页面，可以使用 `tabsManager.closeTab` 方法。
+想要关闭标签页页面，可以使用 `tabsManager.closeTab` 方法，此方法关闭当前标签页成功后，自动会激活 **来源标签页（当前处于A标签页，当打开了B标签页，则A标签页即为B标签页的来源）**。
 
 ```ts
 // 刷新当前激活的标签页

@@ -41,7 +41,7 @@ export default defineConfig({
       next: '下一页'
     },
     outline: {
-      level: [2, 3],
+      level: 'deep',
       label: '页面导航'
     },
     nav: [
@@ -63,32 +63,37 @@ export default defineConfig({
           text: '基础',
           items: [
             { text: '入门', link: '/views/guide/introduction' },
-            { text: '基础导航', link: '/views/guide/basic-navigation' },
-            { text: '内联导航', link: '/views/guide/inline-navigation' },
-            { text: '外链导航', link: '/views/guide/outside-navigation' },
+            { text: '基础页面导航', link: '/views/guide/basic-navigation' },
+            { text: '内联页面导航', link: '/views/guide/inline-navigation' },
+            { text: '外链页面导航', link: '/views/guide/outside-navigation' },
           ]
         },
-        // {
-        //   text: '进阶',
-        //   items: [
-        //     { text: '什么是 VueTabRouter？', link: '/views/guide/' },
-        //     { text: '快速开始', link: '/views/guide/getting-started' },
-        //   ]
-        // },
-        // {
-        //   text: '个性化',
-        //   items: [
-        //     { text: '什么是 VueTabRouter？', link: '/views/guide/' },
-        //     { text: '快速开始', link: '/views/guide/getting-started' },
-        //   ]
-        // },
-        // {
-        //   text: '解决方案',
-        //   items: [
-        //     { text: '什么是 VueTabRouter？', link: '/views/guide/' },
-        //     { text: '快速开始', link: '/views/guide/getting-started' },
-        //   ]
-        // },
+        {
+          text: '进阶',
+          items: [
+            { text: '页面缓存控制', link: '/views/guide/cache-control' },
+            { text: '页面覆盖模式', link: '/views/guide/' },
+            { text: '页面参数变更', link: '/views/guide/' },
+            { text: '页面事件通讯', link: '/views/guide/' },
+            { text: '页面安全守卫', link: '/views/guide/' }
+          ]
+        },
+        {
+          text: '个性化',
+          items: [
+            { text: '页面过渡效果', link: '/views/guide/outside-navigation' },
+            { text: '页面行为', link: '/views/guide/outside-navigation' },
+          ]
+        },
+        {
+          text: '解决方案',
+          items: [
+            { text: '首页方案', link: '/views/guide/outside-navigation' },
+            { text: '单页预览', link: '/views/guide/outside-navigation' },
+            { text: '与VueRouter结合使用', link: '/views/guide/outside-navigation' },
+            { text: '常见问题', link: '/views/guide/outside-navigation' },
+          ]
+        },
       ],
       '/views/api/': [
         {
