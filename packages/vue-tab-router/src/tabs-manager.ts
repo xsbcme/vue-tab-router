@@ -212,6 +212,8 @@ export class TabsManager extends Plugin {
             if (findIndex < 0) {
                 return Promise.reject(new Error(`标签页不存在[${tabId || ''}]`));
             }
+            this._tabs.forEach(tab => tab._isFirst = undefined);
+            this._tabs[findIndex]._isFirst = true;
             if (findIndex > 1) {
                 this._tabs.unshift(this._tabs.splice(findIndex, 1)[0]);
 
