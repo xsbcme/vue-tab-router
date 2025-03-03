@@ -1,12 +1,12 @@
 <template>
-    <div class="tabbar">
-        <a-tabs :activeKey="activeTab?._id" :type="type" editable hideContent @delete="handleCloseTab"
+    <div class="tabs">
+        <a-tabs :activeKey="tabsManager.activeTab?._id" :type="type" editable hideContent @delete="handleCloseTab"
             @tabClick="handleSelectTab">
-            <template v-for="(tab, index) in tabs" :key="tab._id">
+            <template v-for="tab in tabsManager.tabs" :key="tab._id">
                 <a-tab-pane :closable="!tab._noClose">
                     <template #title>
                         <a-dropdown trigger="contextMenu" :popup-max-height="false"
-                            @select="(eventName) => handleSelectSropdown(eventName as string, tab, index)">
+                            @select="(eventName) => handleSelectDropdown(eventName as string, tab)">
                             <div>
                                 <template v-if="showIcon && (tab.viewIcon || defaultIcon)">
                                     <dynamic-icon :icon="tab.viewIcon || defaultIcon" :style="{ marginRight: '2px' }" />
@@ -59,13 +59,23 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { toRefs } from 'vue';
 import type { TabsType } from '@arco-design/web-vue/es/tabs/interface';
 import { Tab } from '@/tab';
-import '@arco-design/web-vue/es/tabs/style/index.css';
+import '@arco-design/web-vue/es/tabs/style/index';
 import Tabs, { TabPane } from '@arco-design/web-vue/es/tabs';
-import '@arco-design/web-vue/es/dropdown/style/index.css';
+import '@arco-design/web-vue/es/dropdown/style/index';
 import Dropdown, { Doption } from '@arco-design/web-vue/es/dropdown';
+// import '@arco-design/web-vue/es/trigger/style/index';
+
+import {
+    IconRefresh,
+    IconArrowLeft,
+    IconArrowRight,
+    IconClose,
+    IconFolderDelete,
+} from '@arco-design/web-vue/es/icon';
+import DynamicIcon from '../dynamic-icon.vue';
+import { useTabsManager } from '@/use-tabs-manager';
 
 defineOptions({
     components: {
@@ -76,25 +86,8 @@ defineOptions({
     }
 });
 
-import {
-    IconRefresh,
-    IconArrowLeft,
-    IconArrowRight,
-    IconClose,
-    IconFolderDelete,
-} from '@arco-design/web-vue/es/icon';
 
-import DynamicIcon from '../dynamic-icon.vue';
-
-const emit = defineEmits<{
-    (event: 'selectTab', tab: Tab, index: number): void;
-    (event: 'closeTab', tab: Tab, index: number): void;
-    (event: 'selectDropdown', eventName: string, tab: Tab, index: number): void;
-}>();
-
-const props = withDefaults(defineProps<{
-    tabs: Tab[];
-    activeTab?: Tab;
+withDefaults(defineProps<{
     type?: TabsType;
     showIcon?: boolean;
     defaultIcon?: string;
@@ -102,28 +95,79 @@ const props = withDefaults(defineProps<{
     type: 'text'
 });
 
-const { tabs, activeTab } = toRefs(props);
+// const emit = defineEmits<{
+//     (event: 'selectTab', tab: Tab, index: number): void;
+//     (event: 'closeTab', tab: Tab, index: number): void;
+//     (event: 'selectDropdown', eventName: string, tab: Tab, index: number): void;
+// }>();
+
+// const handleSelectTab = (key: string) => {
+//     const findIndex = tabs.value.findIndex(tab => tab._id === key);
+//     if (findIndex >= 0) {
+//         emit('selectTab', tabs.value[findIndex], findIndex);
+//     }
+// }
+
+// const handleCloseTab = (key: string) => {
+//     const findIndex = tabs.value.findIndex(tab => tab._id === key);
+//     if (findIndex >= 0) {
+//         emit('closeTab', tabs.value[findIndex], findIndex);
+//     }
+// }
+
+// const handleSelectSropdown = (eventName: string, tab: Tab, index: number) => {
+//     emit('selectDropdown', eventName, tab, index);
+// }
+
+
+const tabsManager = useTabsManager();
 
 const handleSelectTab = (key: string) => {
-    const findIndex = tabs.value.findIndex(tab => tab._id === key);
+    const findIndex = tabsManager.tabs.findIndex(tab => tab._id === key);
     if (findIndex >= 0) {
-        emit('selectTab', tabs.value[findIndex], findIndex);
+        const tab = tabsManager.tabs[findIndex];
+        tabsManager.openTab(tab.viewUrl, tab.viewProps);
     }
 }
 
 const handleCloseTab = (key: string) => {
-    const findIndex = tabs.value.findIndex(tab => tab._id === key);
+    const findIndex = tabsManager.tabs.findIndex(tab => tab._id === key);
     if (findIndex >= 0) {
-        emit('closeTab', tabs.value[findIndex], findIndex);
+        const tab = tabsManager.tabs[findIndex];
+        tabsManager.closeTab(tab._id);
     }
 }
 
-const handleSelectSropdown = (eventName: string, tab: Tab, index: number) => {
-    emit('selectDropdown', eventName, tab, index);
+const handleSelectDropdown = (eventName: string, tab: Tab) => {
+    switch (eventName) {
+        case 'refresh':
+            tabsManager.refreshTab(tab._id);
+            break;
+        case 'close-left':
+            tabsManager.closeTabsByLeft(tab._id);
+            break;
+        case 'close-right':
+            tabsManager.closeTabsByRight(tab._id);
+            break;
+        case 'close-other':
+            tabsManager.closeTabsByOther(tab._id);
+            break;
+        case 'close-all':
+            tabsManager.closeTabByAll();
+            break;
+        case 'refresh-all':
+            tabsManager.refreshTabAll();
+            break;
+        default:
+            break;
+    }
 }
+
+
+
 </script>
 <style lang="scss" scoped>
-.tabbar {
+.tabs {
     // background-color: var(--color-bg-2);
     padding: 4px;
     // border-bottom: 1px solid var(--color-border);
