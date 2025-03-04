@@ -216,9 +216,8 @@ export class TabsManager extends Plugin {
             this._tabs[findIndex]._isFirst = true;
             if (findIndex > 1) {
                 this._tabs.unshift(this._tabs.splice(findIndex, 1)[0]);
-
-                this.storage?.set(STORAGE_TABS_KEY, this._tabs);
             }
+            this.storage?.set(STORAGE_TABS_KEY, this._tabs);
         });
     }
 
