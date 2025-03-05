@@ -495,6 +495,10 @@ export class TabsManager extends Plugin {
                     return;
                 }
 
+                typeof findTab._onBeforeTabLeave === 'function' && await findTab._onBeforeTabLeave(
+                    clone(this.getTabById(findTab._sourceId)),
+                    clone(findTab));
+
                 typeof findTab._onBeforeTabClose === 'function' && await findTab._onBeforeTabClose(
                     clone(this.getTabById(findTab._sourceId)),
                     clone(findTab));
