@@ -7,11 +7,11 @@
                     <template #title>
                         <a-dropdown trigger="contextMenu" :popup-max-height="false"
                             @select="(eventName) => handleSelectDropdown(eventName as string, tab)">
-                            <div>
+                            <div class="tabs-title">
                                 <template v-if="showIcon && (tab.viewIcon || defaultIcon)">
                                     <dynamic-icon :icon="tab.viewIcon || defaultIcon" :style="{ marginRight: '2px' }" />
                                 </template>
-                                <span>{{ tab.viewName || '未命名' }}</span>
+                                <TruncatedText :text="tab.viewName || '未命名'" />
                             </div>
                             <template #content>
                                 <a-doption value="refresh">
@@ -65,6 +65,7 @@ import '@arco-design/web-vue/es/tabs/style/index';
 import Tabs, { TabPane } from '@arco-design/web-vue/es/tabs';
 import '@arco-design/web-vue/es/dropdown/style/index';
 import Dropdown, { Doption } from '@arco-design/web-vue/es/dropdown';
+import TruncatedText from './truncated-text.vue';
 // import '@arco-design/web-vue/es/trigger/style/index';
 
 import {
@@ -173,6 +174,11 @@ const handleSelectDropdown = (eventName: string, tab: Tab) => {
     // border-bottom: 1px solid var(--color-border);
     width: 100%;
     user-select: none;
+
+    &-title {
+        display: flex;
+        align-items: center;
+    }
 
     // :deep(.arco-tag-checkable) {
     //    background-color: var(--color-fill-2);

@@ -372,7 +372,7 @@ export class TabsManager extends Plugin {
                 viewUrl,
                 viewName: _viewName,
                 viewIcon: _viewIcon,
-                viewProps: Object.keys(viewProps).length > 0 ? viewProps : undefined,
+                viewProps,
 
                 _sourceId: this.activeTab?._id,
                 _noCahce: _viewNoCahce,

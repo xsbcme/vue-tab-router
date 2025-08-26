@@ -14,6 +14,7 @@ export interface ITabsManagerOptions {
     onIframeLoad?: (e: Event, tab: Partial<Tab>) => void;
     onBeforeTabOpen?: TabGuard;
     onBeforeTabEnter?: TabGuard;
+    viewNameMaxLength?: number;
 }
 
 export type TabGuard = (toTab: Partial<Tab>, oldTab?: Partial<Tab>) => Promise<void>;
