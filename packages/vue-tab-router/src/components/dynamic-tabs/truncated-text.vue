@@ -15,7 +15,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
     text: '',
-    maxLength: 50
+    maxLength: 20
 })
 
 // 计算完整文本

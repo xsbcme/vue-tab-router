@@ -5,13 +5,14 @@
             <template v-for="tab in tabsManager.tabs" :key="tab._id">
                 <a-tab-pane :closable="!tab._noClose">
                     <template #title>
-                        <a-dropdown trigger="contextMenu" :popup-max-height="false"
+                        <a-dropdown trigger="contextMenu" :popup-max-height="false" alignPoint
                             @select="(eventName) => handleSelectDropdown(eventName as string, tab)">
                             <div class="tabs-title">
                                 <template v-if="showIcon && (tab.viewIcon || defaultIcon)">
                                     <dynamic-icon :icon="tab.viewIcon || defaultIcon" :style="{ marginRight: '2px' }" />
                                 </template>
-                                <TruncatedText :text="tab.viewName || '未命名'" />
+                                <TruncatedText :text="tab.viewName || '未命名'"
+                                    :max-length="tabsManager?.options?.viewNameMaxLength" />
                             </div>
                             <template #content>
                                 <a-doption value="refresh">
