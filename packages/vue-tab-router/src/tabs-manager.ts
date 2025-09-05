@@ -1,4 +1,4 @@
-import { App, defineAsyncComponent, nextTick, createVNode, defineComponent } from "vue";
+import { App, defineAsyncComponent, nextTick, createVNode, defineComponent, toRaw } from "vue";
 import { Plugin } from './base/plugin';
 import { Tab } from "./tab";
 import { IOpenTabOptions, ITabsManagerOptions, IUpdateTabOptions, Modules, TabGuard, TabGuardName } from "./types";
@@ -75,9 +75,7 @@ export class TabsManager extends Plugin {
 
     public _initOptions(options: ITabsManagerOptions) {
         this._options = options;
-        if (this.storage) {
-            this._tabs = this.storage.get(STORAGE_TABS_KEY, []).map(item => new Tab(item));
-        }
+        this.storage && (this._tabs = this.storage.get(STORAGE_TABS_KEY, []).map(item => new Tab(item)));
         return this;
     }
 
@@ -202,7 +200,7 @@ export class TabsManager extends Plugin {
                 return Promise.reject(new Error(`标签页不存在[${tabId || ''}]`));
             }
             Object.assign<Tab, Partial<Tab>>(findTab, { _noClose: noAllow });
-            this.storage?.set(STORAGE_TABS_KEY, this._tabs);
+            this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
         });
     }
 
@@ -217,7 +215,7 @@ export class TabsManager extends Plugin {
             if (findIndex > 1) {
                 this._tabs.unshift(this._tabs.splice(findIndex, 1)[0]);
             }
-            this.storage?.set(STORAGE_TABS_KEY, this._tabs);
+            this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
         });
     }
 
@@ -272,7 +270,7 @@ export class TabsManager extends Plugin {
                     Object.assign<Tab, Partial<Tab>>(item, { _isActive: undefined });
                 }
             });
-            this.storage?.set(STORAGE_TABS_KEY, this._tabs);
+            this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
 
             return tabId;
         });
@@ -317,7 +315,7 @@ export class TabsManager extends Plugin {
                 _single: _viewSingle ?? findTab._single,
             });
 
-            this.storage?.set(STORAGE_TABS_KEY, this._tabs);
+            this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
 
         });
     }
@@ -517,7 +515,7 @@ export class TabsManager extends Plugin {
                 this._tabs.splice(findTabIndex, 1);
                 this.setTabsSourceIdById(findTab._id, findTab._sourceId);
 
-                this.storage?.set(STORAGE_TABS_KEY, this._tabs);
+                this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
             }
         });
     }
