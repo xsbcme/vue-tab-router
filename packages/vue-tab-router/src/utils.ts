@@ -31,7 +31,7 @@ export function jsonToObject<T extends string | object>(val: T, def = {}): objec
 
 export function isHttpUrl(url: string | undefined) {
     try {
-        if (typeof url === 'undefined') return false;
+        if (!url) return false;
         const { protocol } = new URL(url);
         return ['http:', 'https:'].includes(protocol);
     } catch (err) {

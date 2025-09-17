@@ -168,12 +168,12 @@ export class TabsManager extends Plugin {
         return this._app!._context.components[name];
     }
 
-    private isHttpUrl(url: string) {
-        return url.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(url);
+    private isUrl(url: string) {
+        return url?.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(url);
     }
 
     private getHttpUrl(url: string) {
-        if (this.isHttpUrl(url)) {
+        if (this.isUrl(url)) {
             if (url.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(url)) {
                 let newUrl = '';
                 if (url.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY)) {
@@ -354,8 +354,8 @@ export class TabsManager extends Plugin {
                 ...viewProps
             } = jsonToObject(tabOptions || {}, {}) as IOpenTabOptions;
 
-            // 判断是否为超链接
-            if (this.isHttpUrl(viewUrl)) {
+            // 判断是否为链接
+            if (this.isUrl(viewUrl)) {
                 const newViewUrl = this.getHttpUrl(viewUrl);
                 if (_viewOutside) {
                     const { target, features } = _viewOutsideProps || {};
