@@ -62,9 +62,9 @@
 <script lang="ts" setup>
 import type { TabsType } from '@arco-design/web-vue/es/tabs/interface';
 import { Tab } from '@/tab';
-import '@arco-design/web-vue/es/tabs/style/index';
+// import '@arco-design/web-vue/es/tabs/style/index';
 import Tabs, { TabPane } from '@arco-design/web-vue/es/tabs';
-import '@arco-design/web-vue/es/dropdown/style/index';
+// import '@arco-design/web-vue/es/dropdown/style/index';
 import Dropdown, { Doption } from '@arco-design/web-vue/es/dropdown';
 import TruncatedText from './truncated-text.vue';
 // import '@arco-design/web-vue/es/trigger/style/index';
