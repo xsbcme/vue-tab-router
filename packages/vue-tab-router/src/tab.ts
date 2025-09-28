@@ -9,7 +9,8 @@ export class Tab {
     _noClose?: boolean;
     _isFirst?: boolean;
     _single?: boolean;
-    _noCahce?: boolean;
+    _noCache?: boolean;
+    _loading?: boolean;
     // _loading?: boolean;
     // _onBeforeTabOpen?: TabGuard;
     // _onBeforeTabEnter?: TabGuard;

@@ -11,7 +11,7 @@
                                 <template v-if="showIcon && (tab.viewIcon || defaultIcon)">
                                     <dynamic-icon :icon="tab.viewIcon || defaultIcon" :style="{ marginRight: '2px' }" />
                                 </template>
-                                <TruncatedText :text="tab.viewName || '未命名'"
+                                <TruncatedText :text="tab._loading ? '加载中...' : (tab.viewName || '未命名')"
                                     :max-length="tabsManager?.options?.viewNameMaxLength" />
                             </div>
                             <template #content>

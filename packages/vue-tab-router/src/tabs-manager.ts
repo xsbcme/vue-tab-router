@@ -311,7 +311,7 @@ export class TabsManager extends Plugin {
                 viewIcon: _viewIcon ?? findTab.viewIcon,
                 viewUrl: _viewUrl ?? findTab.viewUrl,
                 viewProps: Object.keys(viewProps).length > 0 ? viewProps : findTab.viewProps,
-                _noCahce: _viewNoCahce ?? findTab._noCahce,
+                _noCache: _viewNoCahce ?? findTab._noCache,
                 _single: _viewSingle ?? findTab._single,
             });
 
@@ -373,7 +373,7 @@ export class TabsManager extends Plugin {
                 viewProps,
 
                 _sourceId: this.activeTab?._id,
-                _noCahce: _viewNoCahce,
+                _noCache: _viewNoCahce,
                 _single: _viewSingle,
                 _id: createRandomString(),
             });

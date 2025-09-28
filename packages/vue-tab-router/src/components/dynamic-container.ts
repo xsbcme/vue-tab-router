@@ -20,7 +20,7 @@ export default defineComponent({
 
         const getKeepTabKeys = computed<string[]>(() => {
             const keepTabIds = tabsManager.tabs
-                .filter(item => !item._noCahce && !item._isRefresh)
+                .filter(item => !item._noCache && !item._isRefresh)
                 .map(item => item._id) as string[];
             return [...new Set(keepTabIds)];
         });
@@ -39,9 +39,9 @@ export default defineComponent({
                     return () => createVNode('div', null, '不存在激活的标签页，请检查菜单是否配置并激活！');
                 }
 
-                provide(INJECT_CURRENT_TAB_KEY, activeTab);
+                tabsManager.activeTab._loading = true;
 
-                // activeTab._loading
+                provide(INJECT_CURRENT_TAB_KEY, activeTab);
 
                 if (activeTab.viewUrl.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(activeTab.viewUrl)) {
                     let viewUrl = '';
@@ -56,6 +56,7 @@ export default defineComponent({
                         linkProps: activeTab.viewProps,
                         onLoad: (e: Event) => {
                             onIframeLoad && onIframeLoad(e, clone(activeTab));
+                            tabsManager.activeTab._loading = undefined;
                         }
                     });
                 }
@@ -69,13 +70,19 @@ export default defineComponent({
 
         const keepAliveRender = () => createVNode(KeepAliveEnhanceComponent, {
             ...keepAliveProps,
-            includeKey: getKeepTabKeys.value
+            includeKey: getKeepTabKeys.value,
+            onVnodeMounted() {
+                tabsManager.activeTab._loading = undefined;
+            }
         }, () => tabsManager.activeTab?._isRefresh ? null : createVNode(dynamicComponent, { key: tabsManager.activeTab?._id }));
 
         const transitionRender = () => createVNode(Transition, {
             appear: true,
             mode: 'out-in',
             ...transitionProps,
+            onVnodeMounted() {
+                tabsManager.activeTab._loading = undefined;
+            }
         }, { default: keepAliveRender })
 
         return () => !tabsManager.refreshAllTabFlag ? (transitionProps?.name ? transitionRender : keepAliveRender)() : null;

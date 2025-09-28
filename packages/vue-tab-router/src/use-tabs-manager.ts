@@ -39,7 +39,7 @@ export function defineTabOptions(options: IDefineTabOptions) {
             _viewName: tab.viewName || options.viewName,
             _viewIcon: tab.viewIcon || options.viewIcon,
             _viewSingle: tab._single ?? options.viewSingle,
-            _viewNoCahce: tab._noCahce ?? options.viewNoCahce
+            _viewNoCahce: tab._noCache ?? options.viewNoCahce
         }, tab._id);
     }
 }
