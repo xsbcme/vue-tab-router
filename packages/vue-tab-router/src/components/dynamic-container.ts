@@ -39,7 +39,7 @@ export default defineComponent({
                     return () => createVNode('div', null, '不存在激活的标签页，请检查菜单是否配置并激活！');
                 }
 
-                tabsManager.activeTab._loading = true;
+                activeTab._loading = true;
 
                 provide(INJECT_CURRENT_TAB_KEY, activeTab);
 
@@ -56,7 +56,7 @@ export default defineComponent({
                         linkProps: activeTab.viewProps,
                         onLoad: (e: Event) => {
                             onIframeLoad && onIframeLoad(e, clone(activeTab));
-                            tabsManager.activeTab._loading = undefined;
+                            activeTab._loading = undefined;
                         }
                     });
                 }
@@ -64,6 +64,9 @@ export default defineComponent({
                 // todo 创建dom容器记录滚动条位置
                 return () => createVNode(resolveComponent(activeTab.viewUrl), {
                     ...clone(activeTab.viewProps || {}),
+                    onVnodeMounted() {
+                        activeTab._loading = undefined;
+                    }
                 });
             }
         });
@@ -71,20 +74,12 @@ export default defineComponent({
         const keepAliveRender = () => createVNode(KeepAliveEnhanceComponent, {
             ...keepAliveProps,
             includeKey: getKeepTabKeys.value,
-            onVnodeMounted() {
-                tabsManager.activeTab._loading = undefined;
-            }
         }, () => tabsManager.activeTab?._isRefresh ? null : createVNode(dynamicComponent, { key: tabsManager.activeTab?._id }));
-
         const transitionRender = () => createVNode(Transition, {
             appear: true,
             mode: 'out-in',
             ...transitionProps,
-            onVnodeMounted() {
-                tabsManager.activeTab._loading = undefined;
-            }
         }, { default: keepAliveRender })
-
         return () => !tabsManager.refreshAllTabFlag ? (transitionProps?.name ? transitionRender : keepAliveRender)() : null;
 
     },
