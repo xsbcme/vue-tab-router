@@ -1,6 +1,6 @@
 <template>
     <template v-if="isHtmlTag(icon)">
-        <span v-html="icon" />
+        <template v-html="icon" />
     </template>
     <template v-else-if="isImagePath(icon) || isBase64Image(icon)">
         <img class="dynamic-icon" :src="icon" />

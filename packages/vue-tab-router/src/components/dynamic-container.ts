@@ -39,7 +39,7 @@ export default defineComponent({
                     return () => createVNode('div', null, '不存在激活的标签页，请检查菜单是否配置并激活！');
                 }
 
-                activeTab._loading = true;
+                // activeTab._loading = true;
 
                 provide(INJECT_CURRENT_TAB_KEY, activeTab);
 
@@ -56,7 +56,7 @@ export default defineComponent({
                         linkProps: activeTab.viewProps,
                         onLoad: (e: Event) => {
                             onIframeLoad && onIframeLoad(e, clone(activeTab));
-                            activeTab._loading = undefined;
+                            // activeTab._loading = undefined;
                         }
                     });
                 }
@@ -65,7 +65,7 @@ export default defineComponent({
                 return () => createVNode(resolveComponent(activeTab.viewUrl), {
                     ...clone(activeTab.viewProps || {}),
                     onVnodeMounted() {
-                        activeTab._loading = undefined;
+                        // activeTab._loading = undefined;
                     }
                 });
             }
