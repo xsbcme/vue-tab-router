@@ -297,6 +297,8 @@ export class TabsManager extends Plugin {
         return nextTick(() => {
             const findTab = tabId ? this.getTabById(tabId) : this.activeTab;
             if (!findTab) return;
+
+            const parsedOptions = jsonToObject(options, {}) as IUpdateTabOptions;
             const {
                 _viewName,
                 _viewIcon,
@@ -304,19 +306,21 @@ export class TabsManager extends Plugin {
                 _viewNoCahce,
                 _viewSingle,
                 ...viewProps
-            } = jsonToObject(options, {}) as IUpdateTabOptions;
+            } = parsedOptions;
+
+            // 合并 viewProps，保留原有的未被覆盖的属性
+            const mergedViewProps = { ...findTab.viewProps, ...viewProps };
 
             Object.assign<Tab, Partial<Tab>>(findTab, {
                 viewName: _viewName ?? findTab.viewName,
                 viewIcon: _viewIcon ?? findTab.viewIcon,
                 viewUrl: _viewUrl ?? findTab.viewUrl,
-                viewProps: Object.keys(viewProps).length > 0 ? viewProps : findTab.viewProps,
+                viewProps: mergedViewProps,
                 _noCache: _viewNoCahce ?? findTab._noCache,
                 _single: _viewSingle ?? findTab._single,
             });
 
             this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
-
         });
     }
 
@@ -597,8 +601,8 @@ export class TabsManager extends Plugin {
      */
     public swapTabById(tabId1: string, tabId2: string) {
         return nextTick(() => {
-            const findTab1Index = this._tabs.findIndex(tab => tab._id = tabId1);
-            const findTab2Index = this._tabs.findIndex(tab => tab._id = tabId2);
+            const findTab1Index = this._tabs.findIndex(tab => tab._id === tabId1);
+            const findTab2Index = this._tabs.findIndex(tab => tab._id === tabId2);
             return this.swapTabByIndex(findTab1Index, findTab2Index);
         });
     }
@@ -679,7 +683,7 @@ export class TabsManager extends Plugin {
         super.clearPlugin();
         this._app = null;
         this._options = null;
-        this.destroy();
+        TabsManager._instance = null;
     }
 
     public install(app: App) {

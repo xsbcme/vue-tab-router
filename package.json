@@ -6,9 +6,10 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "build": "turbo run build",
+    "build:plugin": "turbo run build --filter=./packages/vue-tab-router",
     "dev": "turbo run build --filter=!./apps/* && turbo run dev",
     "publish": "pnpm run build && pnpm changeset && pnpm changeset version && pnpm changeset publish",
-    "publish:beta": "pnpm run build && pnpm changeset pre enter beta && pnpm changeset && pnpm changeset version && pnpm changeset pre exit && pnpm changeset publish"
+    "publish:beta": "pnpm run build:plugin && pnpm changeset pre enter beta && pnpm changeset && pnpm changeset version && pnpm changeset pre exit && pnpm changeset publish"
   },
   "author": "xsbcme",
   "license": "ISC",

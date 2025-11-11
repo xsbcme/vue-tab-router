@@ -1,20 +1,23 @@
 {
   "name": "@xsbcme/vue-tab-router",
-  "version": "1.0.29",
+  "version": "1.0.0-beta.1",
   "type": "module",
   "types": "./dist/index.d.ts",
   "main": "./dist/vue-tab-router.umd.cjs",
   "files": [
     "dist"
   ],
-  "keywords": [
-    "vue3",
-    "router",
-    "tab"
-  ],
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "build": "vue-tsc --noEmit && vite build"
+  },
+  "keywords": [],
   "author": "xsbcme",
   "license": "ISC",
-  "dependencies": {
-    "vue": ">=3.0.0"
+  "devDependencies": {
+    "@arco-design/web-vue": "2.56.3",
+    "@vue/runtime-core": "3.4.21",
+    "@vue/shared": "3.4.21",
+    "less": "4.2.2"
   }
 }
