@@ -222,7 +222,7 @@ export class TabsManager extends Plugin {
     /**
      * 激活第一个标签页
      */
-    public activeFristTab() {
+    public activeFirstTab() {
         return nextTick(async () => {
             const findTab = this._tabs.find(tab => tab._isFirst);
             if (findTab) {
@@ -252,7 +252,8 @@ export class TabsManager extends Plugin {
                 // 不清空之前标签页，只覆盖现有的第一个标签页
                 const existingFirstTab = this._tabs.find(tab => tab._isFirst);
                 if (existingFirstTab) {
-                    await this.closeTab(existingFirstTab._id);
+                    await this.setTabNoAllowClose(false, existingFirstTab._id);
+                    await this.closeTab(existingFirstTab._id, true);
                 }
                 break;
             case 'move':
@@ -508,8 +509,9 @@ export class TabsManager extends Plugin {
     /**
      * 关闭标签页
      * @param tabId 标签页ID，不填时默认为当前激活的标签页（不可关闭标签页除外）
+     * @param force 是否强制关闭不可关闭的标签页，默认为 false
      */
-    public closeTab(tabId?: string) {
+    public closeTab(tabId?: string, force: boolean = false) {
         return nextTick<void>(async () => {
             const findTab = this.getTabById(tabId || this.activeTab?._id);
             if (!findTab) {
@@ -517,7 +519,8 @@ export class TabsManager extends Plugin {
             }
             const findTabIndex = this._tabs.indexOf(findTab);
             if (findTabIndex >= 0) {
-                if (findTab._noClose) {
+                // 只有在非强制模式下才检查是否允许关闭
+                if (!force && findTab._noClose) {
                     return;
                 }
 
