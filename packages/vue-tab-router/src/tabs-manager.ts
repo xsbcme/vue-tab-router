@@ -204,19 +204,72 @@ export class TabsManager extends Plugin {
         });
     }
 
-    private setFirstTab(tabId?: string) {
+    private setFirstTab(tabId: string) {
         return nextTick<void>(async () => {
-            const findIndex = this._tabs.findIndex(tab => tab._id === tabId || this.activeTab?._id);
+            const findIndex = this._tabs.findIndex(tab => tab._id === tabId);
             if (findIndex < 0) {
                 return Promise.reject(new Error(`标签页不存在[${tabId || ''}]`));
             }
             this._tabs.forEach(tab => tab._isFirst = undefined);
             this._tabs[findIndex]._isFirst = true;
-            if (findIndex > 1) {
+            if (findIndex >= 1) {
                 this._tabs.unshift(this._tabs.splice(findIndex, 1)[0]);
             }
             this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
         });
+    }
+
+    /**
+     * 激活第一个标签页
+     */
+    public activeFristTab() {
+        return nextTick(async () => {
+            const findTab = this._tabs.find(tab => tab._isFirst);
+            if (findTab) {
+                await this.changeActiveTab(findTab._id);
+            }
+        });
+    }
+
+    /**
+     * 将指定路由地址的标签页置为第一个不可关闭（重复使用将会覆盖）
+     * @param viewUrl 路由地址
+     * @param tabOptions 打开标签页参数
+     * @param mode 操作模式: 'clear'(清空并打开) | 'replace'(替换现有的第一个标签) | 'move'(将新标签移动到第一个位置)，默认为 'replace'
+     */
+    public async openFristTab<Url extends string>(
+        viewUrl: Url,
+        tabOptions?: Omit<IOpenTabOptions, '_viewOutside' | '_viewOutsideProps'>,
+        mode: 'clear' | 'replace' | 'move' = 'replace'
+    ) {
+        switch (mode) {
+            case 'clear':
+                // 清空之前所有标签页，然后打开第一个标签
+                this.clear();
+                break;
+
+            case 'replace':
+                // 不清空之前标签页，只覆盖现有的第一个标签页
+                const existingFirstTab = this._tabs.find(tab => tab._isFirst);
+                if (existingFirstTab) {
+                    await this.closeTab(existingFirstTab._id);
+                }
+                break;
+            case 'move':
+                // 将新打开的标签页移动到第一个位置，不影响其他标签页
+                break;
+        }
+
+        const tabId = await this.openTab(viewUrl, {
+            ...tabOptions,
+            _viewOutside: false,
+            _viewOutsideProps: undefined,
+            _viewSingle: true,
+        });
+
+        await this.setTabNoAllowClose(true, tabId);
+        await this.setFirstTab(tabId);
+        return tabId;
     }
 
     public _registerTabGuard(tabId: string, guardName: TabGuardName, guard: TabGuard) {
@@ -273,18 +326,6 @@ export class TabsManager extends Plugin {
             this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
 
             return tabId;
-        });
-    }
-
-    /**
-     * 激活第一个标签页
-     */
-    public activeFristTab() {
-        return nextTick(async () => {
-            const findTab = this._tabs.find(tab => tab._isFirst);
-            if (findTab) {
-                await this.changeActiveTab(findTab._id);
-            }
         });
     }
 
@@ -451,23 +492,6 @@ export class TabsManager extends Plugin {
             return await this.changeActiveTab(newTab._id);
 
         });
-    }
-
-    /**
-     * 将指定路由地址的标签页置为为第一个不可关闭（重复使用将会覆盖）
-     * @param viewUrl 路由地址
-     * @param tabOptions 打开标签页参数
-     */
-    public async openFristTab<Url extends string>(viewUrl: Url, tabOptions?: Omit<IOpenTabOptions, '_viewOutside' | '_viewOutsideProps'>) {
-        const tabId = await this.openTab(viewUrl, {
-            ...tabOptions,
-            _viewOutside: false,
-            _viewOutsideProps: undefined,
-            _viewSingle: true,
-        });
-        await this.setTabNoAllowClose(true, tabId);
-        await this.setFirstTab(tabId);
-        return tabId;
     }
 
     /**
