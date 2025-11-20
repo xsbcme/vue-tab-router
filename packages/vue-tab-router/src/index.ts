@@ -3,3 +3,4 @@ export * from './use-tabs-manager';
 export * from './abstract-storage-adapter';
 export * from './storage-adapter';
 export * from './abstract-tabs-manager-plugin';
+export * from './types';
