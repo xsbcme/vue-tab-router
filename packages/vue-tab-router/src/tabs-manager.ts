@@ -153,8 +153,12 @@ export class TabsManager extends Plugin {
     // }
 
     /**
-     * 根据标签页ID获取标签
-     * @param tabId 标签页id
+     * 根据ID获取标签页实例
+     * @param tabId 标签页ID
+     * @returns 返回找到的Tab实例，如果未找到则返回undefined
+     * 
+     * @example
+     * const tab = tabsManager.getTabById('tab-id-123');
      */
     public getTabById(tabId: string | undefined) {
         return this._tabs.find(item => item._id === tabId);
@@ -232,10 +236,18 @@ export class TabsManager extends Plugin {
     }
 
     /**
-     * 将指定路由地址的标签页置为第一个不可关闭（重复使用将会覆盖）
-     * @param viewUrl 路由地址
-     * @param tabOptions 打开标签页参数
-     * @param mode 操作模式: 'clear'(清空并打开) | 'replace'(替换现有的第一个标签) | 'move'(将新标签移动到第一个位置)，默认为 'replace'
+     * 打开第一个标签页（通常用于首页）
+     * @param viewUrl 要打开的视图URL或组件名称
+     * @param tabOptions 标签页配置选项
+     * @param mode 操作模式: 'clear'(清空并打开) | 'replace'(替换现有的第一个标签) | 'move'(将新标签移动到第一个位置)
+     * @returns 返回Promise，成功时解析为标签页ID
+     * 
+     * @example
+     * // 设置首页标签页
+     * tabsManager.openFristTab('Dashboard', { _viewName: '仪表板' });
+     * 
+     * // 替换现有首页标签页
+     * tabsManager.openFristTab('NewDashboard', { _viewName: '新仪表板' }, 'replace');
      */
     public async openFristTab<Url extends string>(
         viewUrl: Url,
@@ -280,9 +292,17 @@ export class TabsManager extends Plugin {
     }
 
     /**
-     * 改变激活标签页
-     * @param tabId 标签页id
-     * @param triggerHook 是否触发钩子
+     * 切换激活的标签页
+     * @param tabId 要激活的标签页ID
+     * @param triggerHook 是否触发生命周期钩子，默认为true
+     * @returns 返回Promise，成功时解析为激活的标签页ID
+     * 
+     * @example
+     * // 激活指定标签页
+     * tabsManager.changeActiveTab('tab-id-123');
+     * 
+     * // 激活标签页但不触发钩子
+     * tabsManager.changeActiveTab('tab-id-123', false);
      */
     public changeActiveTab(tabId: string, triggerHook: boolean = true) {
         return nextTick(async () => {
@@ -331,9 +351,21 @@ export class TabsManager extends Plugin {
     }
 
     /**
-     * 更新标签页参数
-     * @param options 标签页参数
-     * @param tabId 标签页ID
+     * 更新标签页的配置选项
+     * @param options 要更新的选项，可以是对象或JSON字符串
+     * @param tabId 要更新的标签页ID，如果不提供则更新当前激活的标签页
+     * @returns 返回Promise，在更新完成后解析
+     * 
+     * @example
+     * // 更新当前标签页标题
+     * tabsManager.updateTabOptions({ _viewName: '新标题' });
+     * 
+     * // 更新指定标签页的多个属性
+     * tabsManager.updateTabOptions({
+     *   _viewName: '新标题',
+     *   _viewIcon: 'new-icon',
+     *   customProp: 'value'
+     * }, 'tab-id-123');
      */
     public updateTabOptions(options: IUpdateTabOptions | string, tabId?: string) {
         return nextTick(() => {
@@ -382,9 +414,23 @@ export class TabsManager extends Plugin {
     // }
 
     /**
-     * 打开标签页
-     * @param viewUrl 路由地址
-     * @param tabOptions 打开标签页参数
+     * 打开一个新的标签页或激活已存在的标签页
+     * @param viewUrl 要打开的视图URL或组件名称
+     * @param tabOptions 标签页配置选项
+     * @returns 返回Promise，成功时解析为标签页ID或Window对象
+     * 
+     * @example
+     * // 打开一个本地组件标签页
+     * tabsManager.openTab('UserList');
+     * 
+     * // 打开带参数的标签页
+     * tabsManager.openTab('UserProfile', { userId: 123 });
+     * 
+     * // 打开外部链接
+     * tabsManager.openTab('https://example.com');
+     * 
+     * // 在新窗口中打开外部链接
+     * tabsManager.openTab('https://example.com', { _viewOutside: true });
      */
     public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions): Promise<string>;
     public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions & { _viewOutside: true }): Promise<Window>;
@@ -507,9 +553,20 @@ export class TabsManager extends Plugin {
     }
 
     /**
-     * 关闭标签页
-     * @param tabId 标签页ID，不填时默认为当前激活的标签页（不可关闭标签页除外）
-     * @param force 是否强制关闭不可关闭的标签页，默认为 false
+     * 关闭指定的标签页
+     * @param tabId 要关闭的标签页ID，如果不提供则关闭当前激活的标签页
+     * @param force 是否强制关闭不可关闭的标签页，默认为false
+     * @returns 返回Promise，在标签页关闭完成后解析
+     * 
+     * @example
+     * // 关闭当前标签页
+     * tabsManager.closeTab();
+     * 
+     * // 关闭指定标签页
+     * tabsManager.closeTab('tab-id-123');
+     * 
+     * // 强制关闭不可关闭的标签页
+     * tabsManager.closeTab('tab-id-123', true);
      */
     public closeTab(tabId?: string, force: boolean = false) {
         return nextTick<void>(async () => {
@@ -564,8 +621,16 @@ export class TabsManager extends Plugin {
     }
 
     /**
-     * 刷新标签页
-     * @param tabId 标签页ID，不填时默认为当前激活的标签页
+     * 刷新指定的标签页
+     * @param tabId 要刷新的标签页ID，如果不提供则刷新当前激活的标签页
+     * @returns 返回Promise，在刷新完成后解析
+     * 
+     * @example
+     * // 刷新当前标签页
+     * tabsManager.refreshTab();
+     * 
+     * // 刷新指定标签页
+     * tabsManager.refreshTab('tab-id-123');
      */
     public refreshTab(tabId?: string) {
         return nextTick(() => {
@@ -593,10 +658,17 @@ export class TabsManager extends Plugin {
     }
 
     /**
-     * 当父标签页设置事件后，调用此方法向父标签页发送数据
+     * 向父标签页发送事件数据
      * @param eventName 事件名称
-     * @param data 传输数据
-     * @param tabId 标签页ID，不填时默认为当前激活的标签页
+     * @param data 要传递的数据
+     * @param tabId 发送事件的标签页ID，如果不提供则使用当前激活的标签页
+     * 
+     * @example
+     * // 向父标签页发送数据
+     * tabsManager.emit('data-updated', { count: 10 });
+     * 
+     * // 向指定标签页的父标签页发送数据
+     * tabsManager.emit('form-submitted', formData, 'child-tab-id');
      */
     public emit(eventName: string, data?: unknown, tabId?: string) {
         const findTab = this.getTabById(tabId || this.activeTab?._id);
