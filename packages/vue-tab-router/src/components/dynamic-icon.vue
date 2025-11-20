@@ -1,12 +1,14 @@
 <template>
-    <template v-if="isHtmlTag(icon)">
-        <span v-html="icon"></span>
-    </template>
-    <template v-else-if="isImagePath(icon) || isBase64Image(icon)">
-        <img class="dynamic-icon" :src="icon" />
-    </template>
-    <template v-else>
-        <Component :is="icon" />
+    <template v-if="icon">
+        <template v-if="isHtmlTag(icon)">
+            <span v-html="icon"></span>
+        </template>
+        <template v-else-if="isImagePath(icon) || isBase64Image(icon)">
+            <img class="dynamic-icon" :src="icon" />
+        </template>
+        <template v-else>
+            <Component :is="icon" />
+        </template>
     </template>
 </template>
 
@@ -21,7 +23,7 @@ defineOptions({
 });
 
 const props = defineProps<{
-    icon: string;
+    icon: string | undefined;
 }>();
 const { icon } = toRefs(props);
 
