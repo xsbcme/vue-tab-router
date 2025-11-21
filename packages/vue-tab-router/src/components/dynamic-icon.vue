@@ -1,5 +1,14 @@
 <template>
-    <div class="dynamic-icon" :style="getIconStyle" v-html="renderHtml"></div>
+    <slot :style="getIconStyle" :render="renderHtml">
+        <template v-if="renderHtml">
+            <div class="dynamic-icon" :style="getIconStyle" v-html="renderHtml"></div>
+        </template>
+        <template v-else>
+            <div class="dynamic-icon">
+                <slot name="empty" :style="getIconStyle"></slot>
+            </div>
+        </template>
+    </slot>
 </template>
 
 <script setup lang="ts">
