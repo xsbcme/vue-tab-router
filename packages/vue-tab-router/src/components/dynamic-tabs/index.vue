@@ -9,7 +9,7 @@
                             @select="(eventName) => handleSelectDropdown(eventName as string, tab)">
                             <div class="tabs-title">
                                 <template v-if="showIcon && (tab.viewIcon || defaultIcon)">
-                                    <dynamic-icon :icon="tab.viewIcon || defaultIcon" :style="{ marginRight: '2px' }" />
+                                    <dynamic-icon width="16px" height="16px" :icon="tab.viewIcon || defaultIcon" />
                                 </template>
                                 <TruncatedText :text="tab._loading ? '加载中...' : (tab.viewName || '未命名')"
                                     :max-length="tabsManager?.options?.viewNameMaxLength" />
