@@ -1,11 +1,11 @@
 <template>
     <slot :style="getIconStyle" :render="renderHtml">
         <template v-if="renderHtml">
-            <div class="dynamic-icon" :style="getIconStyle" v-html="renderHtml"></div>
+            <div class="dynamic-icon" :style="getIconStyle" v-bind="$attrs" v-html="renderHtml"></div>
         </template>
         <template v-else>
-            <div class="dynamic-icon">
-                <slot name="empty" :style="getIconStyle"></slot>
+            <div class="dynamic-icon" :style="getIconStyle" v-bind="$attrs">
+                <slot name="empty"></slot>
             </div>
         </template>
     </slot>
@@ -54,7 +54,7 @@ async function renderIcon() {
     } else if (isHtmlTag(icon)) {
         renderHtml.value = await processSvgString(icon);
     } else if (isImagePath(icon) || isBase64Image(icon)) {
-        renderHtml.value = `<img width="100%" height="100%" src="${icon}" />`;
+        renderHtml.value = `<img style="width:100%;height:100%;object-fit:contain;" src="${icon}" />`;
     } else {
 
     }
@@ -150,6 +150,7 @@ async function processSvgString(svgString: string) {
         }
     }
     svgElement.removeAttribute('class');
+    svgElement.removeAttribute('style');
     svgElement.removeAttribute('width');
     svgElement.removeAttribute('height');
     return tempDiv.innerHTML;
