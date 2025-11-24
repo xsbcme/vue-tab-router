@@ -36,7 +36,7 @@ export default defineComponent({
                     if (noActiveComponent) {
                         return () => createVNode(noActiveComponent);
                     }
-                    return () => createVNode('div', null, '不存在激活的标签页，请检查菜单是否配置并激活！');
+                    return () => null;
                 }
 
                 // activeTab._loading = true;

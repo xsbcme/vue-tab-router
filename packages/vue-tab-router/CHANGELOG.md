@@ -1,5 +1,23 @@
 # @xsbcme/vue-tab-router
 
+## 1.0.0-beta.18
+
+### Patch Changes
+
+- chore
+
+## 1.0.0-beta.17
+
+### Patch Changes
+
+- chore
+
+## 1.0.0-beta.16
+
+### Patch Changes
+
+- chore
+
 ## 1.0.0-beta.15
 
 ### Patch Changes
