@@ -11,6 +11,7 @@ export interface ITabsManagerOptions {
         max?: number;
     };
     noActiveComponent?: Component;
+    noExistComponent?: Component;
     onIframeLoad?: (e: Event, tab: Partial<Tab>) => void;
     onBeforeTabOpen?: TabGuard;
     onBeforeTabEnter?: TabGuard;

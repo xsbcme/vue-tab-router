@@ -1,4 +1,4 @@
-import { Component } from "vue";
+import { Component, ComponentInternalInstance } from "vue";
 
 export function findParentPathsByPath(paths: string[], path: string) {
     if (!path) return [];
@@ -63,4 +63,18 @@ export async function preloadComponent(component: Component) {
     } else {
         return component;
     }
+}
+
+
+export function findVueComponent(node: ComponentInternalInstance, componentName: string) {
+    if (!node) return null;
+    if (node['components']) {
+        if (node['components'][componentName]) {
+            return node['components'][componentName];
+        }
+    }
+    if (node.parent) {
+        return findVueComponent(node.parent, componentName);
+    }
+    return node.appContext.components[componentName];
 }

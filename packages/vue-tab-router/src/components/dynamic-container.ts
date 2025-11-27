@@ -1,6 +1,6 @@
-import { createVNode, Transition, defineComponent, provide, computed, resolveComponent } from 'vue';
+import { createVNode, Transition, defineComponent, provide, computed, getCurrentInstance } from 'vue';
 import { INJECT_ACTIVE_TAB_KEY, INJECT_CURRENT_TAB_KEY, PEALTIVE_VIEW_URL_PREFIX_KEY, } from '@/constant';
-import { clone, isHttpUrl } from '@/utils';
+import { clone, findVueComponent, isHttpUrl } from '@/utils';
 import { useTabsManager } from '@/use-tabs-manager';
 
 import { default as KeepAliveEnhanceComponent } from '@/components/keep-alive-enhance';
@@ -10,11 +10,13 @@ export default defineComponent({
     name: 'DynamicContainer',
     setup() {
 
+        const instance = getCurrentInstance();
         const tabsManager = useTabsManager();
         const {
             transitionProps,
             keepAliveProps,
             noActiveComponent,
+            noExistComponent,
             onIframeLoad
         } = tabsManager.options || {};
 
@@ -61,8 +63,15 @@ export default defineComponent({
                     });
                 }
 
+                const comp = findVueComponent(instance, activeTab.viewUrl);
+                if (!comp) {
+                    if (noExistComponent) {
+                        return () => createVNode(noExistComponent);
+                    }
+                    return () => createVNode('div', null, '此页面不存在！');
+                }
                 // todo 创建dom容器记录滚动条位置
-                return () => createVNode(resolveComponent(activeTab.viewUrl), {
+                return () => createVNode(comp, {
                     ...clone(activeTab.viewProps || {}),
                     onVnodeMounted() {
                         // activeTab._loading = undefined;

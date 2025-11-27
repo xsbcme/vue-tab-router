@@ -12,7 +12,8 @@
 </template>
 
 <script setup lang="ts">
-import { shallowRef, watch, createVNode, render, getCurrentInstance, ComponentInternalInstance, computed } from 'vue';
+import { findVueComponent } from '@/utils';
+import { shallowRef, watch, createVNode, render, getCurrentInstance, computed } from 'vue';
 
 const props = defineProps<{
     icon: string | undefined;
@@ -58,19 +59,6 @@ async function renderIcon() {
     } else {
 
     }
-}
-
-function findVueComponent(node: ComponentInternalInstance, componentName: string) {
-    if (!node) return null;
-    if (node['components']) {
-        if (node['components'][componentName]) {
-            return node['components'][componentName];
-        }
-    }
-    if (node.parent) {
-        return findVueComponent(node.parent, componentName);
-    }
-    return null;
 }
 
 // '<svg></svg>'
