@@ -102,6 +102,62 @@ pnpm dev
 
 访问 VitePress 站点查看完整指南与 API 文档。
 
+## 发布包
+
+### 前置条件
+
+1. **npm 账号**：在 [npmjs.com](https://www.npmjs.com) 注册并登录
+2. **2FA 双重认证**：npm 要求发布时必须启用 2FA（账号设置 → Two-Factor Authentication）
+3. **登录**：在终端执行 `npm login`，输入用户名、密码和邮箱
+
+### 方式一：使用 Changeset（推荐）
+
+适用于有版本说明、需要变更日志的正式发布：
+
+```bash
+# 1. 构建
+pnpm build
+
+# 2. 创建变更集（按提示选择要发布的包和版本类型）
+pnpm changeset
+
+# 3. 应用版本变更
+pnpm changeset version
+
+# 4. 发布到 npm
+pnpm changeset publish
+```
+
+或直接使用组合命令：
+
+```bash
+pnpm publish
+```
+
+### 方式二：直接发布
+
+若已手动修改版本号，可跳过 changeset：
+
+```bash
+cd packages/vue-tab-router
+pnpm build
+pnpm publish --registry="https://registry.npmjs.org/" --access public
+```
+
+### 发布 Beta 版本
+
+```bash
+pnpm publish:beta
+```
+
+会进入 beta 通道，发布形如 `1.0.0-beta.0` 的版本。
+
+### 注意事项
+
+- 作用域包 `@xsbcme/vue-tab-router` 需 `--access public` 才能发布为公开包（已在 package.json 中配置 `publishConfig`）
+- 若使用 Granular Access Token 替代 2FA，需勾选「Allow bypassing 2FA for publishing」
+- 确认 `.npmrc` 中 registry 指向 `https://registry.npmjs.org/`（若使用镜像需临时改回）
+
 ## 链接
 
 - **NPM 包**：[@xsbcme/vue-tab-router](https://www.npmjs.com/package/@xsbcme/vue-tab-router)
