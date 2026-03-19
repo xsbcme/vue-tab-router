@@ -1,40 +1,43 @@
-# 入门
-经过前面的流程，你应该初步了解VueTabRouter，下面我们来介绍一些基本的知识以更好的使用。
+# 入门约定
 
-## 文件结构
-推荐使用如下目录结构以更好的契合插件：
+这一页介绍与 `VueTabRouter` 强相关的目录与命名约定，能显著降低接入成本。
 
+## 推荐目录结构
+
+```txt
+src
+├─layouts
+│  └─workbench
+│     └─index.vue      # 放置 DynamicTabsComponent / DynamicContainerComponent
+├─plugins
+│  └─tab-router.ts     # createTabsManager
+└─views
+   ├─user
+   │  ├─page-index.vue # 页面入口组件（建议）
+   │  └─parts/*
+   └─order
+      └─page-index.vue
 ```
-src                 ------> 根目录
-├─components        ------> 组件
-├─layouts           ------> 布局
-│  ├─container      ------> 容器布局
-│  └─login          ------> 登录页
-├─plugins           ------> 插件
-│  ├─tab-router     ------> 标签页路由插件
-│  └─vue-router     ------> 路由插件
-└─views             ------> 页面
-    ├─commons       ------> 公共业务组件
-    ├─home          ------> 首页
-    └─about         ------> 关于页
+
+## 为什么推荐 `page-index.vue`
+
+`modules` 通常写成：
+
+```ts
+const modules = import.meta.glob('@/views/**/page-index.vue');
 ```
 
-`components` 目录只存放 **通用组件**，如：按钮、表单等。
+这样可以只把“真正页面入口”注册为可打开页签，避免把局部业务组件误当成页面。
 
-`layouts` 目录存放 **布局组件**，如：容器布局、登录页等。
+## `viewUrl` 的来源
 
-`plugins` 目录存放 **插件**，如：标签页路由插件、路由插件等。
+- `viewUrl` 不是浏览器地址，而是 `modules` 的 key
+- 例如模块 key 为 `'/src/views/user/page-index.vue'`
+- 那么应通过 `openTab('/src/views/user/page-index.vue')` 打开
 
-`views` 目录存放 **页面组件**页面，如：首页、关于页等。
+## 何时使用内置标签组件
 
-> [!TIP]
-> 组件其实可以划分为这几类：
-> - 通用型组件：定义为和业务没有任何关系，换个项目依然正常使用。
-> - 业务型组件：定义为和项目业务有关系，可能内部与后台接口绑定，可以被同类型项目共享使用。
-> - 页面型组件：定义为和页面业务有关系，一般组件内部于后台接口绑定，不能被同类型项目共享使用。
+- 你想快速落地：直接使用 `DynamicTabsComponent`
+- 你已有设计系统：只用 `tabsManager.tabs` 自己渲染标签栏
 
-## 插件约定
-约定大于配置是一种开发原则，就是减少人为的配置，直接用默认的配置就能获得我们想要的结果。
-
-### 页面型组件命名规则
-在前面的流程中，推荐使用 Vite 中 `import.meta.glob` 函数及参数为 `"@/views/**/page-index.vue"` 来动态导入路由组件。期望以 `page-index.vue` 命名的组件作为页面的入口，而不是将所有扫描到的vue组件作为路由组件，这意味着我们新建一个 about页面 时是以目录形式建立的，如：`/src/views/about/page-index.vue`。经过检验以目录形式建立是正确的，因为每一个页面一般是由多个组件最终组合到入口页面中 `page-index.vue`，它们本身是一个整体。当然 `"@/views/**/page-index.vue"` 规则可以根据你的喜好进行改变。
+两种方式都使用同一套核心状态与 API。

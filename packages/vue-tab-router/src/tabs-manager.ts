@@ -116,49 +116,8 @@ export class TabsManager extends Plugin {
         });
     }
 
-    // /**
-    //  * 预加载组件 - 加载完成后自动会调用组件与自定义钩子关联
-    //  * todo 期望能直接读取到注册的函数
-    //  * @param tab 预加载标签页
-    //  */
-    // private preloadLoadComponent(tab: Tab) {
-    //     return new Promise<void>((resolve) => {
-    //         const component = this.getAppComponentByName(tab.viewUrl);
-    //         if (!component) return Promise.reject(new Error(`组件不存在[${tab.viewUrl}]`));
-    //         const containerEl = document.createDocumentFragment();
-    //         const getActiveTab = computed(() => this.activeTab);
-    //         const wrapperComponent = defineComponent({
-    //             setup() {
-    //                 provide(INJECT_ACTIVE_TAB_KEY, getActiveTab);
-    //                 provide(INJECT_CURRENT_TAB_KEY, tab);
-    //                 // return () => createVNode(Suspense, {
-    //                 //     onFallback: (error: any) => {
-    //                 //         reject(error);
-    //                 //     }
-    //                 // }, () => createVNode({ ...component }, {
-    //                 //     onVnodeMounted() {
-    //                 //         resolve();
-    //                 //     }
-    //                 // }));
-    //                 return () => createVNode({ ...component }, {
-    //                     onVnodeMounted() {
-    //                         resolve();
-    //                     }
-    //                 });
-    //             }
-    //         });
-    //         const runContainer = createApp(wrapperComponent);
-    //         runContainer.mount(containerEl as unknown as Element);
-    //     });
-    // }
-
     /**
-     * 根据ID获取标签页实例
-     * @param tabId 标签页ID
-     * @returns 返回找到的Tab实例，如果未找到则返回undefined
-     * 
-     * @example
-     * const tab = tabsManager.getTabById('tab-id-123');
+     * 按 tabId 获取标签页实例。
      */
     public getTabById(tabId: string | undefined) {
         return this._tabs.find(item => item._id === tabId);
@@ -223,9 +182,7 @@ export class TabsManager extends Plugin {
         });
     }
 
-    /**
-     * 激活第一个标签页
-     */
+    /** 激活首页标签（`_isFirst` 为 true 的 tab）。 */
     public activeFirstTab() {
         return nextTick(async () => {
             const findTab = this._tabs.find(tab => tab._isFirst);
@@ -236,18 +193,11 @@ export class TabsManager extends Plugin {
     }
 
     /**
-     * 打开第一个标签页（通常用于首页）
-     * @param viewUrl 要打开的视图URL或组件名称
-     * @param tabOptions 标签页配置选项
-     * @param mode 操作模式: 'clear'(清空并打开) | 'replace'(替换现有的第一个标签) | 'move'(将新标签移动到第一个位置)
-     * @returns 返回Promise，成功时解析为标签页ID
-     * 
-     * @example
-     * // 设置首页标签页
-     * tabsManager.openFristTab('Dashboard', { _viewName: '仪表板' });
-     * 
-     * // 替换现有首页标签页
-     * tabsManager.openFristTab('NewDashboard', { _viewName: '新仪表板' }, 'replace');
+     * 打开首页标签（历史命名：Frist）。
+     *
+     * - `clear`: 清空后再打开
+     * - `replace`: 替换已有首页
+     * - `move`: 打开后移动到首位
      */
     public async openFristTab<Url extends string>(
         viewUrl: Url,
@@ -256,12 +206,10 @@ export class TabsManager extends Plugin {
     ) {
         switch (mode) {
             case 'clear':
-                // 清空之前所有标签页，然后打开第一个标签
                 this.clear();
                 break;
 
             case 'replace':
-                // 不清空之前标签页，只覆盖现有的第一个标签页
                 const existingFirstTab = this._tabs.find(tab => tab._isFirst);
                 if (existingFirstTab) {
                     await this.setTabNoAllowClose(false, existingFirstTab._id);
@@ -269,7 +217,6 @@ export class TabsManager extends Plugin {
                 }
                 break;
             case 'move':
-                // 将新打开的标签页移动到第一个位置，不影响其他标签页
                 break;
         }
 
@@ -292,39 +239,14 @@ export class TabsManager extends Plugin {
     }
 
     /**
-     * 切换激活的标签页
-     * @param tabId 要激活的标签页ID
-     * @param triggerHook 是否触发生命周期钩子，默认为true
-     * @returns 返回Promise，成功时解析为激活的标签页ID
-     * 
-     * @example
-     * // 激活指定标签页
-     * tabsManager.changeActiveTab('tab-id-123');
-     * 
-     * // 激活标签页但不触发钩子
-     * tabsManager.changeActiveTab('tab-id-123', false);
+     * 切换当前激活标签页。
+     * @param triggerHook 是否触发全局进入守卫。
      */
     public changeActiveTab(tabId: string, triggerHook: boolean = true) {
         return nextTick(async () => {
             if (tabId === this.activeTab?._id) return tabId;
             const findTab = this.getTabById(tabId);
             if (!findTab) return Promise.reject(new Error(`标签页不存在[${tabId}]`));
-
-            // // 如果目标组件还在加载中不允许激活
-            // if (findTab._loading) return Promise.reject(new Error(`组件还在加载中[${tabId}]`));
-
-            // if (triggerHook && !this.isHttpUrl(findTab.viewUrl)) {
-            //     await this.preloadLoadComponent(findTab);
-            //     await nextTick(async () => {
-            //         await this.updateTabLoaing(findTab._id, async () => {
-            //             try {
-            //                 typeof findTab._onBeforeTabEnter === 'function' && await findTab._onBeforeTabEnter();
-            //             } catch (error) {
-            //                 return Promise.reject(error);
-            //             }
-            //         });
-            //     });
-            // }
 
             if (triggerHook) {
                 try {
@@ -351,21 +273,7 @@ export class TabsManager extends Plugin {
     }
 
     /**
-     * 更新标签页的配置选项
-     * @param options 要更新的选项，可以是对象或JSON字符串
-     * @param tabId 要更新的标签页ID，如果不提供则更新当前激活的标签页
-     * @returns 返回Promise，在更新完成后解析
-     * 
-     * @example
-     * // 更新当前标签页标题
-     * tabsManager.updateTabOptions({ _viewName: '新标题' });
-     * 
-     * // 更新指定标签页的多个属性
-     * tabsManager.updateTabOptions({
-     *   _viewName: '新标题',
-     *   _viewIcon: 'new-icon',
-     *   customProp: 'value'
-     * }, 'tab-id-123');
+     * 更新 tab 配置。支持传对象或 JSON 字符串。
      */
     public updateTabOptions(options: IUpdateTabOptions | string, tabId?: string) {
         return nextTick(() => {
@@ -382,7 +290,7 @@ export class TabsManager extends Plugin {
                 ...viewProps
             } = parsedOptions;
 
-            // 合并 viewProps，保留原有的未被覆盖的属性
+            // viewProps 采用浅合并，保证未覆盖字段仍然保留。
             const mergedViewProps = { ...findTab.viewProps, ...viewProps };
 
             Object.assign<Tab, Partial<Tab>>(findTab, {
@@ -398,39 +306,9 @@ export class TabsManager extends Plugin {
         });
     }
 
-    // /**
-    //  * 将指定标签页设置为加载状态，回调执行完后自动取消加载状态
-    //  * @param tabId 标签页ID
-    //  * @param taskCallbak 执行回调
-    //  */
-    // public updateTabLoaing(tabId: string, taskCallbak: () => Promise<void>) {
-    //     const findTab = this.getTabById(tabId);
-    //     if (findTab) {
-    //         Object.assign<Tab, Partial<Tab>>(findTab, { _loading: true });
-    //         return taskCallbak().finally(() => {
-    //             Object.assign<Tab, Partial<Tab>>(findTab, { _loading: undefined });
-    //         });
-    //     }
-    // }
-
     /**
-     * 打开一个新的标签页或激活已存在的标签页
-     * @param viewUrl 要打开的视图URL或组件名称
-     * @param tabOptions 标签页配置选项
-     * @returns 返回Promise，成功时解析为标签页ID或Window对象
-     * 
-     * @example
-     * // 打开一个本地组件标签页
-     * tabsManager.openTab('UserList');
-     * 
-     * // 打开带参数的标签页
-     * tabsManager.openTab('UserProfile', { userId: 123 });
-     * 
-     * // 打开外部链接
-     * tabsManager.openTab('https://example.com');
-     * 
-     * // 在新窗口中打开外部链接
-     * tabsManager.openTab('https://example.com', { _viewOutside: true });
+     * 打开新标签页或复用已存在标签页。
+     * 若 `options._viewOutside` 为 true，则在新窗口打开链接并返回 `Window`。
      */
     public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions): Promise<string>;
     public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions & { _viewOutside: true }): Promise<Window>;
@@ -446,7 +324,7 @@ export class TabsManager extends Plugin {
                 ...viewProps
             } = jsonToObject(tabOptions || {}, {}) as IOpenTabOptions;
 
-            // 判断是否为链接
+            // 链接型地址（http/https 或 realtive: 前缀）
             if (this.isUrl(viewUrl)) {
                 const newViewUrl = this.getHttpUrl(viewUrl);
                 if (_viewOutside) {
@@ -457,7 +335,7 @@ export class TabsManager extends Plugin {
                 return Promise.reject(new Error(`视图未注册[${viewUrl}]`));
             }
 
-            // 初始化新tab页
+            // 初始化候选 tab
             const newTab = new Tab({
                 viewUrl,
                 viewName: _viewName,
@@ -469,13 +347,13 @@ export class TabsManager extends Plugin {
                 _single: _viewSingle,
                 _id: createRandomString(),
             });
-            // 如果标签页存在相同url和参数的，则直接复用
+            // 同一 viewUrl + viewProps 则复用
             const findTabByProps = this.getTabByViewUrlAndProps(newTab.viewUrl, newTab.viewProps);
             if (findTabByProps) {
                 newTab._id = findTabByProps._id;
             }
 
-            // 检查当前Tab页是否可以离开
+            // 离开当前 tab 前先执行页面级离开守卫
             if (newTab._id !== this.activeTab?._id) {
                 typeof this.activeTab?._onBeforeTabLeave === 'function' && await this.activeTab._onBeforeTabLeave(
                     clone(newTab),
@@ -487,7 +365,7 @@ export class TabsManager extends Plugin {
                 return await this.changeActiveTab(findTabByProps._id);
             }
 
-            // 如果路径都不存在|存在且是多例，则直接添加
+            // 不存在同路径 tab，或目标是多例模式时，新增 tab
             const findTabByViewUrl = this.getTabByViewUrl(viewUrl);
             if (!findTabByViewUrl || (findTabByViewUrl && !newTab._single)) {
 
@@ -498,31 +376,6 @@ export class TabsManager extends Plugin {
                 );
 
                 this._tabs.push(newTab);
-
-                // if (!this.isHttpUrl(newTab.viewUrl)) {
-                //     await this.preloadLoadComponent(newTab);
-                //     await nextTick(async () => {
-                //         await this.updateTabLoaing(newTab._id, async () => {
-                //             try {
-                //                 typeof newTab._onBeforeTabOpen === 'function' && await newTab._onBeforeTabOpen();
-                //             } catch (error) {
-                //                 await this.closeTab(newTab._id);
-                //                 return Promise.reject(error);
-                //             }
-                //             try {
-                //                 typeof newTab._onBeforeTabEnter === 'function' && await newTab._onBeforeTabEnter();
-                //             } catch (error) {
-                //                 if (newTab._sourceId) {
-                //                     // await this.changeActiveTab(newTab._sourceId, false);
-                //                     return Promise.reject(error);
-                //                 } else {
-                //                     await this.closeTab(newTab._id);
-                //                 }
-                //                 return Promise.reject(error);
-                //             }
-                //         });
-                //     });
-                // }
 
                 return await this.changeActiveTab(newTab._id, false);
             }
@@ -542,31 +395,17 @@ export class TabsManager extends Plugin {
     }
 
     /**
-     * 关闭当前tab时需断链拼接
-     * @param sourceId 当前tab的Id
-     * @param newSourceId 将指向当前tab的Id更新为当前tab的上级Id
+     * 修复来源链路：把指向旧 tabId 的 `_sourceId` 重定向到新 tabId。
      */
     private setTabsSourceIdById(id: string, newId: string | undefined) {
         return this._tabs
-            .filter(item => item._sourceId == id) // 找到指向当前tabId数组
-            .forEach(item => item._sourceId = newId); // 指向新的tabId
+            .filter(item => item._sourceId == id)
+            .forEach(item => item._sourceId = newId);
     }
 
     /**
-     * 关闭指定的标签页
-     * @param tabId 要关闭的标签页ID，如果不提供则关闭当前激活的标签页
-     * @param force 是否强制关闭不可关闭的标签页，默认为false
-     * @returns 返回Promise，在标签页关闭完成后解析
-     * 
-     * @example
-     * // 关闭当前标签页
-     * tabsManager.closeTab();
-     * 
-     * // 关闭指定标签页
-     * tabsManager.closeTab('tab-id-123');
-     * 
-     * // 强制关闭不可关闭的标签页
-     * tabsManager.closeTab('tab-id-123', true);
+     * 关闭标签页。
+     * @param force 为 true 时忽略 `_noClose` 限制。
      */
     public closeTab(tabId?: string, force: boolean = false) {
         return nextTick<void>(async () => {
@@ -576,7 +415,6 @@ export class TabsManager extends Plugin {
             }
             const findTabIndex = this._tabs.indexOf(findTab);
             if (findTabIndex >= 0) {
-                // 只有在非强制模式下才检查是否允许关闭
                 if (!force && findTab._noClose) {
                     return;
                 }
@@ -621,16 +459,7 @@ export class TabsManager extends Plugin {
     }
 
     /**
-     * 刷新指定的标签页
-     * @param tabId 要刷新的标签页ID，如果不提供则刷新当前激活的标签页
-     * @returns 返回Promise，在刷新完成后解析
-     * 
-     * @example
-     * // 刷新当前标签页
-     * tabsManager.refreshTab();
-     * 
-     * // 刷新指定标签页
-     * tabsManager.refreshTab('tab-id-123');
+     * 刷新指定标签页（通过切换 `_isRefresh` 触发重建）。
      */
     public refreshTab(tabId?: string) {
         return nextTick(() => {
@@ -658,17 +487,7 @@ export class TabsManager extends Plugin {
     }
 
     /**
-     * 向父标签页发送事件数据
-     * @param eventName 事件名称
-     * @param data 要传递的数据
-     * @param tabId 发送事件的标签页ID，如果不提供则使用当前激活的标签页
-     * 
-     * @example
-     * // 向父标签页发送数据
-     * tabsManager.emit('data-updated', { count: 10 });
-     * 
-     * // 向指定标签页的父标签页发送数据
-     * tabsManager.emit('form-submitted', formData, 'child-tab-id');
+     * 向来源（父）标签页发送事件。
      */
     public emit(eventName: string, data?: unknown, tabId?: string) {
         const findTab = this.getTabById(tabId || this.activeTab?._id);

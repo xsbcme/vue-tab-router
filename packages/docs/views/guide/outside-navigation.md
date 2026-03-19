@@ -1,30 +1,28 @@
-# 外链导航
-内部实现由 `window.open` 实现，使用 `_viewOutside` 标记即可，它将不会在标签页中打开。
+# 外链导航（新窗口）
 
-## 导航超链接页面
-想要外链超链接页面，可以使用 `tabsManager.openTab` 方法。
+当你希望链接在浏览器新标签页或新窗口打开时，使用 `_viewOutside: true`。
 
 ```ts
-// 打开浏览器标签打开百度页面
-tabsManager.openTab('http://www.baidu.com/',{
-    _viewOutside: true
-});
-
-// 打开浏览器标签打开百度页面，并给页面传入参数
-tabsManager.openTab('http://www.baidu.com/',{
-    _viewOutside: true,
-    username: '李四'
-});
-
-// 打开相对路径页面
-tabsManager.openTab('relative:./home',{
-    _viewOutside: true
-});
-
-// 打开相对路径页面，并给页面传入参数
-tabsManager.openTab('relative:./home',{
-    _viewOutside: true,
-    username: '王五'
+const opened = await tabsManager.openTab('https://example.com', {
+  _viewOutside: true,
+  _viewOutsideProps: {
+    target: '_blank',
+    features: 'noopener,noreferrer'
+  }
 });
 ```
-与内联导航处理链接的方式一致，区别是将会以浏览器的标签页显示，且返回值为 `Promise<Window>`。
+
+## 行为说明
+
+- 内部调用 `window.open`
+- 不会创建 VueTabRouter 内部标签页
+- 返回值为 `Promise<Window>`
+
+## 适用场景
+
+- 第三方系统跳转
+- 文档、报表、监控等外部地址
+- 避免 iframe 跨域限制的页面
+
+> [!TIP]
+> 对链接页面，如果不设置 `_viewOutside`，则会走“内联 iframe 页面”模式，见 [内联页面导航](/views/guide/inline-navigation)。

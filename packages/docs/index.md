@@ -4,31 +4,27 @@ layout: home
 
 hero:
   name: "VueTabRouter"
-  text: "似浏览器多标签页操作"
-  tagline: 一个专注于Vue设计的多标签页路由插件。
+  text: "Vue 3 多标签页路由插件"
+  tagline: 让你的业务工作台拥有浏览器式的多页面管理能力。
   image:
     src: /images/logo.png
     alt: VueTabRouter
   actions:
     - theme: brand
       text: 快速上手
-      link: /views/guide/
+      link: /views/guide/getting-started
+    - theme: alt
+      text: API 总览
+      link: /views/api/
     - theme: alt
       text: Demo 案例
       link: https://gitee.com/xsbcme/vue-tab-router-demo
 
 features:
-  - title: 💡 简易上手
-    details: 配置简单，只需几步即可快速使用。
-  - title: 🔑 实战检验
-    details: 多款企业级项目使用，多场景验证。
-  - title: 🔌 可扩展性
-    details: 内置插件扩展功能，轻松扩展功能。
+  - title: 🧭 页面管理
+    details: 支持组件页面与 iframe 页面统一管理，打开、切换、关闭、刷新能力完整。
+  - title: 🧠 行为可控
+    details: 支持单例/多开、缓存控制、页面级守卫与全局守卫，满足复杂业务流程。
+  - title: 🔌 易于扩展
+    details: 内置存储适配器与插件扩展机制，便于接入企业级项目规范。
 ---
-
-<!-- ## 快速安装
-```sh
-npm  install @xsbcme/vue-tab-router
-pnpm install @xsbcme/vue-tab-router
-yarn install @xsbcme/vue-tab-router
-``` -->

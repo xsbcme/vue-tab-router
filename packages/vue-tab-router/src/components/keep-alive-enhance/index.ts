@@ -239,8 +239,7 @@ const KeepAliveImpl: ComponentOptions = {
       if (!slots.default) {
         return null;
       }
-      // 解决传入slot导致组件无法缓存
-      // const children = slots.default()?.[0]?.children?.[0]?.children || [];
+      // 使用默认插槽首个 vnode 作为缓存目标。
       const children = slots.default();
       const rawVNode = children[0];
 
@@ -364,8 +363,6 @@ function getInnerChild(vnode: VNode) {
 
 
 declare module '@vue/runtime-core' {
-  // export interface GlobalComponents extends IComponents { }
-
   type LifecycleHook<TFn = Function> = TFn[] | null;
   export interface ComponentInternalInstance {
     ctx: Record<string, unknown>;

@@ -1,52 +1,41 @@
-# 内联导航
-与基础导航相似，以标签页形式呈现超链接，其内部以 `Iframe` 标签渲染超链接内容。
+# 内联页面导航（iframe）
 
-**注意：** 内联导航中缓存无效，每次激活页面时，都会重新加载。刷新，关闭等函数与基础导航保持一致。
+当 `viewUrl` 是链接地址时，`DynamicContainerComponent` 会使用 `iframe` 渲染页面。
 
-## 导航超链接页面
-想要内联超链接页面，可以使用 `tabsManager.openTab` 方法。
+## 可识别的链接形式
+
+- `http://` 或 `https://`
+- `realtive:` 前缀（历史拼写，注意不是 `relative:`）
 
 ```ts
-// 打开百度页面
-tabsManager.openTab('http://www.baidu.com/',{
-    _viewName: '百度页面',
+await tabsManager.openTab('https://example.com/docs', {
+  _viewName: '外部文档',
+  lang: 'zh-CN'
 });
 
-// 打开百度页面，并给页面传入参数
-tabsManager.openTab('http://www.baidu.com/',{
-    _viewName: '百度页面',
-    username: '李四'
-});
-
-// 打开相对路径页面
-tabsManager.openTab('relative:./home',{
-    _viewName: '相对路径页面'
-});
-
-// 打开相对路径页面，并给页面传入参数
-tabsManager.openTab('relative:./home',{
-    _viewName: '相对路径页面',
-    username: '王五'
+await tabsManager.openTab('realtive:/micro-app/index.html', {
+  _viewName: '子应用',
+  tenantId: 't1'
 });
 ```
-`relative:` 为约定相对路径标识，期望以相对路径的方式打开超链接。
 
-## 内联导航事件
-其内部以 `Iframe` 标签渲染超链接内容，当需要个性化 `Iframe` 时，VueTabRouter 提供了 `onIframeLoad` 事件，在 `Iframe` 加载完毕时触发。
+`lang`、`tenantId` 这类业务参数会作为查询参数拼接到 iframe 的 URL 上。
 
-```ts{8-10}
-import { createTabsManager, StorageAdapter } from '@xsbcme/vue-tab-router';
+## iframe 加载回调
 
-const modules = import.meta.glob("@/views/**/page-index.vue", { eager: false });
+可以在初始化时注册 `onIframeLoad`：
 
+```ts
 const tabsManager = createTabsManager({
-    modules,
-    storageAdapter: new StorageAdapter(sessionStorage),
-    onIframeLoad(e, tab) {
-        console.log('onIframeLoad', e, tab);
-    }
+  modules,
+  onIframeLoad(e, tab) {
+    console.log('iframe loaded =>', tab.viewUrl, e);
+  }
 });
-
-export default tabsManager;
 ```
-`onIframeLoad` 是全局事件，某个内联导航被激活时，会触发该事件，可以根据第二个参数定制化。
+
+常见用途：
+
+- 埋点上报（页面加载时机）
+- 对特定链接页签做额外处理
+- 诊断外部页面加载失败问题

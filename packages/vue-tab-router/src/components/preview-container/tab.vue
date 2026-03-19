@@ -17,7 +17,7 @@ import { Tab } from '../../tab';
 
 const tabsManager = useTabsManager();
 
-/** 如果设置了首页，希望在预览界面时不显示处理，需过滤掉首页 */
+/** 预览模式下隐藏首页标签，避免与预览入口重复。 */
 const getTabs = computed(() => tabsManager.tabs.filter(tab => !tab._isFirst));
 
 const handleSelectTab = (tab: Tab) => {
