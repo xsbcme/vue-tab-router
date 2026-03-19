@@ -10,16 +10,6 @@
 当前版本历史前缀是 `realtive:`（拼写沿用旧版本）。  
 请使用 `realtive:/path`。
 
-## 为什么 `viewNoCahce` 这个字段拼写看起来不对？
-
-这是历史字段名，为了兼容老版本保留了拼写。  
-请继续使用 `_viewNoCahce` / `viewNoCahce`。
-
-## `openFristTab` 是否写错？
-
-是历史命名（`Frist`），源码和类型定义都保持兼容。  
-目前应继续使用 `openFristTab`。
-
 ## 为什么内置 `DynamicTabsComponent` 样式不完整？
 
 它基于 Arco Design 组件实现，项目需要正确安装并引入 Arco 相关依赖/样式。

@@ -32,7 +32,7 @@ export function defineTabOptions(options: IDefineTabOptions) {
             _viewName: tab.viewName || options.viewName,
             _viewIcon: tab.viewIcon || options.viewIcon,
             _viewSingle: tab._single ?? options.viewSingle,
-            _viewNoCahce: tab._noCache ?? options.viewNoCahce
+            _viewNoCache: tab._noCache ?? options.viewNoCache
         }, tab._id);
     }
 }

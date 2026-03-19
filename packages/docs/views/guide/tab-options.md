@@ -12,7 +12,7 @@ await tabsManager.openTab('/src/views/user/page-index.vue', {
   _viewName: '用户详情',
   _viewIcon: 'icon-user',
   _viewSingle: true,
-  _viewNoCahce: false,
+  _viewNoCache: false,
   userId: 1001
 });
 ```
@@ -28,7 +28,7 @@ defineTabOptions({
   viewName: '用户详情',
   viewIcon: 'icon-user',
   viewSingle: true,
-  viewNoCahce: false
+  viewNoCache: false
 });
 ```
 

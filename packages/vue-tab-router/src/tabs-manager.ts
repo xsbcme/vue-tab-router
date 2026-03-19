@@ -193,13 +193,13 @@ export class TabsManager extends Plugin {
     }
 
     /**
-     * 打开首页标签（历史命名：Frist）。
+     * 打开首页标签。
      *
      * - `clear`: 清空后再打开
      * - `replace`: 替换已有首页
      * - `move`: 打开后移动到首位
      */
-    public async openFristTab<Url extends string>(
+    public async openFirstTab<Url extends string>(
         viewUrl: Url,
         tabOptions?: Omit<IOpenTabOptions, '_viewOutside' | '_viewOutsideProps'>,
         mode: 'clear' | 'replace' | 'move' = 'replace'
@@ -285,7 +285,7 @@ export class TabsManager extends Plugin {
                 _viewName,
                 _viewIcon,
                 _viewUrl,
-                _viewNoCahce,
+                _viewNoCache,
                 _viewSingle,
                 ...viewProps
             } = parsedOptions;
@@ -298,7 +298,7 @@ export class TabsManager extends Plugin {
                 viewIcon: _viewIcon ?? findTab.viewIcon,
                 viewUrl: _viewUrl ?? findTab.viewUrl,
                 viewProps: mergedViewProps,
-                _noCache: _viewNoCahce ?? findTab._noCache,
+                _noCache: _viewNoCache ?? findTab._noCache,
                 _single: _viewSingle ?? findTab._single,
             });
 
@@ -319,7 +319,7 @@ export class TabsManager extends Plugin {
                 _viewOutsideProps,
                 _viewName,
                 _viewIcon,
-                _viewNoCahce,
+                _viewNoCache,
                 _viewSingle,
                 ...viewProps
             } = jsonToObject(tabOptions || {}, {}) as IOpenTabOptions;
@@ -343,7 +343,7 @@ export class TabsManager extends Plugin {
                 viewProps,
 
                 _sourceId: this.activeTab?._id,
-                _noCache: _viewNoCahce,
+                _noCache: _viewNoCache,
                 _single: _viewSingle,
                 _id: createRandomString(),
             });

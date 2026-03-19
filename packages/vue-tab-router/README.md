@@ -157,7 +157,7 @@ tabsManager.openTab('/views/user/page-index.vue', { userId: 1001 });
 - `viewName`
 - `viewIcon`
 - `viewSingle`
-- `viewNoCahce`（历史命名，注意拼写）
+- `viewNoCache`
 
 ## `defineTabEvents(events)`
 
@@ -178,7 +178,7 @@ tabsManager.openTab('/views/user/page-index.vue', { userId: 1001 });
 常用方法如下：
 
 - `openTab(viewUrl, options)`：打开/复用页签
-- `openFristTab(viewUrl, options?, mode?)`：打开首页页签（历史命名 `Frist`）
+- `openFirstTab(viewUrl, options?, mode?)`：打开首页页签
 - `changeActiveTab(tabId)`：切换激活页签
 - `closeTab(tabId?, force?)`：关闭页签
 - `closeTabByAll()`：全部关闭
@@ -209,7 +209,7 @@ tabsManager.openTab('/views/order/page-index.vue', {
   _viewName: '订单列表',
   _viewIcon: 'icon-order',
   _viewSingle: true,   // 同一路径单例
-  _viewNoCahce: false, // 允许缓存
+  _viewNoCache: false, // 允许缓存
   orderType: 'wait-pay'
 });
 ```
@@ -249,7 +249,7 @@ tabsManager.openTab('https://example.com', {
 ## 缓存与刷新
 
 - 默认启用缓存（基于 keep-alive）
-- `_viewNoCahce: true` 可关闭单页缓存
+- `_viewNoCache: true` 可关闭单页缓存
 - `refreshTab()` 强制刷新单页
 - `refreshTabAll()` 强制刷新所有页签
 
@@ -361,9 +361,7 @@ tabsManager.addPlugin(new LoggerPlugin());
 
 ## 注意事项
 
-- `viewNoCahce` 为历史字段名（拼写保持兼容）
 - `realtive:` 为历史相对链接前缀（拼写保持兼容）
-- `openFristTab` 方法名为历史拼写（`Frist`）
 - 若使用 `DynamicTabsComponent`，请确保已安装并按需引入 Arco 相关依赖与样式
 
 ---

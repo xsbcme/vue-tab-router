@@ -7,12 +7,12 @@
 
 ## 关闭单页缓存
 
-打开页面时设置 `_viewNoCahce: true`（历史拼写）：
+打开页面时设置 `_viewNoCache: true`：
 
 ```ts
 await tabsManager.openTab('/src/views/report/page-index.vue', {
   _viewName: '报表页面',
-  _viewNoCahce: true
+  _viewNoCache: true
 });
 ```
 
@@ -22,7 +22,7 @@ await tabsManager.openTab('/src/views/report/page-index.vue', {
 import { defineTabOptions } from '@xsbcme/vue-tab-router';
 
 defineTabOptions({
-  viewNoCahce: true
+  viewNoCache: true
 });
 ```
 

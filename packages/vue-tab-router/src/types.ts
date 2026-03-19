@@ -108,9 +108,9 @@ export interface IDefineTabOptions {
     viewSingle?: boolean;
 
     /**
-     * 是否禁用缓存（历史字段，保持兼容）。
+     * 是否禁用缓存。
      */
-    viewNoCahce?: boolean;
+    viewNoCache?: boolean;
 }
 
 /**
@@ -133,9 +133,9 @@ export interface IUpdateTabOptions extends Record<string, any> {
     _viewUrl?: string;
 
     /**
-     * 更新缓存设置（历史字段，保持兼容）。
+     * 更新缓存设置。
      */
-    _viewNoCahce?: boolean;
+    _viewNoCache?: boolean;
 
     /**
      * 更新单例设置。
@@ -164,9 +164,9 @@ export interface IOpenTabOptions extends Record<string, any> {
     _viewSingle?: boolean;
 
     /**
-     * 是否禁用缓存（历史字段，保持兼容）。
+     * 是否禁用缓存。
      */
-    _viewNoCahce?: boolean;
+    _viewNoCache?: boolean;
 
     /**
      * 是否在新窗口打开（仅对链接型 viewUrl 生效）。

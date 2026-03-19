@@ -132,7 +132,7 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 
 以上方法复用 `closeTab` 逐个处理，因此也遵守不可关闭规则和守卫规则。
 
-## 5.6 首页能力 `openFristTab(...)`
+## 5.6 首页能力 `openFirstTab(...)`
 
 支持三种模式：
 
@@ -222,10 +222,10 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 
 ## 11. 已知边界与注意事项
 
-- `viewNoCahce` 字段命名沿用历史拼写（`Cahce`），使用时需保持一致。
+- `viewNoCache` 用于控制是否禁用缓存。
 - URL 前缀常量为 `realtive:`（历史拼写），用于标识相对链接。
 - 组件级 `_onBeforeTabOpen` / `_onBeforeTabEnter` 当前未启用（源码保留注释）。
-- `openFristTab` 方法名也沿用历史拼写（`Frist`）。
+- `openFirstTab` 用于打开首页标签。
 - `closeTabsByLeft/Right/Other` 在批量关闭后会通过 `openTab` 重新激活目标页。
 
 ---

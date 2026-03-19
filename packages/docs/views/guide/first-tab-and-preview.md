@@ -1,11 +1,11 @@
 # 首页与预览容器方案
 
-## 首页标签：`openFristTab`
+## 首页标签：`openFirstTab`
 
-`openFristTab`（历史命名，保持兼容）用于打开并固定首页标签，首页会被标记为不可关闭。
+`openFirstTab` 用于打开并固定首页标签，首页会被标记为不可关闭。
 
 ```ts
-await tabsManager.openFristTab(
+await tabsManager.openFirstTab(
   '/src/views/home/page-index.vue',
   { _viewName: '首页' },
   'replace'

@@ -49,7 +49,7 @@ AbstractTabsManagerPlugin
 获取响应式 `tabsManager` 实例。常用属性/方法：
 
 - `tabs`, `activeTab`, `registerTabPaths`, `activeTabParentPaths`
-- `openTab`, `openFristTab`, `changeActiveTab`
+- `openTab`, `openFirstTab`, `changeActiveTab`
 - `closeTab`, `closeTabByAll`, `closeTabsByLeft/Right/Other`
 - `refreshTab`, `refreshTabAll`, `updateTabOptions`
 - `emit`, `activeFirstTab`, `clear`
@@ -66,7 +66,7 @@ AbstractTabsManagerPlugin
 - `_viewName`: 标题
 - `_viewIcon`: 图标
 - `_viewSingle`: 是否单例
-- `_viewNoCahce`: 是否禁用缓存（历史拼写）
+- `_viewNoCache`: 是否禁用缓存
 - `_viewOutside`: 是否新窗口打开链接
 - `_viewOutsideProps`: `window.open` 参数（`target`、`features`）
 
@@ -85,7 +85,7 @@ AbstractTabsManagerPlugin
 - `viewName`
 - `viewIcon`
 - `viewSingle`
-- `viewNoCahce`
+- `viewNoCache`
 
 ### `defineTabEvents(events)`
 
