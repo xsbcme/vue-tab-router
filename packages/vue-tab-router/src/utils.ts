@@ -1,4 +1,5 @@
 import { Component, ComponentInternalInstance } from "vue";
+import { RELATIVE_VIEW_URL_PREFIX_KEY } from "./constant";
 
 export function findParentPathsByPath(paths: string[], path: string) {
     if (!path) return [];
@@ -77,4 +78,14 @@ export function findVueComponent(node: ComponentInternalInstance, componentName:
         return findVueComponent(node.parent, componentName);
     }
     return node.appContext.components[componentName];
+}
+
+/**
+ * 将内部 URL（relative: 前缀或普通 http/https）转换为可直接使用的真实 URL。
+ */
+export function resolveViewUrl(url: string) {
+    if (url.startsWith(RELATIVE_VIEW_URL_PREFIX_KEY)) {
+        return url.replace(RELATIVE_VIEW_URL_PREFIX_KEY, '');
+    }
+    return url;
 }

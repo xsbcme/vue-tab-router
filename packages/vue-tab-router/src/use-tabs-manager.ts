@@ -75,3 +75,15 @@ export function onBeforeTabClose(guard: TabGuard) {
         useTabsManager()._registerTabGuard(id, '_onBeforeTabClose', guard);
     }
 }
+
+/**
+ * 注册当前 tab 的进入守卫。
+ * 当此 tab 被激活时触发（包括从 keep-alive 缓存中恢复）。
+ * 返回 rejected Promise（或抛错）会阻止激活。
+ */
+export function onBeforeTabEnter(guard: TabGuard) {
+    const id = useTabId();
+    if (id) {
+        useTabsManager()._registerTabGuard(id, '_onBeforeTabEnter', guard);
+    }
+}

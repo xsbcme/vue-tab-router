@@ -15,7 +15,6 @@
   "author": "xsbcme",
   "license": "ISC",
   "devDependencies": {
-    "@arco-design/web-vue": "2.56.3",
     "@vue/runtime-core": "3.4.21",
     "@vue/shared": "3.4.21",
     "less": "4.2.2"

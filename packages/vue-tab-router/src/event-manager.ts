@@ -1,12 +1,12 @@
-import { Singleton } from "./base/singleton";
-
 interface IFunction {
     func: Function;
     ctx?: unknown;
 }
 
-// @ts-ignore
-export class EventManager extends Singleton {
+export class EventManager {
+    private static _instance: EventManager | null = null;
+
+    private constructor() {}
 
     private events: Map<string, Array<IFunction>> = new Map();
 
@@ -45,8 +45,11 @@ export class EventManager extends Singleton {
         this.events.clear();
     }
 
-    static getInstance() {
-        return super.getInstance<EventManager>();
+    static getInstance(): EventManager {
+        if (!this._instance) {
+            this._instance = new EventManager();
+        }
+        return this._instance;
     }
 
 }

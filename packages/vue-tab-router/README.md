@@ -140,6 +140,7 @@ tabsManager.openTab('/views/user/page-index.vue', { userId: 1001 });
 - `onIframeLoad`: iframe 加载完成回调
 - `onBeforeTabOpen`: 全局打开前守卫
 - `onBeforeTabEnter`: 全局进入前守卫
+- `onBeforeTabClose`: 全局关闭前守卫
 - `viewNameMaxLength`: 标题最大展示长度（配合内置 tabs 组件）
 
 ## `useTabsManager()`
@@ -170,6 +171,10 @@ tabsManager.openTab('/views/user/page-index.vue', { userId: 1001 });
 ## `onBeforeTabClose(guard)`
 
 注册页面级关闭守卫。拒绝 Promise 可阻止关闭。
+
+## `onBeforeTabEnter(guard)`
+
+注册页面级进入守卫。当此 tab 被激活时触发，拒绝 Promise 可阻止激活。
 
 ---
 
@@ -216,7 +221,7 @@ tabsManager.openTab('/views/order/page-index.vue', {
 
 ## 2）iframe 内嵌页面
 
-当 `viewUrl` 为 `http/https`，或以 `realtive:` 前缀（历史命名）开头时，会使用 iframe 渲染。
+当 `viewUrl` 为 `http/https`，或以 `relative:` 前缀开头时，会使用 iframe 渲染。
 
 ```ts
 tabsManager.openTab('https://example.com/docs', {
@@ -226,7 +231,7 @@ tabsManager.openTab('https://example.com/docs', {
 ```
 
 ```ts
-tabsManager.openTab('realtive:/micro-app/index.html', {
+tabsManager.openTab('relative:/micro-app/index.html', {
   _viewName: '子应用',
   tenantId: 't1'
 });
@@ -283,13 +288,20 @@ tabsManager.emit('saved', { id: 1001 });
 ## 守卫示例
 
 ```ts
-import { onBeforeTabLeave, onBeforeTabClose } from '@xsbcme/vue-tab-router';
+import { onBeforeTabLeave, onBeforeTabClose, onBeforeTabEnter } from '@xsbcme/vue-tab-router';
 
+// 当前 tab 被激活前触发（从其他 tab 切换过来时）
+onBeforeTabEnter(async (toTab, fromTab) => {
+  console.log('enter', fromTab?.viewUrl, '=>', toTab.viewUrl);
+});
+
+// 离开当前 tab 前触发（切换到其他 tab 时）
 onBeforeTabLeave(async () => {
   const ok = window.confirm('确定离开当前页面？');
   if (!ok) return Promise.reject(new Error('cancel leave'));
 });
 
+// 关闭当前 tab 前触发
 onBeforeTabClose(async () => {
   const ok = window.confirm('确定关闭当前页面？');
   if (!ok) return Promise.reject(new Error('cancel close'));
@@ -361,7 +373,7 @@ tabsManager.addPlugin(new LoggerPlugin());
 
 ## 注意事项
 
-- `realtive:` 为历史相对链接前缀（拼写保持兼容）
+- `relative:` 为内嵌相对链接的前缀，格式为 `relative:/path/to/page.html`
 - 若使用 `DynamicTabsComponent`，请确保已安装并按需引入 Arco 相关依赖与样式
 
 ---

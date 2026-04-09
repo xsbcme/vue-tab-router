@@ -2,9 +2,10 @@ import { App, defineAsyncComponent, nextTick, createVNode, defineComponent, toRa
 import { Plugin } from './base/plugin';
 import { Tab } from "./tab";
 import { IOpenTabOptions, ITabsManagerOptions, IUpdateTabOptions, Modules, TabGuard, TabGuardName } from "./types";
-import { isHttpUrl, jsonToObject, createRandomString, clone, findParentPathsByPath } from "./utils";
-import { PEALTIVE_VIEW_URL_PREFIX_KEY, STORAGE_TABS_KEY } from "./constant";
+import { isHttpUrl, jsonToObject, createRandomString, clone, findParentPathsByPath, resolveViewUrl } from "./utils";
+import { RELATIVE_VIEW_URL_PREFIX_KEY, STORAGE_TABS_KEY } from "./constant";
 import { useEventManager } from "./use-event-manager";
+import { AbstractStorageAdapter } from "./abstract-storage-adapter";
 import { StorageAdapter } from "./storage-adapter";
 
 export class TabsManager extends Plugin {
@@ -13,6 +14,7 @@ export class TabsManager extends Plugin {
     private _app: App | null = null;
     private _tabs: Tab[] = [];
     private _refreshAllTabFlag: boolean = false;
+    private _storageAdapter: AbstractStorageAdapter | null = null;
 
     get app() {
         return this._app;
@@ -23,11 +25,7 @@ export class TabsManager extends Plugin {
     }
 
     get storage() {
-        let storageAdapter = this._options?.storageAdapter;
-        if (!storageAdapter) {
-            storageAdapter = new StorageAdapter();
-        }
-        return storageAdapter;
+        return this._storageAdapter;
     }
 
     get refreshAllTabFlag() {
@@ -75,7 +73,8 @@ export class TabsManager extends Plugin {
 
     public _initOptions(options: ITabsManagerOptions) {
         this._options = options;
-        this.storage && (this._tabs = this.storage.get(STORAGE_TABS_KEY, []).map(item => new Tab(item)));
+        this._storageAdapter = options.storageAdapter ?? new StorageAdapter();
+        this._tabs = this._storageAdapter.get(STORAGE_TABS_KEY, []).map(item => new Tab(item));
         return this;
     }
 
@@ -132,21 +131,7 @@ export class TabsManager extends Plugin {
     }
 
     private isUrl(url: string) {
-        return url?.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(url);
-    }
-
-    private getHttpUrl(url: string) {
-        if (this.isUrl(url)) {
-            if (url.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(url)) {
-                let newUrl = '';
-                if (url.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY)) {
-                    newUrl = url.replace(PEALTIVE_VIEW_URL_PREFIX_KEY, '');
-                } else {
-                    newUrl = url;
-                }
-                return newUrl;
-            }
-        }
+        return url?.startsWith(RELATIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(url);
     }
 
     private getTabByViewUrlAndProps(viewUrl: string, props: Record<string, any> | undefined) {
@@ -235,7 +220,7 @@ export class TabsManager extends Plugin {
     public _registerTabGuard(tabId: string, guardName: TabGuardName, guard: TabGuard) {
         const findTab = this.getTabById(tabId);
         if (!findTab) return;
-        Reflect.set(findTab, guardName, guard);
+        findTab[guardName] = guard;
     }
 
     /**
@@ -250,10 +235,18 @@ export class TabsManager extends Plugin {
 
             if (triggerHook) {
                 try {
+                    const currentTab = this.activeTab;
+                    // 全局：进入前守卫
                     const onBeforeTabEnter = this._options?.onBeforeTabEnter;
                     typeof onBeforeTabEnter === 'function' && await onBeforeTabEnter(
                         clone(findTab),
-                        clone(this.getTabById(findTab._sourceId)));
+                        clone(currentTab)
+                    );
+                    // 页面级：目标 tab 进入前守卫
+                    typeof findTab._onBeforeTabEnter === 'function' && await findTab._onBeforeTabEnter(
+                        clone(findTab),
+                        clone(currentTab)
+                    );
                 } catch (error) {
                     return Promise.reject(error);
                 }
@@ -324,9 +317,9 @@ export class TabsManager extends Plugin {
                 ...viewProps
             } = jsonToObject(tabOptions || {}, {}) as IOpenTabOptions;
 
-            // 链接型地址（http/https 或 realtive: 前缀）
+            // 链接型地址（http/https 或 relative: 前缀）
             if (this.isUrl(viewUrl)) {
-                const newViewUrl = this.getHttpUrl(viewUrl);
+                const newViewUrl = resolveViewUrl(viewUrl);
                 if (_viewOutside) {
                     const { target, features } = _viewOutsideProps || {};
                     return window.open(newViewUrl, target, features);
@@ -355,10 +348,14 @@ export class TabsManager extends Plugin {
 
             // 离开当前 tab 前先执行页面级离开守卫
             if (newTab._id !== this.activeTab?._id) {
-                typeof this.activeTab?._onBeforeTabLeave === 'function' && await this.activeTab._onBeforeTabLeave(
-                    clone(newTab),
-                    clone(this.getTabById(newTab._sourceId))
-                );
+                try {
+                    typeof this.activeTab?._onBeforeTabLeave === 'function' && await this.activeTab._onBeforeTabLeave(
+                        clone(newTab),
+                        clone(this.activeTab)
+                    );
+                } catch (error) {
+                    return Promise.reject(error);
+                }
             }
 
             if (findTabByProps) {
@@ -419,13 +416,21 @@ export class TabsManager extends Plugin {
                     return;
                 }
 
-                typeof findTab._onBeforeTabLeave === 'function' && await findTab._onBeforeTabLeave(
-                    clone(this.getTabById(findTab._sourceId)),
-                    clone(findTab));
-
-                typeof findTab._onBeforeTabClose === 'function' && await findTab._onBeforeTabClose(
-                    clone(this.getTabById(findTab._sourceId)),
-                    clone(findTab));
+                try {
+                    // 页面级：关闭前守卫
+                    typeof findTab._onBeforeTabClose === 'function' && await findTab._onBeforeTabClose(
+                        clone(this.getTabById(findTab._sourceId)),
+                        clone(findTab)
+                    );
+                    // 全局：关闭前守卫
+                    const onBeforeTabClose = this._options?.onBeforeTabClose;
+                    typeof onBeforeTabClose === 'function' && await onBeforeTabClose(
+                        clone(findTab),
+                        clone(this.getTabById(findTab._sourceId))
+                    );
+                } catch (error) {
+                    return Promise.reject(error);
+                }
 
                 const eventManager = useEventManager();
                 eventManager.eventNames.forEach((eventName: string) => {
@@ -540,8 +545,7 @@ export class TabsManager extends Plugin {
             for (let index = 0; index < findTabIndex; index++) {
                 await this.closeTab(tabs[index]._id);
             }
-            const { viewUrl, viewProps } = tabs[findTabIndex];
-            await this.openTab(viewUrl, viewProps);
+            await this.changeActiveTab(findTab._id);
         });
     }
 
@@ -560,8 +564,7 @@ export class TabsManager extends Plugin {
             for (let index = findTabIndex + 1; index < tabs.length; index++) {
                 await this.closeTab(tabs[index]._id);
             }
-            const { viewUrl, viewProps } = tabs[findTabIndex];
-            await this.openTab(viewUrl, viewProps);
+            await this.changeActiveTab(findTab._id);
         });
     }
 
@@ -582,8 +585,7 @@ export class TabsManager extends Plugin {
                     await this.closeTab(tabs[index]._id);
                 }
             }
-            const { viewUrl, viewProps } = tabs[findTabIndex];
-            await this.openTab(viewUrl, viewProps);
+            await this.changeActiveTab(findTab._id);
         });
     }
 

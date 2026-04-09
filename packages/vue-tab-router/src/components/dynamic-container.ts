@@ -1,6 +1,6 @@
 import { createVNode, Transition, defineComponent, provide, computed, getCurrentInstance } from 'vue';
-import { INJECT_ACTIVE_TAB_KEY, INJECT_CURRENT_TAB_KEY, PEALTIVE_VIEW_URL_PREFIX_KEY, } from '@/constant';
-import { clone, findVueComponent, isHttpUrl } from '@/utils';
+import { INJECT_ACTIVE_TAB_KEY, INJECT_CURRENT_TAB_KEY, RELATIVE_VIEW_URL_PREFIX_KEY, } from '@/constant';
+import { clone, findVueComponent, isHttpUrl, resolveViewUrl } from '@/utils';
 import { useTabsManager } from '@/use-tabs-manager';
 
 import { default as KeepAliveEnhanceComponent } from '@/components/keep-alive-enhance';
@@ -45,13 +45,8 @@ export default defineComponent({
 
                 provide(INJECT_CURRENT_TAB_KEY, activeTab);
 
-                if (activeTab.viewUrl.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(activeTab.viewUrl)) {
-                    let viewUrl = '';
-                    if (activeTab.viewUrl.startsWith(PEALTIVE_VIEW_URL_PREFIX_KEY)) {
-                        viewUrl = activeTab.viewUrl.replace(PEALTIVE_VIEW_URL_PREFIX_KEY, '');
-                    } else {
-                        viewUrl = activeTab.viewUrl;
-                    }
+                if (activeTab.viewUrl.startsWith(RELATIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(activeTab.viewUrl)) {
+                    const viewUrl = resolveViewUrl(activeTab.viewUrl);
                     return () => createVNode(DynamicIframeComponent, {
                         key: activeTab._id,
                         link: viewUrl,

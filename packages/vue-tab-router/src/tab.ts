@@ -11,9 +11,8 @@ export class Tab {
     _single?: boolean;
     _noCache?: boolean;
     _loading?: boolean;
-    // _loading?: boolean;
     // _onBeforeTabOpen?: TabGuard;
-    // _onBeforeTabEnter?: TabGuard;
+    _onBeforeTabEnter?: TabGuard;
     _onBeforeTabLeave?: TabGuard;
     _onBeforeTabClose?: TabGuard;
 

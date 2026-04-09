@@ -61,6 +61,12 @@ export interface ITabsManagerOptions {
     onBeforeTabEnter?: TabGuard;
 
     /**
+     * 全局：关闭标签页前守卫。
+     * rejected Promise 或抛错会阻止关闭。
+     */
+    onBeforeTabClose?: TabGuard;
+
+    /**
      * 标签名称最大显示长度（主要用于内置 Tabs 组件）。
      */
     viewNameMaxLength?: number;
@@ -75,7 +81,7 @@ export type TabGuard = (toTab: Partial<Tab>, oldTab?: Partial<Tab>) => Promise<v
 /**
  * 页面级守卫字段名（挂载在 Tab 实例上）。
  */
-export type TabGuardName = '_onBeforeTabLeave' | '_onBeforeTabClose';
+export type TabGuardName = '_onBeforeTabEnter' | '_onBeforeTabLeave' | '_onBeforeTabClose';
 
 /**
  * 通用模块映射类型。
