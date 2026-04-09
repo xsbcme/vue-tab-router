@@ -1,8 +1,8 @@
 <template>
     <div class="preview">
-        <template v-if="tabsManager.tabs.length > 1">
+        <template v-if="tabsManager.tabs.some(t => !t._isFirst)">
             <div class="preview-tabs">
-                <Tabs />
+                <DynamicTabsComponent hide-first />
             </div>
         </template>
         <div class="preview-content">
@@ -16,7 +16,7 @@
 import { onMounted } from 'vue';
 import { useTabsManager } from '../../use-tabs-manager';
 import DynamicContainerComponent from '../dynamic-container';
-import Tabs from './tab.vue';
+import DynamicTabsComponent from '../dynamic-tabs/index.vue';
 
 const props = withDefaults(defineProps<{
     viewUrl: string;

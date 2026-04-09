@@ -2,7 +2,7 @@
     <div class="tabs">
         <div class="tabs-nav" :class="`tabs-nav--${type}`">
             <tab-item
-                v-for="tab in tabsManager.tabs"
+                v-for="tab in displayTabs"
                 :key="tab._id"
                 :tab="tab"
                 :is-active="tab._id === tabsManager.activeTab?._id"
@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive } from 'vue';
+import { reactive, computed } from 'vue';
 import { Tab } from '@/tab';
 import TabItem from './tab-item.vue';
 import ContextMenu from './context-menu.vue';
@@ -34,15 +34,22 @@ import { useTabsManager } from '@/use-tabs-manager';
 
 type TabsType = 'text' | 'line' | 'card' | 'rounded' | 'capsule';
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
     type?: TabsType;
     showIcon?: boolean;
     defaultIcon?: string;
+    /** 隐藏 _isFirst 标记的首页标签（预览模式下使用）。 */
+    hideFirst?: boolean;
 }>(), {
-    type: 'text'
+    type: 'text',
+    hideFirst: false,
 });
 
 const tabsManager = useTabsManager();
+
+const displayTabs = computed(() =>
+    props.hideFirst ? tabsManager.tabs.filter(t => !t._isFirst) : tabsManager.tabs
+);
 
 const handleSelectTab = (key: string) => {
     const tab = tabsManager.tabs.find(t => t._id === key);
