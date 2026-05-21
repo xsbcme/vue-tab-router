@@ -12,9 +12,8 @@
     "publish:pre-beta": "changeset pre enter beta",
     "publish:change": "changeset",
     "publish:bump": "changeset version",
-    "publish:beta": "turbo run build && changeset publish",
     "publish:pre-exit": "changeset pre exit",
-    "publish:stable": "turbo run build && changeset publish"
+    "publish:run": "turbo run build && changeset publish"
   },
   "author": "xsbcme",
   "license": "ISC",
