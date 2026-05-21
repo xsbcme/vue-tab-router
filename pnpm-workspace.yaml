@@ -13,6 +13,7 @@ catalog:
   vite-plugin-externalize-deps: ^0.10.0
   sass: 1.59.3
   '@vitejs/plugin-vue': ^5.0.4
+  vue: ^3.4.21
   '@vue/runtime-core': ^3.4.21
   '@vue/shared': ^3.4.21
   vitepress: 1.6.4

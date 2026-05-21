@@ -1,6 +1,6 @@
 {
   "name": "@xsbcme/vue-tab-router",
-  "version": "1.0.0-beta.28",
+  "version": "1.0.0-beta.33",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -35,6 +35,7 @@
     "vue-tsc": "catalog:"
   },
   "peerDependencies": {
+    "vue": "catalog:",
     "@vue/runtime-core": "catalog:",
     "@vue/shared": "catalog:"
   }

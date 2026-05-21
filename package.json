@@ -22,8 +22,5 @@
     "prettier": "catalog:",
     "turbo": "catalog:",
     "typescript": "catalog:"
-  },
-  "dependencies": {
-    "vue": "catalog:"
   }
 }
