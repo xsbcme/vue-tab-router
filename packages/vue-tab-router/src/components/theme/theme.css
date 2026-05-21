@@ -1,0 +1,110 @@
+/**
+ * vue-tab-router 默认主题样式
+ * 
+ * 使用方式：
+ * 1. 直接覆盖 CSS 变量（推荐）
+ *    :root {
+ *      --tab-color-primary: #your-color;
+ *      --tab-font-size: 16px;
+ *    }
+ * 
+ * 2. 使用 JavaScript API
+ *    import { applyTheme, darkTheme } from '@xsbcme/vue-tab-router';
+ *    applyTheme(darkTheme);
+ * 
+ * 3. 在特定容器内应用主题
+ *    .my-container {
+ *      --tab-color-primary: #custom-color;
+ *    }
+ */
+
+:root {
+  /* ===== 颜色系统 ===== */
+  /* 主色调 */
+  --tab-color-primary: #165dff;
+  --tab-color-primary-hover: #4080ff;
+  --tab-color-primary-active: #0e42d2;
+
+  /* 文本颜色 */
+  --tab-color-text-primary: #1d2129;
+  --tab-color-text-secondary: #4e5969;
+  --tab-color-text-disabled: #86909c;
+
+  /* 背景色 */
+  --tab-color-bg-base: #ffffff;
+  --tab-color-bg-elevated: #ffffff;
+  --tab-color-bg-hover: #f2f3f5;
+  --tab-color-bg-active: #e5e6eb;
+
+  /* 边框颜色 */
+  --tab-color-border: #e5e6eb;
+  --tab-color-border-dark: #c9cdd4;
+
+  /* ===== 尺寸系统 ===== */
+  /* 字体大小 */
+  --tab-font-size: 14px;
+  --tab-font-size-small: 12px;
+  --tab-font-size-large: 16px;
+
+  /* 间距 */
+  --tab-spacing-xs: 4px;
+  --tab-spacing-sm: 7px;
+  --tab-spacing-md: 8px;
+  --tab-spacing-lg: 16px;
+
+  /* 图标尺寸 */
+  --tab-icon-size: 14px;
+
+  /* ===== 圆角 ===== */
+  --tab-radius-sm: 4px;
+  --tab-radius-md: 6px;
+  --tab-radius-lg: 20px;
+  --tab-radius-capsule: 16px;
+
+  /* ===== 阴影 ===== */
+  --tab-shadow-light: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --tab-shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --tab-shadow-heavy: 0 8px 24px rgba(0, 0, 0, 0.16);
+
+  /* ===== 过渡动画 ===== */
+  --tab-transition-duration: 0.15s;
+  --tab-transition-timing: ease;
+}
+
+/* 深色主题类 */
+.tab-theme-dark {
+  --tab-color-primary: #177ddc;
+  --tab-color-primary-hover: #3c9ae8;
+  --tab-color-primary-active: #0f5fae;
+
+  --tab-color-text-primary: #e8e8e8;
+  --tab-color-text-secondary: #a6a6a6;
+  --tab-color-text-disabled: #595959;
+
+  --tab-color-bg-base: #1f1f1f;
+  --tab-color-bg-elevated: #262626;
+  --tab-color-bg-hover: #2d2d2d;
+  --tab-color-bg-active: #3d3d3d;
+
+  --tab-color-border: #434343;
+  --tab-color-border-dark: #595959;
+}
+
+/* 浅色主题类 */
+.tab-theme-light {
+  --tab-color-primary: #1890ff;
+  --tab-color-primary-hover: #40a9ff;
+  --tab-color-primary-active: #096dd9;
+
+  --tab-color-text-primary: #262626;
+  --tab-color-text-secondary: #595959;
+  --tab-color-text-disabled: #bfbfbf;
+
+  --tab-color-bg-base: #ffffff;
+  --tab-color-bg-elevated: #ffffff;
+  --tab-color-bg-hover: #f5f5f5;
+  --tab-color-bg-active: #e8e8e8;
+
+  --tab-color-border: #d9d9d9;
+  --tab-color-border-dark: #bfbfbf;
+}

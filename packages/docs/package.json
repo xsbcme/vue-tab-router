@@ -1,21 +1,20 @@
 {
   "name": "@xsbcme/docs",
   "version": "0.0.1",
+  "private": true,
   "type": "module",
   "files": [
     "dist"
   ],
   "scripts": {
-    "preinstall": "npx only-allow pnpm",
-    "build": "vue-tsc --noEmit && vite build",
-    "docs:dev": "vitepress dev --force",
-    "docs:build": "vitepress build",
-    "docs:preview": "vitepress preview"
+    "dev": "vitepress dev --force",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
   },
   "keywords": [],
   "author": "xsbcme",
   "license": "ISC",
   "devDependencies": {
-    "vitepress": "1.3.4"
+    "vitepress": "catalog:"
   }
 }

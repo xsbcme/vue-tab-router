@@ -8,14 +8,14 @@
 - `realtive:` 前缀（历史拼写，注意不是 `relative:`）
 
 ```ts
-await tabsManager.openTab('https://example.com/docs', {
-  _viewName: '外部文档',
-  lang: 'zh-CN'
+await tabsManager.openTab("https://example.com/docs", {
+  _viewName: "外部文档",
+  lang: "zh-CN",
 });
 
-await tabsManager.openTab('realtive:/micro-app/index.html', {
-  _viewName: '子应用',
-  tenantId: 't1'
+await tabsManager.openTab("realtive:/micro-app/index.html", {
+  _viewName: "子应用",
+  tenantId: "t1",
 });
 ```
 
@@ -29,8 +29,8 @@ await tabsManager.openTab('realtive:/micro-app/index.html', {
 const tabsManager = createTabsManager({
   modules,
   onIframeLoad(e, tab) {
-    console.log('iframe loaded =>', tab.viewUrl, e);
-  }
+    console.log("iframe loaded =>", tab.viewUrl, e);
+  },
 });
 ```
 

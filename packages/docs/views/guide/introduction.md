@@ -24,7 +24,7 @@ src
 `modules` 通常写成：
 
 ```ts
-const modules = import.meta.glob('@/views/**/page-index.vue');
+const modules = import.meta.glob("@/views/**/page-index.vue");
 ```
 
 这样可以只把“真正页面入口”注册为可打开页签，避免把局部业务组件误当成页面。

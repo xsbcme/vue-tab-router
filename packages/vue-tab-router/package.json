@@ -1,22 +1,41 @@
 {
   "name": "@xsbcme/vue-tab-router",
-  "version": "1.0.20",
+  "version": "2.0.0-beta.0",
   "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "main": "./dist/vue-tab-router.umd.cjs",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "preinstall": "npx only-allow pnpm",
-    "build": "vue-tsc --noEmit && vite build"
+    "build": "vite build",
+    "build:watch": "vite build --watch",
+    "dev": "vite build --watch",
+    "type-check": "tsc --noEmit"
   },
   "keywords": [],
   "author": "xsbcme",
   "license": "ISC",
   "devDependencies": {
-    "@vue/runtime-core": "3.4.21",
-    "@vue/shared": "3.4.21",
-    "less": "4.2.2"
+    "@types/node": "catalog:",
+    "vite-plugin-css-injected-by-js": "catalog:",
+    "vite-plugin-dts": "catalog:",
+    "vite-plugin-externalize-deps": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "@vitejs/plugin-vue": "catalog:",
+    "vue-tsc": "catalog:"
+  },
+  "peerDependencies": {
+    "@vue/runtime-core": "catalog:",
+    "@vue/shared": "catalog:"
   }
 }

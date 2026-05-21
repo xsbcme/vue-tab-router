@@ -1,5 +1,11 @@
 # @xsbcme/vue-tab-router
 
+## 2.0.0-beta.0
+
+### Major Changes
+
+- test
+
 ## 1.0.0-beta.25
 
 ### Patch Changes

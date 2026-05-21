@@ -244,24 +244,24 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 ## 13. 最小实践示例
 
 ```ts
-import { createApp } from 'vue';
-import App from './App.vue';
-import { createTabsManager } from '@xsbcme/vue-tab-router';
+import { createApp } from "vue";
+import App from "./App.vue";
+import { createTabsManager } from "@xsbcme/vue-tab-router";
 
-const modules = import.meta.glob('./views/**/page-index.vue');
+const modules = import.meta.glob("./views/**/page-index.vue");
 
 const tabsManager = createTabsManager({
   modules,
   viewNameMaxLength: 20,
-  onBeforeTabOpen: async (toTab) => {
-    console.log('open =>', toTab.viewUrl);
+  onBeforeTabOpen: async toTab => {
+    console.log("open =>", toTab.viewUrl);
   },
   onBeforeTabEnter: async (toTab, fromTab) => {
-    console.log('enter =>', fromTab?.viewUrl, '->', toTab.viewUrl);
-  }
+    console.log("enter =>", fromTab?.viewUrl, "->", toTab.viewUrl);
+  },
 });
 
-createApp(App).use(tabsManager).mount('#app');
+createApp(App).use(tabsManager).mount("#app");
 ```
 
 你可以把这篇文档视为“实现与能力的映射表”。当你要扩展功能时，建议从 `TabsManager.openTab`、`TabsManager.closeTab`、`DynamicContainerComponent` 三个位置开始追踪。

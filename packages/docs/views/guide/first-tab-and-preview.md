@@ -5,11 +5,7 @@
 `openFirstTab` 用于打开并固定首页标签，首页会被标记为不可关闭。
 
 ```ts
-await tabsManager.openFirstTab(
-  '/src/views/home/page-index.vue',
-  { _viewName: '首页' },
-  'replace'
-);
+await tabsManager.openFirstTab("/src/views/home/page-index.vue", { _viewName: "首页" }, "replace");
 ```
 
 `mode` 支持：
@@ -38,7 +34,7 @@ await tabsManager.activeFirstTab();
 </template>
 
 <script setup lang="ts">
-import { PreviewContainerComponent } from '@xsbcme/vue-tab-router';
+import { PreviewContainerComponent } from "@xsbcme/vue-tab-router";
 </script>
 ```
 

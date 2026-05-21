@@ -7,8 +7,8 @@ import {
   VNode,
   VNodeArrayChildren,
   queuePostFlushCb,
-} from 'vue';
-import { queueEffectWithSuspense } from './Suspense';
+} from "vue";
+import { queueEffectWithSuspense } from "./Suspense";
 
 // An object exposing the internals of a renderer, passed to tree-shakeable
 // features so that they can be decoupled from this file. Keys are shortened
@@ -38,7 +38,7 @@ type PatchFn = (
   parentSuspense?: SuspenseBoundary | null,
   isSVG?: boolean,
   slotScopeIds?: string[] | null,
-  optimized?: boolean,
+  optimized?: boolean
 ) => void;
 
 type UnmountFn = (
@@ -46,7 +46,7 @@ type UnmountFn = (
   parentComponent: ComponentInternalInstance | null,
   parentSuspense: SuspenseBoundary | null,
   doRemove?: boolean,
-  optimized?: boolean,
+  optimized?: boolean
 ) => void;
 
 type RemoveFn = (vnode: VNode) => void;
@@ -56,7 +56,7 @@ type MoveFn = (
   container: RendererElement,
   anchor: RendererNode | null,
   type: MoveType,
-  parentSuspense?: SuspenseBoundary | null,
+  parentSuspense?: SuspenseBoundary | null
 ) => void;
 
 export const enum MoveType {
@@ -72,7 +72,7 @@ export type MountComponentFn = (
   parentComponent: ComponentInternalInstance | null,
   parentSuspense: SuspenseBoundary | null,
   isSVG: boolean,
-  optimized: boolean,
+  optimized: boolean
 ) => void;
 
 type MountChildrenFn = (
@@ -84,7 +84,7 @@ type MountChildrenFn = (
   isSVG: boolean,
   slotScopeIds: string[] | null,
   optimized: boolean,
-  start?: number,
+  start?: number
 ) => void;
 
 type PatchChildrenFn = (
@@ -96,7 +96,7 @@ type PatchChildrenFn = (
   parentSuspense: SuspenseBoundary | null,
   isSVG: boolean,
   slotScopeIds: string[] | null,
-  optimized: boolean,
+  optimized: boolean
 ) => void;
 
 type PatchBlockChildrenFn = (
@@ -106,7 +106,7 @@ type PatchBlockChildrenFn = (
   parentComponent: ComponentInternalInstance | null,
   parentSuspense: SuspenseBoundary | null,
   isSVG: boolean,
-  slotScopeIds: string[] | null,
+  slotScopeIds: string[] | null
 ) => void;
 
 type NextFn = (vnode: VNode) => RendererNode | null;
@@ -120,5 +120,5 @@ export type SetupRenderEffectFn = (
   anchor: RendererNode | null,
   parentSuspense: SuspenseBoundary | null,
   isSVG: boolean,
-  optimized: boolean,
+  optimized: boolean
 ) => void;

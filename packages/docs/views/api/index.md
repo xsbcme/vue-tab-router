@@ -6,24 +6,24 @@
 
 ```ts
 // components
-DynamicContainerComponent
-DynamicTabsComponent
-DynamicIconComponent
-PreviewContainerComponent
+DynamicContainerComponent;
+DynamicTabsComponent;
+DynamicIconComponent;
+PreviewContainerComponent;
 
 // composables / factory
-createTabsManager
-useTabsManager
-useTabId
-defineTabOptions
-defineTabEvents
-onBeforeTabLeave
-onBeforeTabClose
+createTabsManager;
+useTabsManager;
+useTabId;
+defineTabOptions;
+defineTabEvents;
+onBeforeTabLeave;
+onBeforeTabClose;
 
 // adapters / abstract
-AbstractStorageAdapter
-StorageAdapter
-AbstractTabsManagerPlugin
+AbstractStorageAdapter;
+StorageAdapter;
+AbstractTabsManagerPlugin;
 ```
 
 ## `createTabsManager(options)`

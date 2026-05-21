@@ -24,8 +24,8 @@ src
 
 ```ts
 // menu click
-tabsManager.openTab('/src/views/order/page-index.vue', {
-  _viewName: '订单列表'
+tabsManager.openTab("/src/views/order/page-index.vue", {
+  _viewName: "订单列表",
 });
 ```
 

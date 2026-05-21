@@ -6,14 +6,14 @@
 
 ```ts
 // 打开组件页面
-await tabsManager.openTab('/src/views/about/page-index.vue');
+await tabsManager.openTab("/src/views/about/page-index.vue");
 
 // 打开时携带元信息 + 业务参数
-await tabsManager.openTab('/src/views/about/page-index.vue', {
-  _viewName: '关于页面',
-  _viewIcon: 'icon-info',
+await tabsManager.openTab("/src/views/about/page-index.vue", {
+  _viewName: "关于页面",
+  _viewIcon: "icon-info",
   _viewSingle: true,
-  userId: 1001
+  userId: 1001,
 });
 ```
 
@@ -26,7 +26,7 @@ await tabsManager.openTab('/src/views/about/page-index.vue', {
 ## 激活指定标签：`changeActiveTab`
 
 ```ts
-const target = tabsManager.tabs.find(tab => tab.viewName === '关于页面');
+const target = tabsManager.tabs.find(tab => tab.viewName === "关于页面");
 if (target) {
   await tabsManager.changeActiveTab(target._id);
 }
@@ -39,7 +39,7 @@ if (target) {
 await tabsManager.refreshTab();
 
 // 刷新指定标签
-await tabsManager.refreshTab('aXGc');
+await tabsManager.refreshTab("aXGc");
 
 // 刷新所有标签
 await tabsManager.refreshTabAll();
@@ -52,7 +52,7 @@ await tabsManager.refreshTabAll();
 await tabsManager.closeTab();
 
 // 关闭指定标签
-await tabsManager.closeTab('aXGc');
+await tabsManager.closeTab("aXGc");
 
 // 关闭左侧 / 右侧 / 其他 / 全部
 await tabsManager.closeTabsByLeft();

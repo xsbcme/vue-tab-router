@@ -1,2 +1,22 @@
 packages:
-  - 'packages/**'
+  - packages/**
+catalog:
+  '@types/node': ^20.11.24
+  '@changesets/cli': ^2.27.1
+  typescript: ^5.4.5
+  turbo: 2.9.5
+  prettier: 3.7.0
+  vite: ^5.2.11
+  vue-tsc: ^2.0.14
+  vite-plugin-dts: ^3.9.1
+  vite-plugin-css-injected-by-js: ^4.0.1
+  vite-plugin-externalize-deps: ^0.10.0
+  sass: 1.59.3
+  '@vitejs/plugin-vue': ^5.0.4
+  vue: 3.4.21
+  '@vue/runtime-core': 3.4.21
+  '@vue/shared': 3.4.21
+  vitepress: 1.6.4
+onlyBuiltDependencies:
+  - esbuild
+  - vue-demi

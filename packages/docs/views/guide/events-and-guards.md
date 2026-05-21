@@ -7,22 +7,22 @@
 ### 来源页注册事件
 
 ```ts
-import { defineTabEvents } from '@xsbcme/vue-tab-router';
+import { defineTabEvents } from "@xsbcme/vue-tab-router";
 
 defineTabEvents({
-  saved: (payload) => {
-    console.log('子页完成保存', payload);
-  }
+  saved: payload => {
+    console.log("子页完成保存", payload);
+  },
 });
 ```
 
 ### 子页发送事件
 
 ```ts
-import { useTabsManager } from '@xsbcme/vue-tab-router';
+import { useTabsManager } from "@xsbcme/vue-tab-router";
 
 const tabsManager = useTabsManager();
-tabsManager.emit('saved', { id: 1001 });
+tabsManager.emit("saved", { id: 1001 });
 ```
 
 内部会按 `{sourceTabId}_{eventName}` 路由消息。
@@ -32,22 +32,22 @@ tabsManager.emit('saved', { id: 1001 });
 ### 离开守卫：`onBeforeTabLeave`
 
 ```ts
-import { onBeforeTabLeave } from '@xsbcme/vue-tab-router';
+import { onBeforeTabLeave } from "@xsbcme/vue-tab-router";
 
 onBeforeTabLeave(async () => {
-  const ok = window.confirm('当前页面有未保存内容，确认离开？');
-  if (!ok) return Promise.reject(new Error('cancel leave'));
+  const ok = window.confirm("当前页面有未保存内容，确认离开？");
+  if (!ok) return Promise.reject(new Error("cancel leave"));
 });
 ```
 
 ### 关闭守卫：`onBeforeTabClose`
 
 ```ts
-import { onBeforeTabClose } from '@xsbcme/vue-tab-router';
+import { onBeforeTabClose } from "@xsbcme/vue-tab-router";
 
 onBeforeTabClose(async () => {
-  const ok = window.confirm('确认关闭当前标签页？');
-  if (!ok) return Promise.reject(new Error('cancel close'));
+  const ok = window.confirm("确认关闭当前标签页？");
+  if (!ok) return Promise.reject(new Error("cancel close"));
 });
 ```
 
@@ -61,11 +61,11 @@ onBeforeTabClose(async () => {
 const tabsManager = createTabsManager({
   modules,
   onBeforeTabOpen: async (toTab, fromTab) => {
-    console.log('open', fromTab?.viewUrl, '=>', toTab.viewUrl);
+    console.log("open", fromTab?.viewUrl, "=>", toTab.viewUrl);
   },
   onBeforeTabEnter: async (toTab, fromTab) => {
-    console.log('enter', fromTab?.viewUrl, '=>', toTab.viewUrl);
-  }
+    console.log("enter", fromTab?.viewUrl, "=>", toTab.viewUrl);
+  },
 });
 ```
 

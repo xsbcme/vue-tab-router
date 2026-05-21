@@ -2,29 +2,29 @@
   "name": "vue-tab-router",
   "version": "1.0.0",
   "private": true,
-  "main": "index.js",
+  "type": "module",
+  "packageManager": "pnpm@10.10.0",
   "scripts": {
-    "preinstall": "npx only-allow pnpm",
+    "dev": "turbo run dev --concurrency=20",
     "build": "turbo run build",
-    "build:plugin": "turbo run build --filter=./packages/vue-tab-router",
-    "dev": "turbo run build --filter=!./apps/* && turbo run dev",
-    "publish": "pnpm run build && pnpm changeset && pnpm changeset version && pnpm changeset publish",
-    "publish:beta": "pnpm run build:plugin && pnpm changeset pre enter beta && pnpm changeset && pnpm changeset version && pnpm changeset pre exit && pnpm changeset publish"
+    "lint:prettier": "prettier --write '**/*.{ts,js,mjs,tsx,jsx,json,css,less,scss,vue,html,md}'",
+    "type-check": "turbo run type-check",
+    "publish:pre-beta": "changeset pre enter beta",
+    "publish:change": "changeset",
+    "publish:bump": "changeset version",
+    "publish:beta": "turbo run build && changeset publish",
+    "publish:pre-exit": "changeset pre exit",
+    "publish:stable": "turbo run build && changeset publish"
   },
   "author": "xsbcme",
   "license": "ISC",
   "devDependencies": {
-    "@changesets/cli": "^2.27.1",
-    "@types/node": "^20.11.24",
-    "@vitejs/plugin-vue": "5.0.4",
-    "vite": "5.2.8",
-    "turbo": "^1.12.4",
-    "typescript": "^5.3.3",
-    "vue-tsc": "^2.0.3",
-    "vite-plugin-dts": "^3.1.1",
-    "sass": "1.59.3"
+    "@changesets/cli": "catalog:",
+    "prettier": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:"
   },
   "dependencies": {
-    "vue": "3.4.21"
+    "vue": "catalog:"
   }
 }

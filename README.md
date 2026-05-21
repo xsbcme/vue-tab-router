@@ -23,14 +23,14 @@ yarn add @xsbcme/vue-tab-router
 ### 1. 创建 TabsManager
 
 ```ts
-import { createApp } from 'vue';
-import App from './App.vue';
-import { createTabsManager } from '@xsbcme/vue-tab-router';
+import { createApp } from "vue";
+import App from "./App.vue";
+import { createTabsManager } from "@xsbcme/vue-tab-router";
 
-const modules = import.meta.glob('./views/**/page-index.vue');
+const modules = import.meta.glob("./views/**/page-index.vue");
 const tabsManager = createTabsManager({ modules });
 
-createApp(App).use(tabsManager).mount('#app');
+createApp(App).use(tabsManager).mount("#app");
 ```
 
 ### 2. 布局中放置容器
@@ -44,20 +44,17 @@ createApp(App).use(tabsManager).mount('#app');
 </template>
 
 <script setup lang="ts">
-import {
-  DynamicTabsComponent,
-  DynamicContainerComponent,
-} from '@xsbcme/vue-tab-router';
+import { DynamicTabsComponent, DynamicContainerComponent } from "@xsbcme/vue-tab-router";
 </script>
 ```
 
 ### 3. 打开页面
 
 ```ts
-import { useTabsManager } from '@xsbcme/vue-tab-router';
+import { useTabsManager } from "@xsbcme/vue-tab-router";
 
 const tabsManager = useTabsManager();
-tabsManager.openTab('/views/user/page-index.vue', { _viewName: '用户管理' });
+tabsManager.openTab("/views/user/page-index.vue", { _viewName: "用户管理" });
 ```
 
 ## 项目结构
@@ -83,14 +80,14 @@ vue-tab-router/
 
 ### 常用命令
 
-| 命令 | 说明 |
-|------|------|
-| `pnpm install` | 安装依赖 |
-| `pnpm build` | 构建所有包 |
-| `pnpm build:plugin` | 仅构建 vue-tab-router |
-| `pnpm dev` | 启动开发（构建依赖包后启动 docs） |
-| `pnpm publish` | 发布（需配置 changeset） |
-| `pnpm publish:beta` | 发布 beta 版本 |
+| 命令                | 说明                              |
+| ------------------- | --------------------------------- |
+| `pnpm install`      | 安装依赖                          |
+| `pnpm build`        | 构建所有包                        |
+| `pnpm build:plugin` | 仅构建 vue-tab-router             |
+| `pnpm dev`          | 启动开发（构建依赖包后启动 docs） |
+| `pnpm publish`      | 发布（需配置 changeset）          |
+| `pnpm publish:beta` | 发布 beta 版本                    |
 
 ### 文档
 

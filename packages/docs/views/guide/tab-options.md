@@ -8,12 +8,12 @@
 ## 打开时设置
 
 ```ts
-await tabsManager.openTab('/src/views/user/page-index.vue', {
-  _viewName: '用户详情',
-  _viewIcon: 'icon-user',
+await tabsManager.openTab("/src/views/user/page-index.vue", {
+  _viewName: "用户详情",
+  _viewIcon: "icon-user",
   _viewSingle: true,
   _viewNoCache: false,
-  userId: 1001
+  userId: 1001,
 });
 ```
 
@@ -22,13 +22,13 @@ await tabsManager.openTab('/src/views/user/page-index.vue', {
 适合“页面自己决定标题/图标/缓存策略”的场景：
 
 ```ts
-import { defineTabOptions } from '@xsbcme/vue-tab-router';
+import { defineTabOptions } from "@xsbcme/vue-tab-router";
 
 defineTabOptions({
-  viewName: '用户详情',
-  viewIcon: 'icon-user',
+  viewName: "用户详情",
+  viewIcon: "icon-user",
   viewSingle: true,
-  viewNoCache: false
+  viewNoCache: false,
 });
 ```
 
@@ -36,9 +36,9 @@ defineTabOptions({
 
 ```ts
 await tabsManager.updateTabOptions({
-  _viewName: '用户详情（已保存）',
-  _viewIcon: 'icon-check',
-  status: 'saved'
+  _viewName: "用户详情（已保存）",
+  _viewIcon: "icon-check",
+  status: "saved",
 });
 ```
 

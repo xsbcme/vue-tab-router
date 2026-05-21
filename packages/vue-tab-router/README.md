@@ -40,25 +40,25 @@ yarn add @xsbcme/vue-tab-router
 ### 1）创建 TabsManager
 
 ```ts
-import { createApp } from 'vue';
-import App from './App.vue';
-import { createTabsManager } from '@xsbcme/vue-tab-router';
+import { createApp } from "vue";
+import App from "./App.vue";
+import { createTabsManager } from "@xsbcme/vue-tab-router";
 
 // 推荐：仅扫描页面入口组件
-const modules = import.meta.glob('./views/**/page-index.vue');
+const modules = import.meta.glob("./views/**/page-index.vue");
 
 const tabsManager = createTabsManager({
   modules,
   viewNameMaxLength: 20,
   onBeforeTabOpen: async (toTab, fromTab) => {
-    console.log('open', fromTab?.viewUrl, '=>', toTab.viewUrl);
+    console.log("open", fromTab?.viewUrl, "=>", toTab.viewUrl);
   },
   onBeforeTabEnter: async (toTab, fromTab) => {
-    console.log('enter', fromTab?.viewUrl, '=>', toTab.viewUrl);
-  }
+    console.log("enter", fromTab?.viewUrl, "=>", toTab.viewUrl);
+  },
 });
 
-createApp(App).use(tabsManager).mount('#app');
+createApp(App).use(tabsManager).mount("#app");
 ```
 
 ### 2）在布局中放置容器
@@ -72,22 +72,19 @@ createApp(App).use(tabsManager).mount('#app');
 </template>
 
 <script setup lang="ts">
-import {
-  DynamicTabsComponent,
-  DynamicContainerComponent,
-} from '@xsbcme/vue-tab-router';
+import { DynamicTabsComponent, DynamicContainerComponent } from "@xsbcme/vue-tab-router";
 </script>
 ```
 
 ### 3）打开页面
 
 ```ts
-import { useTabsManager } from '@xsbcme/vue-tab-router';
+import { useTabsManager } from "@xsbcme/vue-tab-router";
 
 const tabsManager = useTabsManager();
 
 // 打开组件页面
-tabsManager.openTab('/views/user/page-index.vue', { userId: 1001 });
+tabsManager.openTab("/views/user/page-index.vue", { userId: 1001 });
 ```
 
 > 说明：`openTab` 的 `viewUrl` 必须是你在 `modules` 中注册后的组件名键。
@@ -210,12 +207,12 @@ tabsManager.openTab('/views/user/page-index.vue', { userId: 1001 });
 ## 1）组件页面
 
 ```ts
-tabsManager.openTab('/views/order/page-index.vue', {
-  _viewName: '订单列表',
-  _viewIcon: 'icon-order',
-  _viewSingle: true,   // 同一路径单例
+tabsManager.openTab("/views/order/page-index.vue", {
+  _viewName: "订单列表",
+  _viewIcon: "icon-order",
+  _viewSingle: true, // 同一路径单例
   _viewNoCache: false, // 允许缓存
-  orderType: 'wait-pay'
+  orderType: "wait-pay",
 });
 ```
 
@@ -224,28 +221,28 @@ tabsManager.openTab('/views/order/page-index.vue', {
 当 `viewUrl` 为 `http/https`，或以 `relative:` 前缀开头时，会使用 iframe 渲染。
 
 ```ts
-tabsManager.openTab('https://example.com/docs', {
-  _viewName: '外部文档',
-  lang: 'zh-CN'
+tabsManager.openTab("https://example.com/docs", {
+  _viewName: "外部文档",
+  lang: "zh-CN",
 });
 ```
 
 ```ts
-tabsManager.openTab('relative:/micro-app/index.html', {
-  _viewName: '子应用',
-  tenantId: 't1'
+tabsManager.openTab("relative:/micro-app/index.html", {
+  _viewName: "子应用",
+  tenantId: "t1",
 });
 ```
 
 ## 3）新窗口打开外链
 
 ```ts
-tabsManager.openTab('https://example.com', {
+tabsManager.openTab("https://example.com", {
   _viewOutside: true,
   _viewOutsideProps: {
-    target: '_blank',
-    features: 'noopener,noreferrer'
-  }
+    target: "_blank",
+    features: "noopener,noreferrer",
+  },
 });
 ```
 
@@ -265,22 +262,22 @@ tabsManager.openTab('https://example.com', {
 父页：
 
 ```ts
-import { defineTabEvents } from '@xsbcme/vue-tab-router';
+import { defineTabEvents } from "@xsbcme/vue-tab-router";
 
 defineTabEvents({
-  'saved': (payload) => {
-    console.log('子页保存完成', payload);
-  }
+  saved: payload => {
+    console.log("子页保存完成", payload);
+  },
 });
 ```
 
 子页：
 
 ```ts
-import { useTabsManager } from '@xsbcme/vue-tab-router';
+import { useTabsManager } from "@xsbcme/vue-tab-router";
 
 const tabsManager = useTabsManager();
-tabsManager.emit('saved', { id: 1001 });
+tabsManager.emit("saved", { id: 1001 });
 ```
 
 ---
@@ -288,23 +285,23 @@ tabsManager.emit('saved', { id: 1001 });
 ## 守卫示例
 
 ```ts
-import { onBeforeTabLeave, onBeforeTabClose, onBeforeTabEnter } from '@xsbcme/vue-tab-router';
+import { onBeforeTabLeave, onBeforeTabClose, onBeforeTabEnter } from "@xsbcme/vue-tab-router";
 
 // 当前 tab 被激活前触发（从其他 tab 切换过来时）
 onBeforeTabEnter(async (toTab, fromTab) => {
-  console.log('enter', fromTab?.viewUrl, '=>', toTab.viewUrl);
+  console.log("enter", fromTab?.viewUrl, "=>", toTab.viewUrl);
 });
 
 // 离开当前 tab 前触发（切换到其他 tab 时）
 onBeforeTabLeave(async () => {
-  const ok = window.confirm('确定离开当前页面？');
-  if (!ok) return Promise.reject(new Error('cancel leave'));
+  const ok = window.confirm("确定离开当前页面？");
+  if (!ok) return Promise.reject(new Error("cancel leave"));
 });
 
 // 关闭当前 tab 前触发
 onBeforeTabClose(async () => {
-  const ok = window.confirm('确定关闭当前页面？');
-  if (!ok) return Promise.reject(new Error('cancel close'));
+  const ok = window.confirm("确定关闭当前页面？");
+  if (!ok) return Promise.reject(new Error("cancel close"));
 });
 ```
 
@@ -315,13 +312,17 @@ onBeforeTabClose(async () => {
 默认是 `sessionStorage`。你可以通过 `storageAdapter` 自定义持久化策略。
 
 ```ts
-import { AbstractStorageAdapter, createTabsManager } from '@xsbcme/vue-tab-router';
+import { AbstractStorageAdapter, createTabsManager } from "@xsbcme/vue-tab-router";
 
 class LocalStorageAdapter extends AbstractStorageAdapter {
   get<T = any>(key: string, def?: T): T {
     const raw = localStorage.getItem(key);
     if (!raw) return def as T;
-    try { return JSON.parse(raw); } catch { return def as T; }
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return def as T;
+    }
   }
   set<T = any>(key: string, val: T): this {
     localStorage.setItem(key, JSON.stringify(val));
@@ -334,8 +335,8 @@ class LocalStorageAdapter extends AbstractStorageAdapter {
 }
 
 const tabsManager = createTabsManager({
-  modules: import.meta.glob('./views/**/page-index.vue'),
-  storageAdapter: new LocalStorageAdapter()
+  modules: import.meta.glob("./views/**/page-index.vue"),
+  storageAdapter: new LocalStorageAdapter(),
 });
 ```
 
@@ -346,14 +347,14 @@ const tabsManager = createTabsManager({
 可通过 `addPlugin` 扩展 `TabsManager`：
 
 ```ts
-import { AbstractTabsManagerPlugin, TabsManager } from '@xsbcme/vue-tab-router';
+import { AbstractTabsManagerPlugin, TabsManager } from "@xsbcme/vue-tab-router";
 
 class LoggerPlugin extends AbstractTabsManagerPlugin {
   protected onLoad(tabsManager: TabsManager): void {
-    console.log('tabs plugin loaded', tabsManager.tabs.length);
+    console.log("tabs plugin loaded", tabsManager.tabs.length);
   }
   protected onDestroy(): void {
-    console.log('tabs plugin destroyed');
+    console.log("tabs plugin destroyed");
   }
 }
 

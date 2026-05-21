@@ -1,0 +1,10 @@
+dist
+public
+node_modules
+uni_modules
+pnpm-lock.yaml
+*.png
+*.jpg
+*.gif
+*.zip
+*.tar

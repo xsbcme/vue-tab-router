@@ -14,17 +14,17 @@ import {
   RendererElement,
   RendererNode,
   setTransitionHooks,
-} from 'vue';
-import { getComponentName } from './core/component';
-import { invokeVNodeHook } from './core/vnode';
-import { warn } from './core/warning';
-import { isString, isArray, invokeArrayFns } from '@vue/shared';
-import { ShapeFlags } from './core/shapeFlags';
-import { RendererInternals, queuePostRenderEffect, MoveType } from './core/renderer';
-import { ComponentRenderContext } from './core/componentPublicInstance';
-import { devtoolsComponentAdded } from './core/devtools';
-import { isAsyncWrapper } from './core/apiAsyncComponent';
-import { isSuspense } from './core/Suspense';
+} from "vue";
+import { getComponentName } from "./core/component";
+import { invokeVNodeHook } from "./core/vnode";
+import { warn } from "./core/warning";
+import { isString, isArray, invokeArrayFns } from "@vue/shared";
+import { ShapeFlags } from "./core/shapeFlags";
+import { RendererInternals, queuePostRenderEffect, MoveType } from "./core/renderer";
+import { ComponentRenderContext } from "./core/componentPublicInstance";
+import { devtoolsComponentAdded } from "./core/devtools";
+import { isAsyncWrapper } from "./core/apiAsyncComponent";
+import { isSuspense } from "./core/Suspense";
 type MatchPattern = string | RegExp | Array<string | RegExp>;
 
 export interface MeKeepAliveProps {
@@ -45,7 +45,7 @@ export interface KeepAliveContext extends ComponentRenderContext {
     container: RendererElement,
     anchor: RendererNode | null,
     isSVG: boolean,
-    optimized: boolean,
+    optimized: boolean
   ) => void;
   deactivate: (vnode: VNode) => void;
 }
@@ -67,7 +67,6 @@ const KeepAliveImpl: ComponentOptions = {
   },
 
   setup(props: MeKeepAliveProps, { slots }: SetupContext) {
-
     const instance = getCurrentInstance()!;
     // KeepAlive communicates with the instantiated renderer via the
     // ctx where the renderer passes in its internals,
@@ -103,7 +102,7 @@ const KeepAliveImpl: ComponentOptions = {
         o: { createElement },
       },
     } = sharedContext;
-    const storageContainer = createElement('div');
+    const storageContainer = createElement("div");
 
     sharedContext.activate = (vnode, container, anchor, isSVG, optimized) => {
       const instance = vnode.component!;
@@ -187,24 +186,24 @@ const KeepAliveImpl: ComponentOptions = {
     watch(
       () => [props.include, props.exclude],
       ([include, exclude]) => {
-        include && pruneCache((name) => matches(include, name));
-        exclude && pruneCache((name) => !matches(exclude, name));
+        include && pruneCache(name => matches(include, name));
+        exclude && pruneCache(name => !matches(exclude, name));
       },
       // prune post-render after `current` has been updated
-      { flush: 'post', deep: true },
+      { flush: "post", deep: true }
     );
     // prune cache on includeKey/excludeKey prop change
     watch(
       () => [props.includeKey, props.excludeKey],
       ([includeKey, excludeKey]) => {
-        includeKey && pruneCacheByKey((key) => typeof key === 'string' && matches(includeKey, key));
+        includeKey && pruneCacheByKey(key => typeof key === "string" && matches(includeKey, key));
         excludeKey &&
-          pruneCacheByKey((key) => {
-            return typeof key !== 'string' || !matches(excludeKey, key);
+          pruneCacheByKey(key => {
+            return typeof key !== "string" || !matches(excludeKey, key);
           });
       },
       // prune post-render after `current` has been updated
-      { flush: 'post', deep: true },
+      { flush: "post", deep: true }
     );
 
     // cache sub tree after render
@@ -219,7 +218,7 @@ const KeepAliveImpl: ComponentOptions = {
     onUpdated(cacheSubtree);
 
     onBeforeUnmount(() => {
-      cache.forEach((cached) => {
+      cache.forEach(cached => {
         const { subTree, suspense } = instance;
         const vnode = getInnerChild(subTree);
         if (cached.type === vnode.type) {
@@ -263,15 +262,15 @@ const KeepAliveImpl: ComponentOptions = {
       // for async components, name check should be based in its loaded
       // inner component if available
       const name = getComponentName(
-        isAsyncWrapper(vnode) ? (vnode.type as ComponentOptions).__asyncResolved || {} : comp,
+        isAsyncWrapper(vnode) ? (vnode.type as ComponentOptions).__asyncResolved || {} : comp
       );
       const key = vnode.key == null ? comp : vnode.key;
       const { include, exclude, includeKey, excludeKey, max } = props;
       if (
         (include && (!name || !matches(include, name))) ||
         (exclude && name && matches(exclude, name)) ||
-        (includeKey && (typeof key !== 'string' || !matches(includeKey, key))) ||
-        (excludeKey && typeof key === 'string' && matches(excludeKey, key))
+        (includeKey && (typeof key !== "string" || !matches(includeKey, key))) ||
+        (excludeKey && typeof key === "string" && matches(excludeKey, key))
       ) {
         current = vnode;
         return rawVNode;
@@ -329,7 +328,7 @@ if (__COMPAT__) {
 // also to avoid inline import() in generated d.ts files
 export default KeepAliveImpl as any as {
   __isKeepAlive: true;
-  new(): {
+  new (): {
     $props: VNodeProps & MeKeepAliveProps;
   };
 };
@@ -338,7 +337,7 @@ function matches(pattern: MatchPattern, name: string): boolean {
   if (isArray(pattern)) {
     return pattern.some((p: string | RegExp) => matches(p, name));
   } else if (isString(pattern)) {
-    return pattern.split(',').includes(name);
+    return pattern.split(",").includes(name);
   } else if (pattern.test) {
     return pattern.test(name);
   }
@@ -361,8 +360,7 @@ function getInnerChild(vnode: VNode) {
   return vnode.shapeFlag & ShapeFlags.SUSPENSE ? vnode.ssContent! : vnode;
 }
 
-
-declare module '@vue/runtime-core' {
+declare module "@vue/runtime-core" {
   type LifecycleHook<TFn = Function> = TFn[] | null;
   export interface ComponentInternalInstance {
     ctx: Record<string, unknown>;

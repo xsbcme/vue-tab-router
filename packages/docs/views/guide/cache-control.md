@@ -10,19 +10,19 @@
 打开页面时设置 `_viewNoCache: true`：
 
 ```ts
-await tabsManager.openTab('/src/views/report/page-index.vue', {
-  _viewName: '报表页面',
-  _viewNoCache: true
+await tabsManager.openTab("/src/views/report/page-index.vue", {
+  _viewName: "报表页面",
+  _viewNoCache: true,
 });
 ```
 
 也可以在页面内部声明：
 
 ```ts
-import { defineTabOptions } from '@xsbcme/vue-tab-router';
+import { defineTabOptions } from "@xsbcme/vue-tab-router";
 
 defineTabOptions({
-  viewNoCache: true
+  viewNoCache: true,
 });
 ```
 
@@ -49,8 +49,8 @@ await tabsManager.refreshTabAll();
 const tabsManager = createTabsManager({
   modules,
   keepAliveProps: {
-    max: 20
-  }
+    max: 20,
+  },
 });
 ```
 

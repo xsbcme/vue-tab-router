@@ -20,7 +20,7 @@
 
 ```ts
 onBeforeTabLeave(async () => {
-  if (!canLeave) return Promise.reject(new Error('blocked'));
+  if (!canLeave) return Promise.reject(new Error("blocked"));
 });
 ```
 

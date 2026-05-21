@@ -3,12 +3,12 @@
 当你希望链接在浏览器新标签页或新窗口打开时，使用 `_viewOutside: true`。
 
 ```ts
-const opened = await tabsManager.openTab('https://example.com', {
+const opened = await tabsManager.openTab("https://example.com", {
   _viewOutside: true,
   _viewOutsideProps: {
-    target: '_blank',
-    features: 'noopener,noreferrer'
-  }
+    target: "_blank",
+    features: "noopener,noreferrer",
+  },
 });
 ```
 

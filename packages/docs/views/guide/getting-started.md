@@ -15,9 +15,9 @@ yarn add @xsbcme/vue-tab-router
 ## 1. 创建 TabsManager
 
 ```ts
-import { createTabsManager } from '@xsbcme/vue-tab-router';
+import { createTabsManager } from "@xsbcme/vue-tab-router";
 
-const modules = import.meta.glob('@/views/**/page-index.vue');
+const modules = import.meta.glob("@/views/**/page-index.vue");
 
 const tabsManager = createTabsManager({
   modules,
@@ -40,10 +40,7 @@ export default tabsManager;
 </template>
 
 <script setup lang="ts">
-import {
-  DynamicTabsComponent,
-  DynamicContainerComponent,
-} from '@xsbcme/vue-tab-router';
+import { DynamicTabsComponent, DynamicContainerComponent } from "@xsbcme/vue-tab-router";
 </script>
 ```
 
@@ -52,23 +49,23 @@ import {
 ## 3. 注册插件并挂载应用
 
 ```ts
-import { createApp } from 'vue';
-import App from './App.vue';
-import tabsManager from './plugins/tab-router';
+import { createApp } from "vue";
+import App from "./App.vue";
+import tabsManager from "./plugins/tab-router";
 
-createApp(App).use(tabsManager).mount('#app');
+createApp(App).use(tabsManager).mount("#app");
 ```
 
 ## 4. 在业务里打开页面
 
 ```ts
-import { useTabsManager } from '@xsbcme/vue-tab-router';
+import { useTabsManager } from "@xsbcme/vue-tab-router";
 
 const tabsManager = useTabsManager();
 
-tabsManager.openTab('/src/views/about/page-index.vue', {
-  _viewName: '关于页面',
-  userId: 1001
+tabsManager.openTab("/src/views/about/page-index.vue", {
+  _viewName: "关于页面",
+  userId: 1001,
 });
 ```
 
