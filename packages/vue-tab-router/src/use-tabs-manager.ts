@@ -1,7 +1,14 @@
 import { reactive, UnwrapRef, inject } from "vue";
 import { TabsManager } from "./tabs-manager";
 import { INJECT_CURRENT_TAB_KEY } from "./constant";
-import { DefineEvents, IDefineTabOptions, ITabsManagerOptions, TabGuard } from "./types";
+import {
+  DefineEvents,
+  IDefineTabOptions,
+  ITabsManagerOptions,
+  TabCloseGuard,
+  TabEnterGuard,
+  TabLeaveGuard,
+} from "./types";
 import { useEventManager } from "./use-event-manager";
 
 /** 创建并初始化 TabsManager 单例。 */
@@ -17,7 +24,7 @@ export function useTabsManager(): UnwrapRef<TabsManager> {
 /** 获取当前页面所在 tabId。若不在容器上下文中则返回 `undefined`。 */
 export function useTabId() {
   const tab = inject(INJECT_CURRENT_TAB_KEY);
-  return tab?._id;
+  return tab?.value?._id;
 }
 
 /**
@@ -25,7 +32,7 @@ export function useTabId() {
  * 仅在 tab 容器内生效。
  */
 export function defineTabOptions(options: IDefineTabOptions) {
-  const tab = inject(INJECT_CURRENT_TAB_KEY);
+  const tab = inject(INJECT_CURRENT_TAB_KEY)?.value;
   if (tab) {
     const tabsManager = useTabsManager();
     tabsManager.updateTabOptions(
@@ -45,7 +52,7 @@ export function defineTabOptions(options: IDefineTabOptions) {
  * 子 tab 可通过 `tabsManager.emit` 向其来源 tab 发送消息。
  */
 export function defineTabEvents(events: DefineEvents) {
-  const tab = inject(INJECT_CURRENT_TAB_KEY);
+  const tab = inject(INJECT_CURRENT_TAB_KEY)?.value;
   if (tab) {
     const eventManager = useEventManager();
     Object.keys(events || {}).forEach(eventName => {
@@ -59,9 +66,9 @@ export function defineTabEvents(events: DefineEvents) {
 
 /**
  * 注册当前 tab 的离开守卫。
- * 返回 rejected Promise（或抛错）会阻止切换。
+ * 返回 false、rejected Promise（或抛错）会阻止切换。
  */
-export function onBeforeTabLeave(guard: TabGuard) {
+export function onBeforeTabLeave(guard: TabLeaveGuard) {
   const id = useTabId();
   if (id) {
     useTabsManager()._registerTabGuard(id, "_onBeforeTabLeave", guard);
@@ -70,9 +77,9 @@ export function onBeforeTabLeave(guard: TabGuard) {
 
 /**
  * 注册当前 tab 的关闭守卫。
- * 返回 rejected Promise（或抛错）会阻止关闭。
+ * 返回 false、rejected Promise（或抛错）会阻止关闭。
  */
-export function onBeforeTabClose(guard: TabGuard) {
+export function onBeforeTabClose(guard: TabCloseGuard) {
   const id = useTabId();
   if (id) {
     useTabsManager()._registerTabGuard(id, "_onBeforeTabClose", guard);
@@ -82,9 +89,9 @@ export function onBeforeTabClose(guard: TabGuard) {
 /**
  * 注册当前 tab 的进入守卫。
  * 当此 tab 被激活时触发（包括从 keep-alive 缓存中恢复）。
- * 返回 rejected Promise（或抛错）会阻止激活。
+ * 返回 false、rejected Promise（或抛错）会阻止激活。
  */
-export function onBeforeTabEnter(guard: TabGuard) {
+export function onBeforeTabEnter(guard: TabEnterGuard) {
   const id = useTabId();
   if (id) {
     useTabsManager()._registerTabGuard(id, "_onBeforeTabEnter", guard);

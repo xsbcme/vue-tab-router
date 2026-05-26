@@ -50,8 +50,8 @@ const modules = import.meta.glob("./views/**/page-index.vue");
 const tabsManager = createTabsManager({
   modules,
   viewNameMaxLength: 20,
-  onBeforeTabOpen: async (toTab, fromTab) => {
-    console.log("open", fromTab?.viewUrl, "=>", toTab.viewUrl);
+  onBeforeTabOpen: async (openingTab, sourceTab) => {
+    console.log("open", sourceTab?.viewUrl, "=>", openingTab.viewUrl);
   },
   onBeforeTabEnter: async (toTab, fromTab) => {
     console.log("enter", fromTab?.viewUrl, "=>", toTab.viewUrl);
@@ -182,7 +182,7 @@ tabsManager.openTab("/views/user/page-index.vue", { userId: 1001 });
 - `openTab(viewUrl, options)`：打开/复用页签
 - `openFirstTab(viewUrl, options?, mode?)`：打开首页页签
 - `changeActiveTab(tabId)`：切换激活页签
-- `closeTab(tabId?, force?)`：关闭页签
+- `closeTab(tabId?, options?)`：关闭页签
 - `closeTabByAll()`：全部关闭
 - `closeTabsByLeft(tabId?)`：关闭左侧
 - `closeTabsByRight(tabId?)`：关闭右侧
@@ -295,13 +295,28 @@ onBeforeTabEnter(async (toTab, fromTab) => {
 // 离开当前 tab 前触发（切换到其他 tab 时）
 onBeforeTabLeave(async () => {
   const ok = window.confirm("确定离开当前页面？");
-  if (!ok) return Promise.reject(new Error("cancel leave"));
+  if (!ok) return false;
 });
 
 // 关闭当前 tab 前触发
-onBeforeTabClose(async () => {
+onBeforeTabClose((closingTab, sourceTab) => {
   const ok = window.confirm("确定关闭当前页面？");
-  if (!ok) return Promise.reject(new Error("cancel close"));
+  if (!ok) return false;
+});
+```
+
+守卫返回 `false`、抛出错误或返回 rejected Promise 都会阻止当前操作。
+
+关闭 API 使用 options 控制强制行为：
+
+```ts
+tabsManager.closeTab(tabId, {
+  ignoreNoClose: true, // 忽略 _noClose
+  skipGuard: true, // 跳过关闭守卫
+});
+
+tabsManager.closeTabsByOther(tabId, {
+  continueOnRejected: true, // 某个页签守卫拒绝后继续关闭后续页签
 });
 ```
 

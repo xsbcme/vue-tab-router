@@ -1,12 +1,25 @@
 import { App, defineAsyncComponent, nextTick, createVNode, defineComponent, toRaw } from "vue";
 import { Plugin } from "./base/plugin";
 import { Tab } from "./tab";
-import { IOpenTabOptions, ITabsManagerOptions, IUpdateTabOptions, Modules, TabGuard, TabGuardName } from "./types";
+import {
+  CloseTabOptions,
+  CloseTabsOptions,
+  IOpenTabOptions,
+  ITabsManagerOptions,
+  IUpdateTabOptions,
+  Modules,
+  TabCloseGuard,
+  TabEnterGuard,
+  TabGuard,
+  TabGuardName,
+  TabLeaveGuard,
+} from "./types";
 import { isHttpUrl, jsonToObject, createRandomString, clone, findParentPathsByPath, resolveViewUrl } from "./utils";
 import { RELATIVE_VIEW_URL_PREFIX_KEY, STORAGE_TABS_KEY } from "./constant";
 import { useEventManager } from "./use-event-manager";
 import { AbstractStorageAdapter } from "./abstract-storage-adapter";
 import { StorageAdapter } from "./storage-adapter";
+import { runTabGuard } from "./tab-guard";
 
 export class TabsManager extends Plugin {
   private static _instance: TabsManager | null = null;
@@ -198,7 +211,7 @@ export class TabsManager extends Plugin {
         const existingFirstTab = this._tabs.find(tab => tab._isFirst);
         if (existingFirstTab) {
           await this.setTabNoAllowClose(false, existingFirstTab._id);
-          await this.closeTab(existingFirstTab._id, true);
+          await this.closeTab(existingFirstTab._id, { ignoreNoClose: true, skipGuard: true });
         }
         break;
       case "move":
@@ -217,10 +230,22 @@ export class TabsManager extends Plugin {
     return tabId;
   }
 
+  public _registerTabGuard(tabId: string, guardName: "_onBeforeTabEnter", guard: TabEnterGuard): void;
+  public _registerTabGuard(tabId: string, guardName: "_onBeforeTabLeave", guard: TabLeaveGuard): void;
+  public _registerTabGuard(tabId: string, guardName: "_onBeforeTabClose", guard: TabCloseGuard): void;
   public _registerTabGuard(tabId: string, guardName: TabGuardName, guard: TabGuard) {
     const findTab = this.getTabById(tabId);
     if (!findTab) return;
     findTab[guardName] = guard;
+  }
+
+  private async runChangeActiveTabGuards(toTab: Partial<Tab>, fromTab = this.activeTab) {
+    if (fromTab) {
+      await runTabGuard(this._options?.onBeforeTabLeave, clone(toTab), clone(fromTab));
+      await runTabGuard(fromTab._onBeforeTabLeave, clone(toTab), clone(fromTab));
+    }
+    await runTabGuard(this._options?.onBeforeTabEnter, clone(toTab), clone(fromTab));
+    await runTabGuard(toTab._onBeforeTabEnter, clone(toTab), clone(fromTab));
   }
 
   /**
@@ -235,13 +260,7 @@ export class TabsManager extends Plugin {
 
       if (triggerHook) {
         try {
-          const currentTab = this.activeTab;
-          // 全局：进入前守卫
-          const onBeforeTabEnter = this._options?.onBeforeTabEnter;
-          typeof onBeforeTabEnter === "function" && (await onBeforeTabEnter(clone(findTab), clone(currentTab)));
-          // 页面级：目标 tab 进入前守卫
-          typeof findTab._onBeforeTabEnter === "function" &&
-            (await findTab._onBeforeTabEnter(clone(findTab), clone(currentTab)));
+          await this.runChangeActiveTabGuards(findTab);
         } catch (error) {
           return Promise.reject(error);
         }
@@ -291,11 +310,15 @@ export class TabsManager extends Plugin {
    * 打开新标签页或复用已存在标签页。
    * 若 `options._viewOutside` 为 true，则在新窗口打开链接并返回 `Window`。
    */
-  public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions): Promise<string>;
   public openTab<Url extends string>(
     viewUrl: Url,
     tabOptions?: IOpenTabOptions & { _viewOutside: true }
-  ): Promise<Window>;
+  ): Promise<Window | null>;
+  public openTab<Url extends string>(
+    viewUrl: Url,
+    tabOptions?: IOpenTabOptions & { _viewOutside?: false | undefined }
+  ): Promise<string>;
+  public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions): Promise<string | Window | null>;
   public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions) {
     return nextTick(async () => {
       const { _viewOutside, _viewOutsideProps, _viewName, _viewIcon, _viewNoCache, _viewSingle, ...viewProps } =
@@ -331,15 +354,6 @@ export class TabsManager extends Plugin {
       }
 
       // 离开当前 tab 前先执行页面级离开守卫
-      if (newTab._id !== this.activeTab?._id) {
-        try {
-          typeof this.activeTab?._onBeforeTabLeave === "function" &&
-            (await this.activeTab._onBeforeTabLeave(clone(newTab), clone(this.activeTab)));
-        } catch (error) {
-          return Promise.reject(error);
-        }
-      }
-
       if (findTabByProps) {
         return await this.changeActiveTab(findTabByProps._id);
       }
@@ -347,9 +361,8 @@ export class TabsManager extends Plugin {
       // 不存在同路径 tab，或目标是多例模式时，新增 tab
       const findTabByViewUrl = this.getTabByViewUrl(viewUrl);
       if (!findTabByViewUrl || (findTabByViewUrl && !newTab._single)) {
-        const onBeforeTabOpen = this._options?.onBeforeTabOpen;
-        typeof onBeforeTabOpen === "function" &&
-          (await onBeforeTabOpen(clone(newTab), clone(this.getTabById(newTab._sourceId))));
+        await runTabGuard(this._options?.onBeforeTabOpen, clone(newTab), clone(this.getTabById(newTab._sourceId)));
+        await this.runChangeActiveTabGuards(newTab);
 
         this._tabs.push(newTab);
 
@@ -358,13 +371,29 @@ export class TabsManager extends Plugin {
 
       const findTab = this.getTabById(findTabByViewUrl._id);
       if (findTab) {
-        Object.assign<Tab, Partial<Tab>>(
-          findTab,
-          Object.assign<Tab, Partial<Tab>>(newTab, { _id: findTab._id, _sourceId: findTab._sourceId })
-        );
+        const nextTab = new Tab({
+          ...findTab,
+          viewUrl: newTab.viewUrl,
+          viewName: newTab.viewName,
+          viewIcon: newTab.viewIcon,
+          viewProps: newTab.viewProps,
+          _noCache: newTab._noCache,
+          _single: newTab._single,
+        });
+        if (findTab._id !== this.activeTab?._id) {
+          await this.runChangeActiveTabGuards(nextTab);
+        }
+        Object.assign<Tab, Partial<Tab>>(findTab, {
+          viewUrl: nextTab.viewUrl,
+          viewName: nextTab.viewName,
+          viewIcon: nextTab.viewIcon,
+          viewProps: nextTab.viewProps,
+          _noCache: nextTab._noCache,
+          _single: nextTab._single,
+        });
       }
-      await this.refreshTab(newTab._id);
-      return await this.changeActiveTab(newTab._id);
+      await this.refreshTab(findTabByViewUrl._id);
+      return await this.changeActiveTab(findTabByViewUrl._id, false);
     });
   }
 
@@ -377,9 +406,9 @@ export class TabsManager extends Plugin {
 
   /**
    * 关闭标签页。
-   * @param force 为 true 时忽略 `_noClose` 限制。
+   * @param options 关闭选项。
    */
-  public closeTab(tabId?: string, force: boolean = false) {
+  public closeTab(tabId?: string, options: CloseTabOptions = {}) {
     return nextTick<void>(async () => {
       const findTab = this.getTabById(tabId || this.activeTab?._id);
       if (!findTab) {
@@ -387,35 +416,47 @@ export class TabsManager extends Plugin {
       }
       const findTabIndex = this._tabs.indexOf(findTab);
       if (findTabIndex >= 0) {
-        if (!force && findTab._noClose) {
+        if (!options.ignoreNoClose && findTab._noClose) {
           return;
         }
 
-        try {
-          // 页面级：关闭前守卫
-          typeof findTab._onBeforeTabClose === "function" &&
-            (await findTab._onBeforeTabClose(clone(this.getTabById(findTab._sourceId)), clone(findTab)));
-          // 全局：关闭前守卫
-          const onBeforeTabClose = this._options?.onBeforeTabClose;
-          typeof onBeforeTabClose === "function" &&
-            (await onBeforeTabClose(clone(findTab), clone(this.getTabById(findTab._sourceId))));
-        } catch (error) {
-          return Promise.reject(error);
+        if (!options.skipGuard) {
+          try {
+            const sourceTab = this.getTabById(findTab._sourceId);
+            await runTabGuard(findTab._onBeforeTabClose, clone(findTab), clone(sourceTab));
+            await runTabGuard(this._options?.onBeforeTabClose, clone(findTab), clone(sourceTab));
+          } catch (error) {
+            return Promise.reject(error);
+          }
         }
 
         const eventManager = useEventManager();
+        const eventPrefix = `${findTab._id}_`;
         eventManager.eventNames.forEach((eventName: string) => {
-          if (eventName.startsWith(findTab._id)) {
+          if (eventName.startsWith(eventPrefix)) {
             eventManager.off(eventName);
           }
         });
 
-        if (this.activeTab?._id === findTab._id) {
-          const parentTab = this.getTabById(findTab._sourceId);
-          parentTab && (await this.changeActiveTab(parentTab._id));
+        const shouldActivateFallback = this.activeTab?._id === findTab._id;
+        const parentTab = this.getTabById(findTab._sourceId);
+        const fallbackTab = parentTab || this._tabs[findTabIndex - 1] || this._tabs[findTabIndex + 1];
+        if (!options.skipGuard && shouldActivateFallback && fallbackTab) {
+          try {
+            await this.runChangeActiveTabGuards(fallbackTab, findTab);
+          } catch (error) {
+            return Promise.reject(error);
+          }
         }
         this._tabs.splice(findTabIndex, 1);
         this.setTabsSourceIdById(findTab._id, findTab._sourceId);
+        if (shouldActivateFallback) {
+          this._tabs.forEach(item => {
+            Object.assign<Tab, Partial<Tab>>(item, {
+              _isActive: fallbackTab && item._id === fallbackTab._id ? true : undefined,
+            });
+          });
+        }
 
         this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
       }
@@ -425,11 +466,15 @@ export class TabsManager extends Plugin {
   /**
    * 关闭全部标签页（不可关闭标签页除外）
    */
-  public closeTabByAll() {
-    return nextTick(async () => {
+  public closeTabByAll(options: CloseTabsOptions = {}): Promise<void> {
+    return nextTick<void>(async () => {
       const tabs = clone(this._tabs);
       for (let index = 0; index < tabs.length; index++) {
-        await this.closeTab(tabs[index]._id);
+        try {
+          await this.closeTab(tabs[index]._id, options);
+        } catch (error) {
+          if (!options.continueOnRejected) return Promise.reject(error);
+        }
       }
     });
   }
@@ -505,18 +550,22 @@ export class TabsManager extends Plugin {
    * 关闭左侧所有标签页（不可关闭标签页除外）
    * @param tabId 标签页ID，不填时默认为当前激活的标签页
    */
-  public closeTabsByLeft(tabId?: string) {
-    return nextTick(async () => {
+  public closeTabsByLeft(tabId?: string, options: CloseTabsOptions = {}): Promise<void> {
+    return nextTick<void>(async () => {
       const findTab = this.getTabById(tabId || this.activeTab?._id);
       if (!findTab) {
         return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
       }
       const tabs = clone(this._tabs);
       const findTabIndex = this._tabs.indexOf(findTab);
-      for (let index = 0; index < findTabIndex; index++) {
-        await this.closeTab(tabs[index]._id);
-      }
       await this.changeActiveTab(findTab._id);
+      for (let index = 0; index < findTabIndex; index++) {
+        try {
+          await this.closeTab(tabs[index]._id, options);
+        } catch (error) {
+          if (!options.continueOnRejected) return Promise.reject(error);
+        }
+      }
     });
   }
 
@@ -524,18 +573,22 @@ export class TabsManager extends Plugin {
    * 关闭右侧所有标签页（不可关闭标签页除外）
    * @param tabId 标签页ID，不填时默认为当前激活的标签页
    */
-  public closeTabsByRight(tabId?: string) {
-    return nextTick(async () => {
+  public closeTabsByRight(tabId?: string, options: CloseTabsOptions = {}): Promise<void> {
+    return nextTick<void>(async () => {
       const findTab = this.getTabById(tabId || this.activeTab?._id);
       if (!findTab) {
         return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
       }
       const tabs = clone(this._tabs);
       const findTabIndex = this._tabs.indexOf(findTab);
-      for (let index = findTabIndex + 1; index < tabs.length; index++) {
-        await this.closeTab(tabs[index]._id);
-      }
       await this.changeActiveTab(findTab._id);
+      for (let index = findTabIndex + 1; index < tabs.length; index++) {
+        try {
+          await this.closeTab(tabs[index]._id, options);
+        } catch (error) {
+          if (!options.continueOnRejected) return Promise.reject(error);
+        }
+      }
     });
   }
 
@@ -543,20 +596,24 @@ export class TabsManager extends Plugin {
    * 关闭除开所有标签页（不可关闭标签页除外）
    * @param tabId 标签页ID，不填时默认为当前激活的标签页
    */
-  public closeTabsByOther(tabId?: string) {
-    return nextTick(async () => {
+  public closeTabsByOther(tabId?: string, options: CloseTabsOptions = {}): Promise<void> {
+    return nextTick<void>(async () => {
       const findTab = this.getTabById(tabId || this.activeTab?._id);
       if (!findTab) {
         return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
       }
       const tabs = clone(this._tabs);
       const findTabIndex = this._tabs.indexOf(findTab);
+      await this.changeActiveTab(findTab._id);
       for (let index = 0; index < tabs.length; index++) {
         if (tabs[index]._id !== tabs[findTabIndex]._id) {
-          await this.closeTab(tabs[index]._id);
+          try {
+            await this.closeTab(tabs[index]._id, options);
+          } catch (error) {
+            if (!options.continueOnRejected) return Promise.reject(error);
+          }
         }
       }
-      await this.changeActiveTab(findTab._id);
     });
   }
 

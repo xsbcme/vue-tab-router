@@ -1,6 +1,6 @@
 {
   "name": "@xsbcme/vue-tab-router",
-  "version": "1.0.0-beta.33",
+  "version": "1.0.0-beta.37",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -32,11 +32,10 @@
     "typescript": "catalog:",
     "vite": "catalog:",
     "@vitejs/plugin-vue": "catalog:",
-    "vue-tsc": "catalog:"
+    "vue-tsc": "catalog:",
+    "vue": "catalog:"
   },
   "peerDependencies": {
-    "vue": "catalog:",
-    "@vue/runtime-core": "catalog:",
-    "@vue/shared": "catalog:"
+    "vue": "^3.4.21"
   }
 }

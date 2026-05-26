@@ -52,18 +52,23 @@ export interface ITabsManagerOptions {
   /**
    * 全局：打开标签页前守卫。
    */
-  onBeforeTabOpen?: TabGuard;
+  onBeforeTabOpen?: TabOpenGuard;
 
   /**
    * 全局：激活标签页前守卫。
    */
-  onBeforeTabEnter?: TabGuard;
+  onBeforeTabEnter?: TabEnterGuard;
+
+  /**
+   * 全局：离开当前标签页前守卫。
+   */
+  onBeforeTabLeave?: TabLeaveGuard;
 
   /**
    * 全局：关闭标签页前守卫。
    * rejected Promise 或抛错会阻止关闭。
    */
-  onBeforeTabClose?: TabGuard;
+  onBeforeTabClose?: TabCloseGuard;
 
   /**
    * 标签名称最大显示长度（主要用于内置 Tabs 组件）。
@@ -73,14 +78,35 @@ export interface ITabsManagerOptions {
 
 /**
  * 标签页守卫函数。
- * rejected Promise 或抛错会中断当前流程。
+ * 返回 false、rejected Promise 或抛错会中断当前流程。
  */
-export type TabGuard = (toTab: Partial<Tab>, oldTab?: Partial<Tab>) => Promise<void>;
+export type MaybeGuardReturn = void | boolean | Promise<void | boolean>;
+
+export type TabOpenGuard = (openingTab: Partial<Tab>, sourceTab?: Partial<Tab>) => MaybeGuardReturn;
+
+export type TabEnterGuard = (toTab: Partial<Tab>, fromTab?: Partial<Tab>) => MaybeGuardReturn;
+
+export type TabLeaveGuard = (toTab: Partial<Tab>, fromTab?: Partial<Tab>) => MaybeGuardReturn;
+
+export type TabCloseGuard = (closingTab: Partial<Tab>, sourceTab?: Partial<Tab>) => MaybeGuardReturn;
+
+export type TabGuard = TabOpenGuard | TabEnterGuard | TabLeaveGuard | TabCloseGuard;
 
 /**
  * 页面级守卫字段名（挂载在 Tab 实例上）。
  */
 export type TabGuardName = "_onBeforeTabEnter" | "_onBeforeTabLeave" | "_onBeforeTabClose";
+
+export type PersistedTab = Omit<Tab, TabGuardName | "_isRefresh" | "_loading" | "toJSON">;
+
+export interface CloseTabOptions {
+  ignoreNoClose?: boolean;
+  skipGuard?: boolean;
+}
+
+export interface CloseTabsOptions extends CloseTabOptions {
+  continueOnRejected?: boolean;
+}
 
 /**
  * 通用模块映射类型。

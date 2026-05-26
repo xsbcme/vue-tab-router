@@ -53,8 +53,7 @@ const tabsManager = useTabsManager();
 const displayTabs = computed(() => (props.hideFirst ? tabsManager.tabs.filter(t => !t._isFirst) : tabsManager.tabs));
 
 const handleSelectTab = (key: string) => {
-  const tab = tabsManager.tabs.find(t => t._id === key);
-  if (tab) tabsManager.openTab(tab.viewUrl, tab.viewProps);
+  tabsManager.changeActiveTab(key);
 };
 
 const handleCloseTab = (key: string) => {

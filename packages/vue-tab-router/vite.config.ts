@@ -19,7 +19,7 @@ export default defineConfig({
     externalizeDeps(),
   ],
   build: {
-    emptyOutDir: false,
+    emptyOutDir: true,
     lib: {
       entry: {
         index: resolve(__dirname, "src/index.ts"),
