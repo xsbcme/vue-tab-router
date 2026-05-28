@@ -18,7 +18,6 @@
     "publish:run": "turbo run build && changeset publish"
   },
   "author": "xsbcme",
-  "license": "ISC",
   "devDependencies": {
     "@changesets/cli": "catalog:",
     "prettier": "catalog:",

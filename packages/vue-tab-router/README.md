@@ -398,9 +398,3 @@ tabsManager.addPlugin(new LoggerPlugin());
 ## 案例项目
 
 - Workspace: `packages/demo`
-
----
-
-## License
-
-ISC

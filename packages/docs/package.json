@@ -13,7 +13,6 @@
   },
   "keywords": [],
   "author": "xsbcme",
-  "license": "ISC",
   "devDependencies": {
     "vitepress": "catalog:"
   }

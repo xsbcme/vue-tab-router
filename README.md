@@ -163,7 +163,3 @@ pnpm publish:run
 
 - **NPM 包**：[@xsbcme/vue-tab-router](https://www.npmjs.com/package/@xsbcme/vue-tab-router)
 - **Demo 案例**：`packages/demo`
-
-## License
-
-ISC

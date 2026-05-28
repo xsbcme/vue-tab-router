@@ -23,7 +23,6 @@
   },
   "keywords": [],
   "author": "xsbcme",
-  "license": "ISC",
   "devDependencies": {
     "@types/node": "catalog:",
     "vite-plugin-css-injected-by-js": "catalog:",

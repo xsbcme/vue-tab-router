@@ -8,7 +8,6 @@
     "build": "vue-tsc --noEmit && vite build --emptyOutDir",
     "type-check": "vue-tsc --noEmit"
   },
-  "license": "ISC",
   "dependencies": {
     "@xsbcme/vue-tab-router": "workspace:*",
     "pinia": "2.1.7",
