@@ -2,7 +2,7 @@
 
 ## 在线示例
 
-- Demo: [vue-tab-router-demo](https://gitee.com/xsbcme/vue-tab-router-demo)
+- 本仓库内置 Demo: [本地演示项目](/views/demo/)
 
 ## 安装
 

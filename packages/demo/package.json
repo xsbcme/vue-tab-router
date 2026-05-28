@@ -1,0 +1,27 @@
+{
+  "name": "@xsbcme/demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vue-tsc --noEmit && vite",
+    "build": "vue-tsc --noEmit && vite build --emptyOutDir",
+    "type-check": "vue-tsc --noEmit"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@xsbcme/vue-tab-router": "workspace:*",
+    "pinia": "2.1.7",
+    "vue": "catalog:",
+    "vue-router": "4.4.3"
+  },
+  "devDependencies": {
+    "@arco-design/web-vue": "2.56.3",
+    "@types/node": "catalog:",
+    "@vitejs/plugin-vue": "catalog:",
+    "sass": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

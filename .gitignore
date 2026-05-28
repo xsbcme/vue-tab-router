@@ -1,6 +1,51 @@
-node_modules
-pnpm-lock.yaml
-dist
-.turbo
-.changeset/*
-!.changeset/config.json
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+coverage/
+*.tsbuildinfo
+
+# Tool caches
+.turbo/
+**/.vitepress/cache/
+**/.vitepress/dist/
+**/.vitepress/.temp/
+.cache/
+.vite/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+
+# Local env overrides
+.env.local
+.env.*.local
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Package-manager files from other package managers
+package-lock.json
+yarn.lock

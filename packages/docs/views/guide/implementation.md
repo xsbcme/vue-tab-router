@@ -9,8 +9,8 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 - 标签页生命周期：打开、激活、关闭、刷新、批量关闭
 - 视图类型：Vue 组件视图 + iframe 视图（外链/相对链接）
 - 页面缓存：基于增强版 keep-alive 控制缓存与失活恢复
-- 全局守卫：`onBeforeTabOpen`、`onBeforeTabEnter`
-- 页面级守卫：`onBeforeTabLeave`、`onBeforeTabClose`
+- 全局守卫：`onBeforeTabOpen`、`onBeforeTabEnter`、`onBeforeTabLeave`、`onBeforeTabClose`
+- 页面级守卫：`onBeforeTabEnter`、`onBeforeTabLeave`、`onBeforeTabClose`
 - 页面通信：子页向父页 `emit`，父页通过 `defineTabEvents` 监听
 - 持久化：通过 `storageAdapter` 持久化 tabs（默认 `sessionStorage`）
 - 插件扩展：支持挂载 `AbstractTabsManagerPlugin` 子插件
@@ -32,13 +32,13 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 - `useTabsManager()`：获取响应式 `TabsManager`
 - `defineTabOptions()`：在页面组件内设置标签元信息
 - `defineTabEvents()`：定义当前页面可接收的事件
-- `onBeforeTabLeave()` / `onBeforeTabClose()`：页面级守卫注册
+- `onBeforeTabEnter()` / `onBeforeTabLeave()` / `onBeforeTabClose()`：页面级守卫注册
 - `useTabId()`：获取当前页面所在 tabId
 
 ## 2.3 UI 组件
 
 - `DynamicContainerComponent`：根据当前激活 tab 渲染组件或 iframe
-- `DynamicTabsComponent`：默认标签栏 UI（基于 Arco Design Tabs）
+- `DynamicTabsComponent`：默认标签栏 UI
 - `PreviewContainerComponent`：单页预览容器
 - `DynamicIconComponent`：图标渲染
 
@@ -64,7 +64,7 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 - 状态字段：`_isActive`、`_isRefresh`、`_loading`
 - 行为字段：`_single`（单例模式）、`_noCache`（禁用缓存）、`_noClose`（禁止关闭）、`_isFirst`（首页）
 - 关系字段：`_sourceId`（来源/父页签 id）
-- 守卫字段：`_onBeforeTabLeave`、`_onBeforeTabClose`
+- 守卫字段：`_onBeforeTabEnter`、`_onBeforeTabLeave`、`_onBeforeTabClose`
 
 `_sourceId` 会在打开新 tab 时记录“来源 tab”，用于关闭回退、事件通信、链路断链修复。
 
@@ -76,7 +76,7 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 
 ### A. URL 判定
 
-- 若 `viewUrl` 以 `realtive:` 开头或是 `http/https`，视为链接型页面
+- 若 `viewUrl` 以 `relative:` 开头或是 `http/https`，视为链接型页面
 - `_viewOutside = true` 时直接 `window.open()`，不进入内部 tabs
 - 否则进入内部 tab + iframe 渲染链路
 
@@ -94,29 +94,29 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 
 ### D. 生命周期与守卫触发
 
-- 离开当前页前：执行当前 tab 的 `_onBeforeTabLeave`
+- 离开当前页前：执行全局 `onBeforeTabLeave` 与当前 tab 的 `_onBeforeTabLeave`
 - 新增前：执行全局 `onBeforeTabOpen`
-- 激活前：`changeActiveTab` 内执行全局 `onBeforeTabEnter`
-
-> 注意：组件级 `_onBeforeTabOpen` / `_onBeforeTabEnter` 相关代码在当前版本中是注释状态，未启用。
+- 激活前：执行全局 `onBeforeTabEnter` 与目标 tab 的 `_onBeforeTabEnter`
 
 ## 5.2 激活页签 `changeActiveTab(tabId)`
 
 - 若目标已是当前激活页，直接返回
-- 执行全局进入守卫 `onBeforeTabEnter`
+- 执行离开守卫和进入守卫
 - 遍历 tabs 设置 `_isActive`
 - 写入存储
 
-## 5.3 关闭页签 `closeTab(tabId?, force=false)`
+## 5.3 关闭页签 `closeTab(tabId?, options?)`
 
-- 非强制模式下，`_noClose` 为 `true` 时不可关闭
+- 未设置 `ignoreNoClose` 时，`_noClose` 为 `true` 的页签不可关闭
 - 关闭前执行：
-  - `_onBeforeTabLeave`
   - `_onBeforeTabClose`
+  - 全局 `onBeforeTabClose`
 - 清理此 tab 绑定的事件监听（`tabId_eventName` 前缀）
 - 若关闭的是当前激活页，优先回退到其 `_sourceId` 对应页
 - 删除 tab 后，修复所有指向该 tab 的 `_sourceId` 链路
 - 写入存储
+
+`skipGuard` 可跳过关闭守卫；`ignoreNoClose` 可忽略不可关闭标记。
 
 ## 5.4 刷新能力
 
@@ -223,10 +223,10 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 ## 11. 已知边界与注意事项
 
 - `viewNoCache` 用于控制是否禁用缓存。
-- URL 前缀常量为 `realtive:`（历史拼写），用于标识相对链接。
-- 组件级 `_onBeforeTabOpen` / `_onBeforeTabEnter` 当前未启用（源码保留注释）。
+- URL 前缀常量为 `relative:`，用于标识相对链接。
+- 页面级 `onBeforeTabEnter` 只在页面处于 tab 容器上下文内注册后生效。
 - `openFirstTab` 用于打开首页标签。
-- `closeTabsByLeft/Right/Other` 在批量关闭后会通过 `openTab` 重新激活目标页。
+- `closeTabsByLeft/Right/Other` 会先激活目标标签，再逐个关闭其他标签。
 
 ---
 

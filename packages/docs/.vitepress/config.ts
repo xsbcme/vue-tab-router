@@ -47,6 +47,7 @@ export default defineConfig({
     nav: [
       { text: "指南", link: "/views/guide/" },
       { text: "API", link: "/views/api/" },
+      { text: "Demo", link: "/views/demo/" },
       { text: "更新日志", link: "/views/log/" },
     ],
 
@@ -90,7 +91,10 @@ export default defineConfig({
         },
         {
           text: "更多",
-          items: [{ text: "常见问题", link: "/views/guide/faq" }],
+          items: [
+            { text: "主题与组件样式", link: "/views/guide/theme" },
+            { text: "常见问题", link: "/views/guide/faq" },
+          ],
         },
       ],
       "/views/api/": [
@@ -99,11 +103,17 @@ export default defineConfig({
           items: [{ text: "总览", link: "/views/api/" }],
         },
       ],
+      "/views/demo/": [
+        {
+          text: "Demo",
+          items: [{ text: "本地演示项目", link: "/views/demo/" }],
+        },
+      ],
       "/views/log/": [],
     },
 
     socialLinks: [
-      { icon: "github", link: "https://gitee.com/xsbcme/vue-tab-router-demo" },
+      { icon: "github", link: "https://github.com/xsbcme/vue-tab-router" },
       {
         icon: "npm",
         link: "https://www.npmjs.com/package/@xsbcme/vue-tab-router",

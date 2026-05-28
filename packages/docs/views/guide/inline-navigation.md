@@ -5,7 +5,7 @@
 ## 可识别的链接形式
 
 - `http://` 或 `https://`
-- `realtive:` 前缀（历史拼写，注意不是 `relative:`）
+- `relative:` 前缀
 
 ```ts
 await tabsManager.openTab("https://example.com/docs", {
@@ -13,7 +13,7 @@ await tabsManager.openTab("https://example.com/docs", {
   lang: "zh-CN",
 });
 
-await tabsManager.openTab("realtive:/micro-app/index.html", {
+await tabsManager.openTab("relative:/micro-app/index.html", {
   _viewName: "子应用",
   tenantId: "t1",
 });

@@ -54,6 +54,12 @@ await tabsManager.closeTab();
 // 关闭指定标签
 await tabsManager.closeTab("aXGc");
 
+// 忽略不可关闭标记并跳过守卫
+await tabsManager.closeTab("aXGc", {
+  ignoreNoClose: true,
+  skipGuard: true,
+});
+
 // 关闭左侧 / 右侧 / 其他 / 全部
 await tabsManager.closeTabsByLeft();
 await tabsManager.closeTabsByRight();
@@ -65,3 +71,4 @@ await tabsManager.closeTabByAll();
 
 - 标签标记 `_noClose` 时默认不可关闭
 - 关闭当前激活标签后，会优先尝试激活其来源标签（`_sourceId`）
+- 批量关闭默认遇到守卫拒绝会停止；可传 `{ continueOnRejected: true }` 继续后续标签

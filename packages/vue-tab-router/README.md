@@ -31,7 +31,7 @@ yarn add @xsbcme/vue-tab-router
 
 - Vue 3.x
 - TypeScript（推荐）
-- 可选：Arco Design（仅在使用内置 `DynamicTabsComponent` 时需要）
+- Vue 3.x
 
 ---
 
@@ -137,6 +137,7 @@ tabsManager.openTab("/views/user/page-index.vue", { userId: 1001 });
 - `onIframeLoad`: iframe 加载完成回调
 - `onBeforeTabOpen`: 全局打开前守卫
 - `onBeforeTabEnter`: 全局进入前守卫
+- `onBeforeTabLeave`: 全局离开前守卫
 - `onBeforeTabClose`: 全局关闭前守卫
 - `viewNameMaxLength`: 标题最大展示长度（配合内置 tabs 组件）
 
@@ -381,7 +382,7 @@ tabsManager.addPlugin(new LoggerPlugin());
 ## 内置组件
 
 - `DynamicContainerComponent`: 主内容渲染容器
-- `DynamicTabsComponent`: 标签栏组件（Arco 风格）
+- `DynamicTabsComponent`: 标签栏组件
 - `DynamicIconComponent`: 图标组件
 - `PreviewContainerComponent`: 单页预览容器
 
@@ -390,16 +391,16 @@ tabsManager.addPlugin(new LoggerPlugin());
 ## 注意事项
 
 - `relative:` 为内嵌相对链接的前缀，格式为 `relative:/path/to/page.html`
-- 若使用 `DynamicTabsComponent`，请确保已安装并按需引入 Arco 相关依赖与样式
+- `DynamicTabsComponent` 使用组件内置样式，可通过 CSS 变量定制主题
 
 ---
 
 ## 案例项目
 
-- Gitee: [vue-tab-router-demo](https://gitee.com/xsbcme/vue-tab-router-demo)
+- Workspace: `packages/demo`
 
 ---
 
 ## License
 
-MIT
+ISC

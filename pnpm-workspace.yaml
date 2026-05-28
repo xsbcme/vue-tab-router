@@ -17,6 +17,9 @@ catalog:
   '@vue/runtime-core': ^3.4.21
   '@vue/shared': ^3.4.21
   vitepress: 1.6.4
+  '@arco-design/web-vue': 2.56.3
+  pinia: 2.1.7
+  vue-router: 4.4.3
 onlyBuiltDependencies:
   - esbuild
   - vue-demi

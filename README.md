@@ -63,7 +63,8 @@ tabsManager.openTab("/views/user/page-index.vue", { _viewName: "用户管理" })
 vue-tab-router/
 ├── packages/
 │   ├── vue-tab-router/   # 核心插件包 @xsbcme/vue-tab-router
-│   └── docs/             # VitePress 文档站点
+│   ├── docs/             # VitePress 文档站点
+│   └── demo/             # 本地演示项目
 ├── pnpm-workspace.yaml
 ├── turbo.json
 └── package.json
@@ -80,14 +81,15 @@ vue-tab-router/
 
 ### 常用命令
 
-| 命令                | 说明                              |
-| ------------------- | --------------------------------- |
-| `pnpm install`      | 安装依赖                          |
-| `pnpm build`        | 构建所有包                        |
-| `pnpm build:plugin` | 仅构建 vue-tab-router             |
-| `pnpm dev`          | 启动开发（构建依赖包后启动 docs） |
-| `pnpm publish`      | 发布（需配置 changeset）          |
-| `pnpm publish:beta` | 发布 beta 版本                    |
+| 命令               | 说明                      |
+| ------------------ | ------------------------- |
+| `pnpm install`     | 安装依赖                  |
+| `pnpm build`       | 构建所有包                |
+| `pnpm dev`         | 启动所有开发任务          |
+| `pnpm dev:demo`    | 启动本地 demo             |
+| `pnpm build:demo`  | 构建本地 demo             |
+| `pnpm type-check`  | 运行类型检查              |
+| `pnpm publish:run` | 构建后使用 changeset 发布 |
 
 ### 文档
 
@@ -128,7 +130,7 @@ pnpm changeset publish
 或直接使用组合命令：
 
 ```bash
-pnpm publish
+pnpm publish:run
 ```
 
 ### 方式二：直接发布
@@ -144,21 +146,23 @@ pnpm publish --registry="https://registry.npmjs.org/" --access public
 ### 发布 Beta 版本
 
 ```bash
-pnpm publish:beta
+pnpm publish:pre-beta
+pnpm publish:bump
+pnpm publish:run
 ```
 
 会进入 beta 通道，发布形如 `1.0.0-beta.0` 的版本。
 
 ### 注意事项
 
-- 作用域包 `@xsbcme/vue-tab-router` 需 `--access public` 才能发布为公开包（已在 package.json 中配置 `publishConfig`）
+- 作用域包 `@xsbcme/vue-tab-router` 需 `--access public` 才能发布为公开包
 - 若使用 Granular Access Token 替代 2FA，需勾选「Allow bypassing 2FA for publishing」
 - 确认 `.npmrc` 中 registry 指向 `https://registry.npmjs.org/`（若使用镜像需临时改回）
 
 ## 链接
 
 - **NPM 包**：[@xsbcme/vue-tab-router](https://www.npmjs.com/package/@xsbcme/vue-tab-router)
-- **Demo 案例**：[vue-tab-router-demo](https://gitee.com/xsbcme/vue-tab-router-demo)
+- **Demo 案例**：`packages/demo`
 
 ## License
 

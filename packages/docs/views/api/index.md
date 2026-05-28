@@ -19,11 +19,19 @@ defineTabOptions;
 defineTabEvents;
 onBeforeTabLeave;
 onBeforeTabClose;
+onBeforeTabEnter;
 
 // adapters / abstract
 AbstractStorageAdapter;
 StorageAdapter;
 AbstractTabsManagerPlugin;
+
+// theme
+applyTheme;
+themeToCssVariables;
+defaultTheme;
+lightTheme;
+darkTheme;
 ```
 
 ## `createTabsManager(options)`
@@ -42,6 +50,8 @@ AbstractTabsManagerPlugin;
 - `onIframeLoad`: iframe 加载完成回调
 - `onBeforeTabOpen`: 全局打开前守卫
 - `onBeforeTabEnter`: 全局激活前守卫
+- `onBeforeTabLeave`: 全局离开前守卫
+- `onBeforeTabClose`: 全局关闭前守卫
 - `viewNameMaxLength`: 内置标签组件标题最大显示长度
 
 ## `useTabsManager()`
@@ -72,6 +82,27 @@ AbstractTabsManagerPlugin;
 
 其余字段会进入 `viewProps`。
 
+## 关闭选项
+
+`closeTab` 与批量关闭方法支持关闭选项：
+
+```ts
+await tabsManager.closeTab(tabId, {
+  ignoreNoClose: true,
+  skipGuard: true,
+});
+
+await tabsManager.closeTabsByOther(tabId, {
+  continueOnRejected: true,
+});
+```
+
+| 字段                 | 说明                                           |
+| -------------------- | ---------------------------------------------- |
+| `ignoreNoClose`      | 忽略 `_noClose`，允许关闭不可关闭标签          |
+| `skipGuard`          | 跳过关闭守卫与关闭回退时的切换守卫             |
+| `continueOnRejected` | 批量关闭时某个标签被守卫拒绝后继续处理后续标签 |
+
 ## 页面内 API
 
 ### `useTabId()`
@@ -91,9 +122,27 @@ AbstractTabsManagerPlugin;
 
 定义当前页可接收事件，供子页通过 `emit` 回调来源页。
 
-### `onBeforeTabLeave(guard)` / `onBeforeTabClose(guard)`
+### `onBeforeTabEnter(guard)` / `onBeforeTabLeave(guard)` / `onBeforeTabClose(guard)`
 
-注册页面级守卫。抛错或返回 rejected Promise 会中断流程。
+注册页面级守卫。返回 `false`、抛错或返回 rejected Promise 会中断流程。
+
+## 内置组件
+
+### `DynamicContainerComponent`
+
+根据当前激活标签渲染 Vue 组件或 iframe，是内容区必须放置的组件。
+
+### `DynamicTabsComponent`
+
+内置标签栏，支持 `type`、`showIcon`、`defaultIcon`、`hideFirst`。
+
+### `PreviewContainerComponent`
+
+用于单页预览场景，会清空当前标签组后打开目标页。
+
+### `DynamicIconComponent`
+
+根据图标名查找已注册 Vue 组件，也支持直接传入 SVG 字符串、图片路径或 base64 图片。
 
 ## 存储适配器
 
@@ -110,3 +159,9 @@ AbstractTabsManagerPlugin;
 继承 `AbstractTabsManagerPlugin`，并通过 `tabsManager.addPlugin(...)` 挂载。
 
 > 参考：`onLoad` 在 `app.use(tabsManager)` 后执行，`onDestroy` 在应用卸载或插件移除时执行。
+
+## 主题 API
+
+- `applyTheme(theme, element?)`: 将主题转换为 CSS 变量并写入元素
+- `themeToCssVariables(theme)`: 返回 CSS 变量对象
+- `defaultTheme` / `lightTheme` / `darkTheme`: 内置主题
