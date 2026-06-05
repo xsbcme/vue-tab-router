@@ -17,7 +17,7 @@ export class Tab {
   viewName?: string;
   viewIcon?: string;
   viewUrl!: string;
-  viewProps?: Record<string, any>;
+  viewProps?: Record<string, unknown>;
 
   constructor(options?: Partial<PersistedTab>) {
     Object.assign(this, options || {});

@@ -5,7 +5,7 @@ export class StorageAdapter extends AbstractStorageAdapter {
     super();
   }
 
-  get<T = any>(key: string, def?: T): T {
+  get<T = unknown>(key: string, def?: T): T {
     const val = this.storage.getItem(key);
     if (!val) return def as T;
     try {
@@ -15,7 +15,7 @@ export class StorageAdapter extends AbstractStorageAdapter {
     }
   }
 
-  set<T = any>(key: string, val: T): this {
+  set<T = unknown>(key: string, val: T): this {
     this.storage.setItem(key, JSON.stringify(val));
     return this;
   }

@@ -22,7 +22,7 @@ await tabsManager.activeFirstTab();
 
 ## 预览容器：`PreviewContainerComponent`
 
-`PreviewContainerComponent` 适合“只预览一个页面”的场景，会先清空旧页签再打开目标页。
+`PreviewContainerComponent` 适合 A 系统页面被 B 系统嵌入操作的场景。它会把 `viewUrl` 打开为预览容器的首页标签，默认标题为“首页”，且默认不显示在上方标签栏；当这个页面继续打开其它页面时，才显示上方标签栏。`viewUrl`、`viewProps` 或 `viewName` 变化时会清空旧页签并重新打开预览页；关闭或打开失败时会触发 `error` 事件。
 
 ```vue
 <template>
@@ -30,11 +30,16 @@ await tabsManager.activeFirstTab();
     view-url="/src/views/report/page-index.vue"
     :view-props="{ reportId: 1001 }"
     view-name="报表预览"
+    @error="handlePreviewError"
   />
 </template>
 
 <script setup lang="ts">
 import { PreviewContainerComponent } from "@xsbcme/vue-tab-router";
+
+const handlePreviewError = (error: unknown) => {
+  console.error(error);
+};
 </script>
 ```
 

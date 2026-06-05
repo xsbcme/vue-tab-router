@@ -1,27 +1,26 @@
 <template>
   <div class="menu">
-    <a-menu :selected-keys="selectedKeys" @menu-item-click="handleMenuItemClick">
-      <MenuItemComponent :menus="menus" />
+    <a-menu :selected-keys="selectedKeys" auto-scroll-into-view auto-open-selected @menu-item-click="handleMenuItemClick">
+      <MenuItemComponent :menus="menus" :get-menu-key="getMenuKey" />
     </a-menu>
   </div>
 </template>
 <script lang="ts" setup>
 import { Menu } from "@/model/menu";
-import { TreeUtil } from "@/utils";
 import MenuItemComponent from "./item.vue";
 
 const emit = defineEmits<{
-  (event: "selectMenu", menu: Menu): void;
+  (event: "selectMenu", menuKey: string): void;
 }>();
 
-const props = defineProps<{
+defineProps<{
   menus: Menu[];
   selectedKeys?: string[];
+  getMenuKey: (menu: Menu) => string;
 }>();
 
 const handleMenuItemClick = (menuUUID: string) => {
-  const findMenu = TreeUtil.findTree<Menu>(props.menus, menu => menu.getUUID!() === menuUUID);
-  findMenu && emit("selectMenu", findMenu);
+  emit("selectMenu", menuUUID);
 };
 </script>
 <style lang="scss" scoped>

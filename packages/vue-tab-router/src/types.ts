@@ -1,6 +1,8 @@
-import { AsyncComponentOptions, Component, TransitionProps } from "vue";
+import { AsyncComponentLoader, AsyncComponentOptions, Component, TransitionProps } from "vue";
 import { AbstractStorageAdapter } from "./abstract-storage-adapter";
+import type { IframeLoadEvent, IframeMessageEvent, IframeMessageOriginValidator } from "./iframe-message";
 import { Tab } from "./tab";
+import type { TabsManagerPlugin } from "./tabs-manager-plugin";
 
 /**
  * TabsManager 初始化配置。
@@ -15,6 +17,11 @@ export interface ITabsManagerOptions {
    * 自定义存储适配器，用于持久化 tabs 状态。
    */
   storageAdapter?: AbstractStorageAdapter;
+
+  /**
+   * 扩展插件。插件会在 `app.use(tabsManager)` 时安装。
+   */
+  plugins?: TabsManagerPlugin[];
 
   /**
    * 异步组件默认配置，会合并到 `defineAsyncComponent`。
@@ -45,9 +52,19 @@ export interface ITabsManagerOptions {
   noExistComponent?: Component;
 
   /**
-   * iframe 加载完成回调。
+  * iframe 加载完成回调。可通过 `iframe` 访问 DOM；跨域 iframe 只能操作元素本身，不能访问内部 document。
    */
-  onIframeLoad?: (e: Event, tab: Partial<Tab>) => void;
+  onIframeLoad?: (context: IframeLoadEvent) => void;
+
+  /**
+   * 允许接收 iframe 消息的来源。默认只允许当前页面同源。
+   */
+  iframeMessageOrigins?: IframeMessageOriginValidator;
+
+  /**
+   * iframe 通过 postMessage 发送消息时触发。
+   */
+  onIframeMessage?: (message: IframeMessageEvent) => void;
 
   /**
    * 全局：打开标签页前守卫。
@@ -111,12 +128,17 @@ export interface CloseTabsOptions extends CloseTabOptions {
 /**
  * 通用模块映射类型。
  */
-export type Modules<T = any> = Record<string, () => Promise<T>> | Record<string, T>;
+export type ModuleItem = AsyncComponentLoader<Component> | Component | { default: Component };
+
+/**
+ * 通用模块映射类型。
+ */
+export type Modules = Record<string, ModuleItem>;
 
 /**
  * 页面事件处理器映射。
  */
-export type DefineEvents = { [key: string]: (data: any) => void };
+export type DefineEvents = { [key: string]: (data: unknown) => void };
 
 /**
  * 在页面内部声明 tab 元信息时使用的参数。
@@ -146,7 +168,7 @@ export interface IDefineTabOptions {
 /**
  * 更新 tab 时使用的参数。
  */
-export interface IUpdateTabOptions extends Record<string, any> {
+export interface IUpdateTabOptions extends Record<string, unknown> {
   /**
    * 更新标题。
    */
@@ -176,7 +198,7 @@ export interface IUpdateTabOptions extends Record<string, any> {
 /**
  * 打开 tab 时使用的参数。
  */
-export interface IOpenTabOptions extends Record<string, any> {
+export interface IOpenTabOptions extends Record<string, unknown> {
   /**
    * 标签标题。
    */

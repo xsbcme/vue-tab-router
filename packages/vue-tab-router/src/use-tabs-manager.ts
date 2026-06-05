@@ -1,4 +1,5 @@
 import { reactive, UnwrapRef, inject } from "vue";
+import type { IframePostMessageOptions } from "./iframe-message";
 import { TabsManager } from "./tabs-manager";
 import { INJECT_CURRENT_TAB_KEY } from "./constant";
 import {
@@ -25,6 +26,24 @@ export function useTabsManager(): UnwrapRef<TabsManager> {
 export function useTabId() {
   const tab = inject(INJECT_CURRENT_TAB_KEY);
   return tab?.value?._id;
+}
+
+/**
+ * 向当前页面所在的 iframe 标签页发送消息。
+ *
+ * 这个方法适合在被 `DynamicContainerComponent` 渲染的页面组件内部使用，
+ * 内部会自动读取当前 tabId，使用方通常不需要感知 `useTabId()`。
+ */
+export function postCurrentIframeMessage(data: unknown, options?: IframePostMessageOptions): boolean;
+export function postCurrentIframeMessage(data: unknown, targetOrigin?: string, transfer?: Transferable[]): boolean;
+export function postCurrentIframeMessage(
+  data: unknown,
+  optionsOrTargetOrigin?: IframePostMessageOptions | string,
+  transfer?: Transferable[]
+) {
+  const tabId = useTabId();
+  const options = typeof optionsOrTargetOrigin === "string" ? { targetOrigin: optionsOrTargetOrigin, transfer } : optionsOrTargetOrigin;
+  return useTabsManager().postIframeMessage(tabId, data, options);
 }
 
 /**

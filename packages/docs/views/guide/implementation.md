@@ -8,12 +8,12 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 
 - 标签页生命周期：打开、激活、关闭、刷新、批量关闭
 - 视图类型：Vue 组件视图 + iframe 视图（外链/相对链接）
-- 页面缓存：基于增强版 keep-alive 控制缓存与失活恢复
+- 页面缓存：组件页基于增强版 keep-alive，iframe 页基于持久 DOM 层
 - 全局守卫：`onBeforeTabOpen`、`onBeforeTabEnter`、`onBeforeTabLeave`、`onBeforeTabClose`
 - 页面级守卫：`onBeforeTabEnter`、`onBeforeTabLeave`、`onBeforeTabClose`
 - 页面通信：子页向父页 `emit`，父页通过 `defineTabEvents` 监听
 - 持久化：通过 `storageAdapter` 持久化 tabs（默认 `sessionStorage`）
-- 插件扩展：支持挂载 `AbstractTabsManagerPlugin` 子插件
+- 插件扩展：支持通过 `plugins` 注册轻量级生命周期 hooks
 
 ---
 
@@ -52,7 +52,7 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 4. `registerModules()` 将 `modules` 注册为全局组件：
    - 同步组件：直接注册
    - 异步组件：包装 `defineAsyncComponent`，并应用 `source` 配置
-5. 插件体系执行 `loadPlugin()`，并注入 `app.config.globalProperties.$tabsManager`。
+5. 插件体系安装 `plugins`，并注入 `app.config.globalProperties.$tabsManager`。
 
 ---
 
@@ -155,7 +155,7 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 3. 若为链接页：
    - 渲染 `DynamicIframeComponent`
    - 合并 `link` 与 `linkProps` 形成最终 URL
-   - iframe `load` 后触发 `onIframeLoad(e, tab)`
+  - iframe `load` 后触发 `onIframeLoad({ event, iframe, tab })`
 4. 若为组件页：
    - 从 app context 查找全局组件
    - 不存在时渲染 `noExistComponent` 或默认提示
@@ -163,6 +163,8 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
    - `includeKey = tabs.filter(!tab._noCache && !tab._isRefresh).map(tab._id)`
    - `_noCache` 或 `_isRefresh` 的页面不进入缓存列表
 6. 可选 `Transition` 做页面切换动画（受 `transitionProps` 控制）
+
+iframe 缓存独立于 Vue `KeepAlive`：可缓存 iframe 会被放入持久 iframe layer，通过 `visibility` 控制显示；`_viewNoCache` 或刷新中的 iframe 则只在当前激活渲染分支中临时创建。
 
 ---
 
@@ -193,13 +195,26 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 
 ## 9. 插件扩展机制
 
-`TabsManager` 继承 `Plugin`，支持：
+`TabsManager` 内置轻量级 hooks 系统，支持通过 `plugins` 注册扩展行为：
 
-- `addPlugin(plugin)`：添加子插件
-- `getPlugin(Class)`：按类获取插件实例
-- `delPlugin(Class)`：卸载插件并触发 `onDestroy`
+- 函数插件：`({ hooks, tabsManager }) => { ... }`
+- 对象插件：`{ name, setup(ctx) { ... } }`
+- 清理函数：`setup` 返回函数，或调用 `ctx.onDispose(cleanup)`
 
-扩展插件建议继承 `AbstractTabsManagerPlugin`，在 `onLoad(tabsManager)` 中挂接行为。
+常用生命周期包括：`tab:before-open`、`tab:opened`、`tab:before-active-change`、`tab:active-changed`、`tab:before-close`、`tab:closed`、`tab:updated`、`tab:before-refresh`、`tab:refreshed`、`tabs:cleared`。
+
+```ts
+const tabsManager = createTabsManager({
+  modules,
+  plugins: [
+    ({ hooks }) => {
+      hooks.on("tab:opened", tab => {
+        console.log("opened", tab.viewUrl);
+      });
+    },
+  ],
+});
+```
 
 ---
 

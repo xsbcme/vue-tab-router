@@ -1,7 +1,7 @@
 <template>
   <div
     class="tabs-nav__item"
-    :class="{ 'is-active': isActive }"
+    :class="{ 'is-active': isActive, 'is-closable': !tab._noClose }"
     @click="emit('select', tab._id)"
     @contextmenu.prevent="e => emit('contextmenu', e, tab)"
   >
@@ -11,13 +11,16 @@
       </template>
       <TruncatedText :text="tab._loading ? '加载中...' : tab.viewName || '未命名'" :max-length="maxNameLength" />
     </div>
-    <span v-if="!tab._noClose" class="tabs-nav__close" @click.stop="emit('close', tab._id)">
-      <svg viewBox="0 0 1024 1024" width="12" height="12" fill="currentColor">
-        <path
-          d="M195.2 195.2a42.667 42.667 0 0 1 60.267 0L512 451.733l256.533-256.533a42.667 42.667 0 0 1 60.267 60.267L572.267 512l256.533 256.533a42.667 42.667 0 0 1-60.267 60.267L512 572.267 255.467 828.8a42.667 42.667 0 0 1-60.267-60.267L451.733 512 195.2 255.467a42.667 42.667 0 0 1 0-60.267z"
-        />
-      </svg>
-    </span>
+    <span class="tabs-nav__divider" />
+    <button
+      v-if="!tab._noClose"
+      class="tabs-nav__close"
+      type="button"
+      aria-label="关闭标签页"
+      @click.stop="emit('close', tab._id)"
+    >
+      <icon-close size="10" />
+    </button>
   </div>
 </template>
 
@@ -25,6 +28,7 @@
 import { Tab } from "@/tab";
 import TruncatedText from "./truncated-text.vue";
 import DynamicIcon from "../dynamic-icon.vue";
+import IconClose from "../icons/icon-close.vue";
 
 defineProps<{
   tab: Tab;
@@ -45,52 +49,171 @@ const emit = defineEmits<{
 .tabs-title {
   display: flex;
   align-items: center;
-  gap: var(--tab-spacing-xs, 4px);
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 220px;
+  width: 100%;
 }
 
 .tabs-nav__item {
-  display: flex;
-  align-items: center;
-  gap: var(--tab-spacing-xs, 4px);
-  padding: var(--tab-spacing-xs, 4px) var(--tab-spacing-lg, 16px);
-  border-radius: var(--tab-radius-sm, 4px);
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    background var(--tab-transition-duration, 0.15s) var(--tab-transition-timing, ease),
-    color var(--tab-transition-duration, 0.15s) var(--tab-transition-timing, ease);
-  color: var(--tab-color-text-secondary, #4e5969);
-  font-size: var(--tab-font-size, 14px);
-  flex-shrink: 0;
-
-  &:hover {
-    background: var(--tab-color-bg-hover, #f2f3f5);
-    color: var(--tab-color-text-primary, #1d2129);
-  }
-
-  &.is-active {
-    background: var(--tab-color-bg-active, #e5e6eb);
-    color: var(--tab-color-text-primary, #1d2129);
-    font-weight: 500;
-  }
-}
-
-.tabs-nav__close {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--tab-icon-size, 16px);
-  height: var(--tab-icon-size, 16px);
-  border-radius: 50%;
-  color: var(--tab-color-text-disabled, #86909c);
+  min-width: 72px;
+  max-width: min(260px, calc(100vw - 96px));
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: visible;
   transition:
     background var(--tab-transition-duration, 0.15s) var(--tab-transition-timing, ease),
-    color var(--tab-transition-duration, 0.15s) var(--tab-transition-timing, ease);
+    color var(--tab-transition-duration, 0.15s) var(--tab-transition-timing, ease),
+    box-shadow var(--tab-transition-duration, 0.15s) var(--tab-transition-timing, ease);
+  color: var(--tab-color-text-secondary, #4e5969);
+  font-size: var(--tab-font-size, 14px);
   flex-shrink: 0;
+  background: var(--tab-color-bg-base, #fff);
+
+  &.is-closable {
+    padding-right: 30px;
+    padding-left: 24px;
+  }
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    transition: none;
+  }
+
+  &::before {
+    left: -8px;
+    bottom: 0;
+    width: 8px;
+    height: 8px;
+    opacity: 0;
+  }
+
+  &::after {
+    right: -8px;
+    bottom: 0;
+    width: 8px;
+    height: 8px;
+    opacity: 0;
+  }
 
   &:hover {
-    background: var(--tab-color-border-dark, #c9cdd4);
+    z-index: 1;
+    background: var(--tab-color-bg-hover, #f5f6f8);
     color: var(--tab-color-text-primary, #1d2129);
   }
+
+  &:hover::before,
+  &:hover::after,
+  &.is-active::before,
+  &.is-active::after {
+    background: transparent;
+    opacity: 1;
+  }
+
+  &:hover::before {
+    left: -8px;
+    background: radial-gradient(circle at 0 0, transparent 0 8px, var(--tab-color-bg-hover, #f5f6f8) 8.5px);
+  }
+
+  &:hover::after {
+    background: radial-gradient(circle at 100% 0, transparent 0 8px, var(--tab-color-bg-hover, #f5f6f8) 8.5px);
+  }
+
+  &.is-active {
+    z-index: 2;
+    background: var(--tab-color-bg-active, #e8ebef);
+    color: var(--tab-color-text-primary, #1d2129);
+    font-weight: 500;
+    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.02), 0 1px 4px rgba(15, 23, 42, 0.08);
+    &::before {
+      left: -8px;
+      background: radial-gradient(circle at 0 0, transparent 0 8px, var(--tab-color-bg-active, #e8ebef) 8.5px);
+    }
+
+    &::after {
+      background: radial-gradient(circle at 100% 0, transparent 0 8px, var(--tab-color-bg-active, #e8ebef) 8.5px);
+    }
+  }
+
+  &:hover .tabs-nav__divider,
+  &.is-active .tabs-nav__divider,
+  &:has(+ .tabs-nav__item:hover) .tabs-nav__divider,
+  &:has(+ .tabs-nav__item.is-active) .tabs-nav__divider {
+    opacity: 0;
+  }
+
+  &:hover .tabs-nav__close,
+  &:focus-within .tabs-nav__close {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.tabs-nav__divider {
+  position: absolute;
+  right: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: var(--tab-color-border, #d8dce3);
+  opacity: 0.9;
+  pointer-events: none;
+  transition: opacity var(--tab-transition-duration, 0.15s) var(--tab-transition-timing, ease);
+}
+
+.tabs-nav__close {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tab-color-text-disabled, #86909c);
+  cursor: pointer;
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition:
+    opacity var(--tab-transition-duration, 0.15s) var(--tab-transition-timing, ease),
+    background var(--tab-transition-duration, 0.15s) var(--tab-transition-timing, ease),
+    color var(--tab-transition-duration, 0.15s) var(--tab-transition-timing, ease);
+
+  &:hover {
+    background: var(--tab-color-border, #d8dce3);
+    color: var(--tab-color-text-primary, #1d2129);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  &:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+    outline: 2px solid var(--tab-color-primary, #165dff);
+    outline-offset: 1px;
+  }
+}
+
+:deep(.truncated-text) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

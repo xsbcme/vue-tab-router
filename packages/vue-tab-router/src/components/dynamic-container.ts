@@ -1,5 +1,6 @@
 import {
   Component,
+  ComponentPublicInstance,
   KeepAlive,
   Transition,
   computed,
@@ -9,30 +10,96 @@ import {
   provide,
 } from "vue";
 import { INJECT_ACTIVE_TAB_KEY, INJECT_CURRENT_TAB_KEY, RELATIVE_VIEW_URL_PREFIX_KEY } from "@/constant";
+import type { DynamicIframeExpose, IframeMessageEvent } from "@/iframe-message";
 import { clone, findVueComponent, isHttpUrl, resolveViewUrl } from "@/utils";
 import { useTabsManager } from "@/use-tabs-manager";
 
 import DynamicIframeComponent from "@/components/dynamic-iframe.vue";
+import type { Tab } from "@/tab";
+import type { ITabsManagerOptions } from "@/types";
+
+type IframeRefValue = Element | ComponentPublicInstance | DynamicIframeExpose | null;
 
 const getTabCacheName = (tabId: string) => `TabCache_${tabId}`;
+
+const isIframeTab = (tab: Tab) => tab.viewUrl.startsWith(RELATIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(tab.viewUrl);
+
+const shouldCacheTab = (tab: Tab) => !tab._noCache && !tab._isRefresh;
+
+const shouldCacheComponentTab = (tab: Tab) => shouldCacheTab(tab) && !isIframeTab(tab);
+
+const shouldCacheIframeTab = (tab: Tab) => shouldCacheTab(tab) && isIframeTab(tab);
 
 export default defineComponent({
   name: "DynamicContainer",
   setup() {
     const instance = getCurrentInstance();
     const tabsManager = useTabsManager();
-    const { transitionProps, keepAliveProps, noActiveComponent, noExistComponent, onIframeLoad } =
-      tabsManager.options || {};
+    const managerOptions = tabsManager.options ? (tabsManager.options as unknown as ITabsManagerOptions) : null;
+    const {
+      transitionProps,
+      keepAliveProps,
+      noActiveComponent,
+      noExistComponent,
+      onIframeLoad,
+      onIframeMessage,
+    } = managerOptions || {};
     const tabWrapperMap = new Map<string, Component>();
+    const iframeRefs = new Map<string, DynamicIframeExpose>();
+
+    tabsManager._setIframeMessenger((tabId, data, targetOrigin, transfer) => {
+      return Boolean(iframeRefs.get(tabId)?.postMessage(data, targetOrigin, transfer));
+    });
+
+    const isDynamicIframeExpose = (value: IframeRefValue): value is DynamicIframeExpose => {
+      return Boolean(value && "postMessage" in value && typeof value.postMessage === "function");
+    };
+
+    const setIframeRef = (tabId: string, exposed: IframeRefValue) => {
+      if (isDynamicIframeExpose(exposed)) {
+        iframeRefs.set(tabId, exposed);
+      } else {
+        iframeRefs.delete(tabId);
+      }
+    };
+
+    const emitIframeMessage = (e: MessageEvent, tab: Tab) => {
+      const latestTab = tabsManager.getTabById(tab._id) || tab;
+      const payload: IframeMessageEvent = {
+        data: e.data,
+        origin: e.origin,
+        source: e.source,
+        rawEvent: e,
+        tab: clone(latestTab),
+        tabId: latestTab._id,
+        reply: (data, options = {}) => {
+          return tabsManager.postIframeMessage(latestTab._id, data, {
+            targetOrigin: options.targetOrigin ?? e.origin,
+            transfer: options.transfer,
+          });
+        },
+      };
+      onIframeMessage && onIframeMessage(payload);
+      tabsManager.hooks.call("iframe:message", payload);
+    };
 
     const keepAliveIncludes = computed<string[]>(() => {
       const cacheNames = tabsManager.tabs
-        .filter(item => !item._noCache && !item._isRefresh)
+        .filter(shouldCacheComponentTab)
         .map(item => getTabCacheName(item._id));
       return [...new Set(cacheNames)];
     });
 
     const activeTabId = computed(() => tabsManager.activeTab?._id);
+
+    const cachedIframeTabs = computed(() => tabsManager.tabs.filter(shouldCacheIframeTab));
+
+    const activeCachedIframeTabId = computed(() => {
+      const activeTab = tabsManager.activeTab;
+      return activeTab && shouldCacheIframeTab(activeTab) ? activeTab._id : undefined;
+    });
+
+    const hasActiveCachedIframe = computed(() => Boolean(activeCachedIframeTabId.value));
 
     provide(
       INJECT_ACTIVE_TAB_KEY,
@@ -68,11 +135,15 @@ export default defineComponent({
               const viewUrl = resolveViewUrl(currentTab.viewUrl);
               return createVNode(DynamicIframeComponent, {
                 key: currentTab._id,
+                ref: (exposed: IframeRefValue) => setIframeRef(currentTab._id, exposed),
                 link: viewUrl,
                 linkProps: currentTab.viewProps,
-                onLoad: (e: Event) => {
-                  onIframeLoad && onIframeLoad(e, clone(currentTab));
+                allowedOrigins: managerOptions?.iframeMessageOrigins,
+                messageTab: clone(currentTab),
+                onLoad: (e: Event, iframe: HTMLIFrameElement) => {
+                  onIframeLoad && onIframeLoad({ event: e, iframe, tab: clone(currentTab) });
                 },
+                onMessage: (e: MessageEvent) => emitIframeMessage(e, currentTab),
               });
             }
 
@@ -108,8 +179,63 @@ export default defineComponent({
         return null;
       }
 
+      if (activeCachedIframeTabId.value === tabId) {
+        return null;
+      }
+
       return createVNode(getTabWrapper(tabId), { key: tabId });
     };
+
+    const cachedIframeRender = () =>
+      createVNode(
+        "div",
+        {
+          class: "dynamic-container__iframe-layer",
+          style: {
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            overflow: "hidden",
+            zIndex: 1,
+          },
+        },
+        cachedIframeTabs.value.map(currentTab => {
+          const isActive = activeCachedIframeTabId.value === currentTab._id;
+          const viewUrl = resolveViewUrl(currentTab.viewUrl);
+          return createVNode(
+            "div",
+            {
+              key: currentTab._id,
+              class: "dynamic-container__iframe-item",
+              style: {
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                overflow: "hidden",
+                visibility: isActive ? "visible" : "hidden",
+                pointerEvents: isActive ? "auto" : "none",
+                zIndex: isActive ? 1 : 0,
+              },
+            },
+            [
+              createVNode(DynamicIframeComponent, {
+                ref: (exposed: IframeRefValue) => setIframeRef(currentTab._id, exposed),
+                link: viewUrl,
+                linkProps: currentTab.viewProps,
+                allowedOrigins: managerOptions?.iframeMessageOrigins,
+                messageTab: clone(currentTab),
+                onLoad: (e: Event, iframe: HTMLIFrameElement) => {
+                  const latestTab = tabsManager.getTabById(currentTab._id) || currentTab;
+                  onIframeLoad && onIframeLoad({ event: e, iframe, tab: clone(latestTab) });
+                },
+                onMessage: (e: MessageEvent) => emitIframeMessage(e, currentTab),
+              }),
+            ]
+          );
+        })
+      );
 
     const keepAliveRender = () => {
       pruneStaleWrappers();
@@ -134,7 +260,40 @@ export default defineComponent({
         { default: keepAliveRender }
       );
 
-    return () =>
-      !tabsManager.refreshAllTabFlag ? (transitionProps?.name ? transitionRender : keepAliveRender)() : null;
+    return () => {
+      if (tabsManager.refreshAllTabFlag) return null;
+
+      return createVNode(
+        "div",
+        {
+          class: "dynamic-container",
+          style: {
+            position: "relative",
+            width: "100%",
+            height: "100%",
+            overflow: "hidden",
+          },
+        },
+        [
+          cachedIframeRender(),
+          createVNode(
+            "div",
+            {
+              class: "dynamic-container__view-layer",
+              style: {
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                overflow: "hidden",
+                pointerEvents: hasActiveCachedIframe.value ? "none" : "auto",
+                zIndex: hasActiveCachedIframe.value ? 0 : 2,
+              },
+            },
+            [(transitionProps?.name ? transitionRender : keepAliveRender)()]
+          ),
+        ]
+      );
+    };
   },
 });

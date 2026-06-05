@@ -1,18 +1,18 @@
 <template>
   <template v-for="menu in menus">
     <template v-if="Array.isArray(menu.children) && menu.children.length > 0">
-      <a-sub-menu :key="menu.getUUID!()">
+      <a-sub-menu :key="getMenuKey(menu)">
         <template #icon v-if="menu.icon || defaultIcon">
           <DynamicIconComponent :icon="menu.icon || defaultIcon" />
         </template>
         <template #title>
           <span :title="menu.name">{{ menu.name }}</span>
         </template>
-        <MenuItemComponent :menus="menu.children" :defaultIcon="defaultIcon" />
+        <MenuItemComponent :menus="menu.children" :defaultIcon="defaultIcon" :get-menu-key="getMenuKey" />
       </a-sub-menu>
     </template>
     <template v-else>
-      <a-menu-item :key="menu.getUUID!()">
+      <a-menu-item :key="getMenuKey(menu)">
         <template #icon v-if="menu.icon || defaultIcon">
           <DynamicIconComponent :icon="menu.icon || defaultIcon" />
         </template>
@@ -38,6 +38,7 @@ withDefaults(
   defineProps<{
     menus: Menu[];
     defaultIcon?: string;
+    getMenuKey: (menu: Menu) => string;
   }>(),
   {
     defaultIcon: "IconApps",

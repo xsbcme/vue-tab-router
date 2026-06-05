@@ -40,7 +40,7 @@ export function isHttpUrl(url: string | undefined) {
   }
 }
 
-export function clone<T = any>(obj: T): T {
+export function clone<T = unknown>(obj: T): T {
   try {
     return JSON.parse(JSON.stringify(obj));
   } catch (error) {

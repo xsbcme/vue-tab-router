@@ -9,7 +9,8 @@
           <a-layout-sider collapsible breakpoint="xl" :width="260">
             <MenuComponent
               :menus="menuStore.getMenus"
-              :selected-keys="getMenuSelectedKeys"
+              :selected-keys="tabMenu.selectedKeys.value"
+              :get-menu-key="tabMenu.getMenuKey"
               @select-menu="handleSelectMenu"
             />
           </a-layout-sider>
@@ -27,11 +28,9 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { computed } from "vue";
 import { useMenuStore } from "@/plugins/store";
-import { useTabsManager } from "@xsbcme/vue-tab-router";
+import { useTabMenu, useTabsManager } from "@xsbcme/vue-tab-router";
 import { Menu } from "@/model/menu";
-import { StringUtil } from "@/utils";
 import { Message } from "@arco-design/web-vue";
 import NavbarComponent from "./navbar.vue";
 import MenuComponent from "./menu/index.vue";
@@ -40,30 +39,12 @@ import ContentComponent from "./content.vue";
 
 const menuStore = useMenuStore();
 const tabsMangager = useTabsManager();
-
-const getMenuSelectedKeys = computed(() => {
-  if (!tabsMangager.activeTab) {
-    return [];
-  }
-  const { viewUrl, viewProps } = tabsMangager.activeTab;
-  return [
-    new Menu({
-      url: viewUrl,
-      props: viewProps as undefined,
-    }).getUUID!(),
-  ];
+const tabMenu = useTabMenu<Menu>({
+  menus: () => menuStore.getMenus,
 });
 
-const handleSelectMenu = async (menu: Menu) => {
-  if (!menu) return;
-  const menuProps = StringUtil.jsonToObject(menu.props!, {});
-  tabsMangager
-    .openTab(menu.url!, {
-      _viewName: menu.name,
-      _viewIcon: menu.icon,
-      ...menuProps,
-    })
-    .catch(err => {
+const handleSelectMenu = async (menuKey: string) => {
+  tabMenu.handleMenuItemClick(menuKey).catch(err => {
       if (err) {
         Message.error(err.message);
       }

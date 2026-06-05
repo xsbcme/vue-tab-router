@@ -134,7 +134,9 @@ tabsManager.openTab("/views/user/page-index.vue", { userId: 1001 });
 - `transitionProps`: 过渡动画配置
 - `noActiveComponent`: 没有激活页时显示的组件
 - `noExistComponent`: 页面不存在时显示的组件
-- `onIframeLoad`: iframe 加载完成回调
+- `onIframeLoad`: iframe 加载完成回调，可访问 iframe 元素
+- `iframeMessageOrigins`: 允许接收 iframe 消息的来源，默认只允许同源
+- `onIframeMessage`: iframe 发送 `postMessage` 时触发
 - `onBeforeTabOpen`: 全局打开前守卫
 - `onBeforeTabEnter`: 全局进入前守卫
 - `onBeforeTabLeave`: 全局离开前守卫
@@ -144,6 +146,30 @@ tabsManager.openTab("/views/user/page-index.vue", { userId: 1001 });
 ## `useTabsManager()`
 
 获取响应式 `TabsManager` 实例。
+
+## `useTabMenu(options?)`
+
+用于把业务菜单与标签页激活状态联动起来，适合 Arco、Element Plus 等需要 `selectedKeys` / `activeKey` 的菜单组件。
+
+```vue
+<template>
+  <a-menu :selected-keys="tabMenu.selectedKeys.value" auto-open-selected @menu-item-click="tabMenu.handleMenuItemClick">
+    <a-menu-item v-for="menu in menus" :key="tabMenu.getMenuKey(menu)">
+      {{ menu.name }}
+    </a-menu-item>
+  </a-menu>
+</template>
+
+<script setup lang="ts">
+import { useTabMenu } from "@xsbcme/vue-tab-router";
+
+const tabMenu = useTabMenu({
+  menus: () => menus,
+});
+</script>
+```
+
+默认识别菜单字段：`url` / `uri` / `viewUrl`、`name` / `title`、`icon`、`props` / `viewProps`、`children`。如果业务字段不同，可以通过 `getViewUrl`、`getViewName`、`getViewIcon`、`getViewProps`、`getChildren` 自定义。
 
 ## `useTabId()`
 
@@ -191,6 +217,8 @@ tabsManager.openTab("/views/user/page-index.vue", { userId: 1001 });
 - `refreshTab(tabId?)`：刷新单个页签
 - `refreshTabAll()`：刷新全部页签
 - `updateTabOptions(options, tabId?)`：更新页签元信息
+- `postActiveIframeMessage(data, options?)`：向当前激活 iframe 页签发送消息
+- `postIframeMessage(tabId, data, options?)`：向指定 iframe 页签发送消息
 - `emit(eventName, data?, tabId?)`：向父页签发消息
 - `clear()`：清空全部状态（页签、存储、事件）
 
@@ -234,6 +262,84 @@ tabsManager.openTab("relative:/micro-app/index.html", {
   tenantId: "t1",
 });
 ```
+
+iframe 加载完成后可通过 `onIframeLoad` 操作 iframe 元素；同源 iframe 还可以访问内部文档：
+
+```ts
+createTabsManager({
+  modules,
+  onIframeLoad({ iframe, tab }) {
+    iframe.style.backgroundColor = "#fff";
+
+    try {
+      if (tab.viewProps?.hideHeader && iframe.contentDocument) {
+        const style = iframe.contentDocument.createElement("style");
+        style.textContent = ".layout-header { display: none; }";
+        iframe.contentDocument.head.appendChild(style);
+      }
+    } catch {
+      // 跨域 iframe 不能访问内部 document。
+    }
+  },
+});
+```
+
+跨域 iframe 只能操作 iframe 元素本身，不能访问内部 `document`。
+
+### iframe 通信
+
+iframe 页面可以通过 `window.parent.postMessage` 与宿主通信，宿主可以在 `onIframeMessage` 或插件 hook 中处理消息，并通过 `reply`、`postActiveIframeMessage` 或 `postIframeMessage` 回发。
+
+```ts
+const tabsManager = createTabsManager({
+  modules,
+  iframeMessageOrigins: ["self", "https://example.com"],
+  onIframeMessage(message) {
+    if (message.data?.type === "refresh-current") {
+      tabsManager.refreshTab(message.tabId);
+      message.reply({ type: "refreshed" });
+    }
+  },
+  plugins: [
+    ({ hooks, tabsManager }) => {
+      hooks.on("iframe:message", message => {
+        if (message.data?.type === "open-tab") {
+          tabsManager.openTab(message.data.viewUrl, message.data.options);
+        }
+      });
+    },
+  ],
+});
+```
+
+布局、工具栏等外部区域通常只需要操作当前激活 iframe：
+
+```ts
+tabsManager.postActiveIframeMessage({ type: "set-theme", theme: "dark" });
+```
+
+页面组件内部需要向自己所在的 iframe 页签发消息时，可以直接使用组合式函数，不需要手动传 tabId：
+
+```ts
+import { postCurrentIframeMessage } from "@xsbcme/vue-tab-router";
+
+postCurrentIframeMessage({ type: "reload-data" });
+```
+
+iframe 页面中发送消息：
+
+```ts
+window.parent.postMessage(
+  {
+    type: "open-tab",
+    viewUrl: "/src/views/order/page-index.vue",
+    options: { _viewName: "订单" },
+  },
+  window.location.origin
+);
+```
+
+默认只接收同源消息。跨域 iframe 需要显式配置 `iframeMessageOrigins`，不建议在生产环境使用 `"*"`。
 
 ## 3）新窗口打开外链
 
@@ -360,21 +466,27 @@ const tabsManager = createTabsManager({
 
 ## 插件扩展
 
-可通过 `addPlugin` 扩展 `TabsManager`：
+可通过 `plugins` 扩展 `TabsManager`，插件会在 `app.use(tabsManager)` 时安装：
 
 ```ts
-import { AbstractTabsManagerPlugin, TabsManager } from "@xsbcme/vue-tab-router";
+import { createTabsManager } from "@xsbcme/vue-tab-router";
 
-class LoggerPlugin extends AbstractTabsManagerPlugin {
-  protected onLoad(tabsManager: TabsManager): void {
-    console.log("tabs plugin loaded", tabsManager.tabs.length);
-  }
-  protected onDestroy(): void {
-    console.log("tabs plugin destroyed");
-  }
-}
+const tabsManager = createTabsManager({
+  modules: import.meta.glob("./views/**/page-index.vue"),
+  plugins: [
+    ({ hooks, tabsManager }) => {
+      console.log("tabs plugin loaded", tabsManager.tabs.length);
 
-tabsManager.addPlugin(new LoggerPlugin());
+      hooks.on("tab:opened", tab => {
+        console.log("tab opened", tab.viewUrl);
+      });
+
+      return () => {
+        console.log("tabs plugin destroyed");
+      };
+    },
+  ],
+});
 ```
 
 ---

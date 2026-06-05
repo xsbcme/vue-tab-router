@@ -1,5 +1,5 @@
-import { App, defineAsyncComponent, nextTick, createVNode, defineComponent, toRaw } from "vue";
-import { Plugin } from "./base/plugin";
+import { App, AsyncComponentLoader, Component, defineAsyncComponent, nextTick, createVNode, defineComponent, toRaw } from "vue";
+import type { IframePostMessageOptions } from "./iframe-message";
 import { Tab } from "./tab";
 import {
   CloseTabOptions,
@@ -20,14 +20,24 @@ import { useEventManager } from "./use-event-manager";
 import { AbstractStorageAdapter } from "./abstract-storage-adapter";
 import { StorageAdapter } from "./storage-adapter";
 import { runTabGuard } from "./tab-guard";
+import { TabsManagerHooks, TabsManagerPluginCleanup } from "./tabs-manager-plugin";
 
-export class TabsManager extends Plugin {
+export class TabsManager {
   private static _instance: TabsManager | null = null;
   private _options: ITabsManagerOptions | null = null;
   private _app: App | null = null;
   private _tabs: Tab[] = [];
   private _refreshAllTabFlag: boolean = false;
   private _storageAdapter: AbstractStorageAdapter | null = null;
+  private _hooks = new TabsManagerHooks();
+  private _pluginCleanups: TabsManagerPluginCleanup[] = [];
+  private _pluginsLoaded = false;
+  private _iframeMessenger?: (
+    tabId: string,
+    data: unknown,
+    targetOrigin?: string,
+    transfer?: Transferable[]
+  ) => boolean;
 
   get app() {
     return this._app;
@@ -39,6 +49,10 @@ export class TabsManager extends Plugin {
 
   get storage() {
     return this._storageAdapter;
+  }
+
+  get hooks() {
+    return this._hooks;
   }
 
   get refreshAllTabFlag() {
@@ -73,9 +87,7 @@ export class TabsManager extends Plugin {
     return findParentPathsByPath(this.registerTabPaths, this.activeTab?.viewUrl);
   }
 
-  private constructor() {
-    super();
-  }
+  private constructor() {}
 
   public static getInstance(): TabsManager {
     if (!this._instance) {
@@ -91,14 +103,40 @@ export class TabsManager extends Plugin {
     return this;
   }
 
+  private setupPlugins() {
+    if (this._pluginsLoaded || !this._app) return;
+    this._pluginsLoaded = true;
+    const plugins = this._options?.plugins ?? [];
+    plugins.forEach(plugin => {
+      const disposers: TabsManagerPluginCleanup[] = [];
+      const setup = typeof plugin === "function" ? plugin : plugin.setup;
+      const cleanup = setup({
+        app: this._app!,
+        tabsManager: this,
+        hooks: this._hooks,
+        onDispose: disposer => disposers.push(disposer),
+      });
+      if (typeof cleanup === "function") {
+        disposers.push(cleanup);
+      }
+      this._pluginCleanups.push(...disposers.reverse());
+    });
+  }
+
+  private disposePlugins() {
+    this._pluginCleanups.splice(0).forEach(dispose => dispose());
+    this._hooks.clear();
+    this._pluginsLoaded = false;
+  }
+
   private registerModules() {
     const { modules: rawModules, source } = this._options || {};
     const transformModules = (modules: Modules) => {
       return Object.keys(modules).reduce((pre, cur) => {
         const module = modules[cur];
-        pre[cur] = typeof module === "function" ? module : Reflect.get(module, "default");
+        pre[cur] = typeof module === "object" && "default" in module ? module.default : module;
         return pre;
-      }, {} as Modules);
+      }, {} as Record<string, Component | (() => Promise<Component>)>);
     };
     const modules = transformModules(rawModules || {});
     const loadingComponent = defineComponent({
@@ -116,12 +154,13 @@ export class TabsManager extends Plugin {
       if (this.getAppComponentByName(viewId)) return;
       let component = modules[viewId];
       if (typeof component === "function") {
-        component = defineAsyncComponent<Object>({
+        const loader = component as AsyncComponentLoader<Component>;
+        component = defineAsyncComponent<Component>({
           loadingComponent,
           errorComponent,
           delay: 500,
           ...source,
-          loader: component,
+          loader,
         });
       }
       this._app.component(viewId, component);
@@ -147,7 +186,7 @@ export class TabsManager extends Plugin {
     return url?.startsWith(RELATIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(url);
   }
 
-  private getTabByViewUrlAndProps(viewUrl: string, props: Record<string, any> | undefined) {
+  private getTabByViewUrlAndProps(viewUrl: string, props: Record<string, unknown> | undefined) {
     const filterTabsByComponent = this._tabs.filter(tab => tab.viewUrl === viewUrl);
     return filterTabsByComponent.find(tab => {
       return JSON.stringify(tab.viewProps) === JSON.stringify(props);
@@ -239,6 +278,56 @@ export class TabsManager extends Plugin {
     findTab[guardName] = guard;
   }
 
+  public _setIframeMessenger(
+    messenger?: (tabId: string, data: unknown, targetOrigin?: string, transfer?: Transferable[]) => boolean
+  ) {
+    this._iframeMessenger = messenger;
+  }
+
+  private getIframePostOptions(optionsOrTargetOrigin?: IframePostMessageOptions | string, transfer?: Transferable[]) {
+    return typeof optionsOrTargetOrigin === "string"
+      ? { targetOrigin: optionsOrTargetOrigin, transfer }
+      : optionsOrTargetOrigin || {};
+  }
+
+  /**
+   * 向指定 iframe 标签页发送消息。适合插件或需要精确指定目标 tab 的场景。
+   */
+  public postIframeMessage(
+    tabId: string | undefined,
+    data: unknown,
+    options?: IframePostMessageOptions
+  ): boolean;
+  public postIframeMessage(
+    tabId: string | undefined,
+    data: unknown,
+    targetOrigin?: string,
+    transfer?: Transferable[]
+  ): boolean;
+  public postIframeMessage(
+    tabId: string | undefined,
+    data: unknown,
+    optionsOrTargetOrigin?: IframePostMessageOptions | string,
+    transfer?: Transferable[]
+  ) {
+    if (!tabId) return false;
+    const options = this.getIframePostOptions(optionsOrTargetOrigin, transfer);
+    return Boolean(this._iframeMessenger?.(tabId, data, options.targetOrigin, options.transfer));
+  }
+
+  /**
+   * 向当前激活的 iframe 标签页发送消息。布局、工具栏等外部区域通常使用此方法。
+   */
+  public postActiveIframeMessage(data: unknown, options?: IframePostMessageOptions): boolean;
+  public postActiveIframeMessage(data: unknown, targetOrigin?: string, transfer?: Transferable[]): boolean;
+  public postActiveIframeMessage(
+    data: unknown,
+    optionsOrTargetOrigin?: IframePostMessageOptions | string,
+    transfer?: Transferable[]
+  ) {
+    return this.postIframeMessage(this.activeTab?._id, data, this.getIframePostOptions(optionsOrTargetOrigin, transfer));
+  }
+
   private async runChangeActiveTabGuards(toTab: Partial<Tab>, fromTab = this.activeTab) {
     if (fromTab) {
       await runTabGuard(this._options?.onBeforeTabLeave, clone(toTab), clone(fromTab));
@@ -246,6 +335,7 @@ export class TabsManager extends Plugin {
     }
     await runTabGuard(this._options?.onBeforeTabEnter, clone(toTab), clone(fromTab));
     await runTabGuard(toTab._onBeforeTabEnter, clone(toTab), clone(fromTab));
+    await this._hooks.call("tab:before-active-change", clone(toTab), clone(fromTab));
   }
 
   /**
@@ -257,10 +347,11 @@ export class TabsManager extends Plugin {
       if (tabId === this.activeTab?._id) return tabId;
       const findTab = this.getTabById(tabId);
       if (!findTab) return Promise.reject(new Error(`标签页不存在[${tabId}]`));
+      const fromTab = this.activeTab;
 
       if (triggerHook) {
         try {
-          await this.runChangeActiveTabGuards(findTab);
+          await this.runChangeActiveTabGuards(findTab, fromTab);
         } catch (error) {
           return Promise.reject(error);
         }
@@ -274,6 +365,7 @@ export class TabsManager extends Plugin {
         }
       });
       this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
+      await this._hooks.call("tab:active-changed", clone(findTab), clone(fromTab));
 
       return tabId;
     });
@@ -303,6 +395,7 @@ export class TabsManager extends Plugin {
       });
 
       this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
+      return this._hooks.call("tab:updated", clone(findTab));
     });
   }
 
@@ -361,12 +454,16 @@ export class TabsManager extends Plugin {
       // 不存在同路径 tab，或目标是多例模式时，新增 tab
       const findTabByViewUrl = this.getTabByViewUrl(viewUrl);
       if (!findTabByViewUrl || (findTabByViewUrl && !newTab._single)) {
-        await runTabGuard(this._options?.onBeforeTabOpen, clone(newTab), clone(this.getTabById(newTab._sourceId)));
+        const sourceTab = this.getTabById(newTab._sourceId);
+        await runTabGuard(this._options?.onBeforeTabOpen, clone(newTab), clone(sourceTab));
+        await this._hooks.call("tab:before-open", clone(newTab), clone(sourceTab));
         await this.runChangeActiveTabGuards(newTab);
 
         this._tabs.push(newTab);
 
-        return await this.changeActiveTab(newTab._id, false);
+        const tabId = await this.changeActiveTab(newTab._id, false);
+        await this._hooks.call("tab:opened", clone(newTab), clone(sourceTab));
+        return tabId;
       }
 
       const findTab = this.getTabById(findTabByViewUrl._id);
@@ -425,6 +522,7 @@ export class TabsManager extends Plugin {
             const sourceTab = this.getTabById(findTab._sourceId);
             await runTabGuard(findTab._onBeforeTabClose, clone(findTab), clone(sourceTab));
             await runTabGuard(this._options?.onBeforeTabClose, clone(findTab), clone(sourceTab));
+            await this._hooks.call("tab:before-close", clone(findTab), clone(sourceTab));
           } catch (error) {
             return Promise.reject(error);
           }
@@ -459,6 +557,7 @@ export class TabsManager extends Plugin {
         }
 
         this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
+        await this._hooks.call("tab:closed", clone(findTab), clone(fallbackTab));
       }
     });
   }
@@ -488,9 +587,12 @@ export class TabsManager extends Plugin {
       if (!findTab) {
         return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
       }
-      Object.assign<Tab, Partial<Tab>>(findTab, { _isRefresh: true });
-      return nextTick(() => {
-        Object.assign<Tab, Partial<Tab>>(findTab, { _isRefresh: undefined });
+      return this._hooks.call("tab:before-refresh", clone(findTab)).then(() => {
+        Object.assign<Tab, Partial<Tab>>(findTab, { _isRefresh: true });
+        return nextTick(() => {
+          Object.assign<Tab, Partial<Tab>>(findTab, { _isRefresh: undefined });
+          return this._hooks.call("tab:refreshed", clone(findTab));
+        });
       });
     });
   }
@@ -625,10 +727,12 @@ export class TabsManager extends Plugin {
     this._refreshAllTabFlag = false;
     this.storage?.del(STORAGE_TABS_KEY);
     useEventManager().clear();
+    this._hooks.call("tabs:cleared");
   }
 
   private destroy() {
-    super.clearPlugin();
+    this.disposePlugins();
+    this._iframeMessenger = undefined;
     this._app = null;
     this._options = null;
     TabsManager._instance = null;
@@ -647,7 +751,7 @@ export class TabsManager extends Plugin {
       this.destroy();
       return unmountApp(...args);
     };
-    super.loadPlugin();
+    this.setupPlugins();
     app.config.globalProperties.$tabsManager = this;
   }
 }

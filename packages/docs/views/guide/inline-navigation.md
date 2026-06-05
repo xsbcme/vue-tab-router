@@ -28,8 +28,9 @@ await tabsManager.openTab("relative:/micro-app/index.html", {
 ```ts
 const tabsManager = createTabsManager({
   modules,
-  onIframeLoad(e, tab) {
-    console.log("iframe loaded =>", tab.viewUrl, e);
+  onIframeLoad({ event, iframe, tab }) {
+    console.log("iframe loaded =>", tab.viewUrl, event);
+    iframe.style.backgroundColor = "#fff";
   },
 });
 ```
@@ -38,4 +39,5 @@ const tabsManager = createTabsManager({
 
 - 埋点上报（页面加载时机）
 - 对特定链接页签做额外处理
+- 同源 iframe 内部样式注入
 - 诊断外部页面加载失败问题

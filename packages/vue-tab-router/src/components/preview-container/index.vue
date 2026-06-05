@@ -13,7 +13,8 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { onMounted } from "vue";
+import { computed, watch } from "vue";
+import { jsonToObject } from "../../utils";
 import { useTabsManager } from "../../use-tabs-manager";
 import DynamicContainerComponent from "../dynamic-container";
 import DynamicTabsComponent from "../dynamic-tabs/index.vue";
@@ -21,38 +22,51 @@ import DynamicTabsComponent from "../dynamic-tabs/index.vue";
 const props = withDefaults(
   defineProps<{
     viewUrl: string;
-    viewProps?: Record<string, any> | string;
+    viewProps?: Record<string, unknown> | string;
     viewName?: string;
   }>(),
   {
     viewProps: () => ({}),
-    viewName: "预览页面",
+    viewName: "首页",
   }
 );
 
-const tabsManager = useTabsManager();
+const emit = defineEmits<{
+  error: [error: unknown];
+}>();
 
-const getViewProps = () => {
-  if (!props.viewProps) return {};
-  if (typeof props.viewProps === "string") {
-    try {
-      return JSON.parse(props.viewProps);
-    } catch {
-      return {};
+const tabsManager = useTabsManager();
+let openVersion = 0;
+
+const parsedViewProps = computed<Record<string, unknown>>(
+  () => jsonToObject(props.viewProps || {}, {}) as Record<string, unknown>
+);
+
+const previewKey = computed(() => JSON.stringify([props.viewUrl, props.viewName, parsedViewProps.value]));
+
+const openPreviewTab = async () => {
+  const version = ++openVersion;
+  const viewUrl = props.viewUrl;
+  if (!viewUrl) return;
+
+  try {
+    await tabsManager.openFirstTab(
+      viewUrl,
+      {
+        _viewName: props.viewName,
+        ...parsedViewProps.value,
+      },
+      "clear"
+    );
+    if (version !== openVersion) return;
+  } catch (error) {
+    if (version === openVersion) {
+      emit("error", error);
     }
-  } else {
-    return props.viewProps;
   }
 };
 
-onMounted(() => {
-  tabsManager.closeTabByAll().then(() => {
-    tabsManager.openTab(props.viewUrl, {
-      _viewName: props.viewName,
-      ...getViewProps(),
-    });
-  });
-});
+watch(previewKey, openPreviewTab, { immediate: true });
 </script>
 <style lang="scss" scoped>
 .preview {

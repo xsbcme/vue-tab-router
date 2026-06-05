@@ -67,6 +67,7 @@ export default defineConfig({
             { text: "基础页面导航", link: "/views/guide/basic-navigation" },
             { text: "内联页面导航", link: "/views/guide/inline-navigation" },
             { text: "外链页面导航", link: "/views/guide/outside-navigation" },
+            { text: "菜单联动", link: "/views/guide/menu-integration" },
             { text: "页面缓存控制", link: "/views/guide/cache-control" },
           ],
         },
@@ -78,6 +79,8 @@ export default defineConfig({
               text: "页面事件通信与守卫",
               link: "/views/guide/events-and-guards",
             },
+            { text: "Iframe 通信与缓存", link: "/views/guide/iframe-communication" },
+            { text: "插件扩展", link: "/views/guide/plugins" },
             {
               text: "首页与预览容器方案",
               link: "/views/guide/first-tab-and-preview",

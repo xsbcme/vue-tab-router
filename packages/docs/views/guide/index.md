@@ -12,7 +12,7 @@
 - 页面级守卫与全局守卫
 - 子页签向来源页签通信
 - 持久化存储（默认 `sessionStorage`，可自定义）
-- 插件扩展机制（`addPlugin`）
+- 插件扩展机制（`plugins` + 生命周期 hooks）
 
 ## 与 VueRouter 的关系
 

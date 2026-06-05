@@ -14,6 +14,7 @@ PreviewContainerComponent;
 // composables / factory
 createTabsManager;
 useTabsManager;
+useTabMenu;
 useTabId;
 defineTabOptions;
 defineTabEvents;
@@ -24,7 +25,11 @@ onBeforeTabEnter;
 // adapters / abstract
 AbstractStorageAdapter;
 StorageAdapter;
-AbstractTabsManagerPlugin;
+
+// plugins
+TabsManagerPlugin;
+TabsManagerPluginContext;
+TabsManagerHooks;
 
 // theme
 applyTheme;
@@ -42,12 +47,15 @@ darkTheme;
 
 - `modules`: 页面模块映射（同步组件或懒加载函数）
 - `storageAdapter`: 自定义持久化适配器
+- `plugins`: 扩展插件列表
 - `source`: 透传给 `defineAsyncComponent` 的默认配置
 - `transitionProps`: 页面切换过渡配置
 - `keepAliveProps`: 缓存配置（如 `max`）
 - `noActiveComponent`: 无激活页时渲染组件
 - `noExistComponent`: 目标页面不存在时渲染组件
-- `onIframeLoad`: iframe 加载完成回调
+- `onIframeLoad`: iframe 加载完成回调，可访问 iframe 元素
+- `iframeMessageOrigins`: 允许接收 iframe 消息的来源，默认只允许同源
+- `onIframeMessage`: iframe 发送 `postMessage` 时触发
 - `onBeforeTabOpen`: 全局打开前守卫
 - `onBeforeTabEnter`: 全局激活前守卫
 - `onBeforeTabLeave`: 全局离开前守卫
@@ -62,7 +70,25 @@ darkTheme;
 - `openTab`, `openFirstTab`, `changeActiveTab`
 - `closeTab`, `closeTabByAll`, `closeTabsByLeft/Right/Other`
 - `refreshTab`, `refreshTabAll`, `updateTabOptions`
-- `emit`, `activeFirstTab`, `clear`
+- `postActiveIframeMessage`, `postIframeMessage`, `emit`, `activeFirstTab`, `clear`
+
+## `useTabMenu(options?)`
+
+把菜单项与当前激活标签联动起来，返回可直接绑定菜单组件的 `selectedKeys`，并提供统一的 key 生成与点击打开方法。
+
+```ts
+const tabMenu = useTabMenu({
+  menus: () => menus,
+});
+
+tabMenu.selectedKeys;
+tabMenu.getMenuKey(menu);
+tabMenu.handleMenuItemClick(menuKey);
+```
+
+默认识别菜单字段：`url` / `uri` / `viewUrl`、`name` / `title`、`icon`、`props` / `viewProps`、`children`。如果业务字段不同，可通过 `getViewUrl`、`getViewName`、`getViewIcon`、`getViewProps`、`getChildren` 或 `getMenuKey` 自定义。
+
+默认菜单 key 会忽略 `_viewName`、`_viewIcon`、`_viewNoCache`、`_viewSingle`，但会保留 `_viewOutside`、`_viewOutsideProps` 和业务参数。因此相同 URL 的内部链接和新窗口外部链接不会串选。相同相对地址对应多个业务菜单时，建议在 `props` 中传入稳定的 `menuKey`。
 
 ## `openTab(viewUrl, options?)`
 
@@ -132,13 +158,84 @@ await tabsManager.closeTabsByOther(tabId, {
 
 根据当前激活标签渲染 Vue 组件或 iframe，是内容区必须放置的组件。
 
+iframe 页面可以通过 `window.parent.postMessage` 与宿主通信。宿主可通过 `onIframeMessage` 或插件 hook `iframe:message` 接收消息，并通过 `message.reply()`、`tabsManager.postActiveIframeMessage(data)` 或 `tabsManager.postIframeMessage(tabId, data)` 回发。
+
+iframe 默认会缓存，切换标签后保留内部 DOM 与页面状态。传 `_viewNoCache: true` 时不会进入持久 iframe 层，切换回来会重新加载。
+
+```ts
+const tabsManager = createTabsManager({
+  modules,
+  iframeMessageOrigins: ["self", "https://example.com"],
+  onIframeMessage(message) {
+    if (message.data?.type === "refresh-current") {
+      tabsManager.refreshTab(message.tabId);
+      message.reply({ type: "refreshed" });
+    }
+  },
+  plugins: [
+    ({ hooks, tabsManager }) => {
+      hooks.on("iframe:message", message => {
+        if (message.data?.type === "open-tab") {
+          tabsManager.openTab(message.data.viewUrl, message.data.options);
+        }
+      });
+    },
+  ],
+});
+```
+
+布局、工具栏等外部区域通常只需要操作当前激活 iframe：
+
+```ts
+tabsManager.postActiveIframeMessage({ type: "set-theme", theme: "dark" });
+```
+
+页面组件内部可使用组合式函数向自己所在的 iframe 页签发消息，不需要手动传 tabId：
+
+```ts
+import { postCurrentIframeMessage } from "@xsbcme/vue-tab-router";
+
+postCurrentIframeMessage({ type: "reload-data" });
+```
+
+iframe 加载完成后可通过 `onIframeLoad` 操作 iframe 元素；同源 iframe 还可以访问内部文档：
+
+```ts
+createTabsManager({
+  modules,
+  onIframeLoad({ iframe, tab }) {
+    iframe.style.backgroundColor = "#fff";
+
+    try {
+      if (tab.viewProps?.hideHeader && iframe.contentDocument) {
+        const style = iframe.contentDocument.createElement("style");
+        style.textContent = ".layout-header { display: none; }";
+        iframe.contentDocument.head.appendChild(style);
+      }
+    } catch {
+      // 跨域 iframe 不能访问内部 document。
+    }
+  },
+});
+```
+
+跨域 iframe 只能操作 iframe 元素本身，不能访问内部 `document`。
+
+iframe 页面中发送消息：
+
+```ts
+window.parent.postMessage({ type: "refresh-current" }, window.location.origin);
+```
+
+默认只接收同源消息。跨域 iframe 需要显式配置 `iframeMessageOrigins`，不建议在生产环境使用 `"*"`。
+
 ### `DynamicTabsComponent`
 
 内置标签栏，支持 `type`、`showIcon`、`defaultIcon`、`hideFirst`。
 
 ### `PreviewContainerComponent`
 
-用于单页预览场景，会清空当前标签组后打开目标页。
+用于跨系统嵌入预览场景，会将目标页作为首页标签打开，默认标题为“首页”，且默认不显示在上方标签栏；目标页继续打开其它页面后才显示标签栏。`viewUrl`、`viewProps` 或 `viewName` 变化时会清空旧页签并重新打开预览页；关闭或打开失败时会触发 `error` 事件。
 
 ### `DynamicIconComponent`
 
@@ -156,9 +253,22 @@ await tabsManager.closeTabsByOther(tabId, {
 
 ## 扩展插件
 
-继承 `AbstractTabsManagerPlugin`，并通过 `tabsManager.addPlugin(...)` 挂载。
+通过 `createTabsManager({ plugins })` 挂载插件。插件可以是函数，也可以是带 `setup` 的对象。
 
-> 参考：`onLoad` 在 `app.use(tabsManager)` 后执行，`onDestroy` 在应用卸载或插件移除时执行。
+```ts
+const tabsManager = createTabsManager({
+  modules,
+  plugins: [
+    ({ hooks }) => {
+      hooks.on("tab:opened", tab => {
+        console.log("opened", tab.viewUrl);
+      });
+    },
+  ],
+});
+```
+
+`setup` 返回的函数会在应用卸载时执行，也可以通过 `ctx.onDispose(cleanup)` 注册多个清理函数。
 
 ## 主题 API
 
