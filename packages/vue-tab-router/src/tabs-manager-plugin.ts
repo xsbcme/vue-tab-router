@@ -26,6 +26,12 @@ export interface TabsManagerHookMap {
   "tab:before-refresh": [tab: Partial<Tab>];
   /** tab 已刷新后触发。 */
   "tab:refreshed": [tab: Partial<Tab>];
+  /** tab 已进入弹窗显示。 */
+  "tab:detached-opened": [tab: Partial<Tab>];
+  /** 弹窗显示已关闭。 */
+  "tab:detached-closed": [tab?: Partial<Tab>];
+  /** 弹窗显示容器渲染失败。 */
+  "tab:detached-error": [error: unknown];
   /** iframe 通过 postMessage 向宿主发送消息时触发。 */
   "iframe:message": [message: IframeMessageEvent];
   /** 全部 tab 状态被清空后触发。 */
@@ -54,9 +60,7 @@ export interface TabsManagerPluginContext {
 }
 
 /** 插件 setup 函数。返回函数时会作为卸载清理函数执行。 */
-export type TabsManagerPluginSetup = (
-  context: TabsManagerPluginContext
-) => void | TabsManagerPluginCleanup;
+export type TabsManagerPluginSetup = (context: TabsManagerPluginContext) => void | TabsManagerPluginCleanup;
 
 /** TabsManager 插件，支持函数形式或对象形式。 */
 export type TabsManagerPlugin =

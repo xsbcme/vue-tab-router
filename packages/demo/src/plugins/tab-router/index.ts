@@ -27,6 +27,9 @@ const tabsManager = createTabsManager({
       () => "欢迎使用标签页路由"
     ),
   },
+  detached: {
+    zIndex: 900,
+  },
   iframe: {
     messageOrigins: ["self"],
     onLoad: ({ iframe, tab }) => {
@@ -106,16 +109,28 @@ const tabsManager = createTabsManager({
   ],
   guards: {
     beforeOpen: async (to, from) => {
-      pushLog(hookLogs, `global before-open ${to.viewName || to.viewUrl} from ${from?.viewName || from?.viewUrl || "-"}`);
+      pushLog(
+        hookLogs,
+        `global before-open ${to.viewName || to.viewUrl} from ${from?.viewName || from?.viewUrl || "-"}`
+      );
     },
     beforeEnter: async (to, from) => {
-      pushLog(hookLogs, `global before-enter ${to.viewName || to.viewUrl} from ${from?.viewName || from?.viewUrl || "-"}`);
+      pushLog(
+        hookLogs,
+        `global before-enter ${to.viewName || to.viewUrl} from ${from?.viewName || from?.viewUrl || "-"}`
+      );
     },
     beforeLeave: async (to, from) => {
-      pushLog(hookLogs, `global before-leave ${from?.viewName || from?.viewUrl || "-"} to ${to.viewName || to.viewUrl}`);
+      pushLog(
+        hookLogs,
+        `global before-leave ${from?.viewName || from?.viewUrl || "-"} to ${to.viewName || to.viewUrl}`
+      );
     },
     beforeClose: async (tab, source) => {
-      pushLog(hookLogs, `global before-close ${tab.viewName || tab.viewUrl} source ${source?.viewName || source?.viewUrl || "-"}`);
+      pushLog(
+        hookLogs,
+        `global before-close ${tab.viewName || tab.viewUrl} source ${source?.viewName || source?.viewUrl || "-"}`
+      );
     },
   },
 });

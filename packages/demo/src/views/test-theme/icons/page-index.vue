@@ -45,19 +45,19 @@ import {
   defaultTheme,
   lightTheme,
   useTabsManager,
-} from '@xsbcme/vue-tab-router';
-import { hookLogs } from '@/plugins/tab-router';
+} from "@xsbcme/vue-tab-router";
+import { hookLogs } from "@/plugins/tab-router";
 
 const svgIcon = '<svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="#00b42a"/></svg>';
 const tabsManager = useTabsManager();
 
 defineTabOptions({
-  viewName: '插件与主题',
-  viewIcon: 'IconApps',
+  viewName: "插件与主题",
+  viewIcon: "IconApps",
 });
 
 const openTarget = () => {
-  tabsManager.openTab('/src/views/test-router/router-target/page-index.vue', {
+  tabsManager.openTab("/src/views/test-router/router-target/page-index.vue", {
     _viewName: `Hook 目标页 ${Date.now()}`,
     hookSource: true,
   });

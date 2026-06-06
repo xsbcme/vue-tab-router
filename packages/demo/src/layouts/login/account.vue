@@ -46,6 +46,7 @@
 </template>
 <script lang="ts" setup>
 import { reactive, shallowRef } from "vue";
+import { useRoute } from "vue-router";
 import { FieldRule, FormInstance } from "@arco-design/web-vue";
 import { IconVideoCamera, IconLock, IconUser } from "@arco-design/web-vue/es/icon";
 
@@ -60,6 +61,7 @@ const loginState = reactive({
 });
 
 const userStore = useUserStore();
+const route = useRoute();
 const formRef = shallowRef<FormInstance>();
 const rules: Record<string, FieldRule[]> = {
   username: [{ required: true, message: "请输入登录账号" }],
@@ -70,7 +72,8 @@ const rules: Record<string, FieldRule[]> = {
 const handleLogin = () => {
   formRef.value!.validate(err => {
     if (!err) {
-      userStore.login(loginState.username, loginState.password);
+      const redirect = typeof route.query.redirect === "string" ? route.query.redirect : undefined;
+      userStore.login(loginState.username, loginState.password, redirect);
     }
   });
 };

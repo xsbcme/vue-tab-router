@@ -28,7 +28,7 @@ const router = createRouter({
 router.beforeEach(async (to, _from, next) => {
   const userStore = useUserStore();
   if (to.meta?.accessAuth && !userStore.getToken) {
-    return next("/login");
+    return next({ path: "/login", query: { redirect: to.fullPath } });
   }
   return next();
 });

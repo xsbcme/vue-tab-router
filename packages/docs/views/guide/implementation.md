@@ -21,15 +21,16 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 
 ## 2.1 核心对象
 
-- `TabsManager`：单例核心，维护 tabs 状态和所有行为方法
+- `TabsManager`：标签页运行时实例，维护当前作用域的 tabs 状态和行为方法
+- `TabsSharedContext`：共享页面模块、异步组件包装与组件解析，避免多实例重复扫描/注册页面
 - `Tab`：标签页实体，包含渲染信息、行为标志位、守卫函数
-- `EventManager`：单例事件中心，用于父子页签通信
+- `EventManager`：实例级事件中心，用于当前 TabsManager 内的父子页签通信
 - `StorageAdapter`：默认存储适配器，可替换
 
 ## 2.2 入口 API
 
-- `createTabsManager(options)`：初始化单例并注入配置
-- `useTabsManager()`：获取响应式 `TabsManager`
+- `createTabsManager(options)`：创建根 `TabsManager` 实例并注入配置
+- `useTabsManager()`：获取当前作用域注入的响应式 `TabsManager`
 - `defineTabOptions()`：在页面组件内设置标签元信息
 - `defineTabEvents()`：定义当前页面可接收的事件
 - `onBeforeTabEnter()` / `onBeforeTabLeave()` / `onBeforeTabClose()`：页面级守卫注册
@@ -46,13 +47,13 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 
 ## 3. 初始化与挂载流程
 
-1. 业务侧调用 `createTabsManager(options)`，写入配置并尝试从存储恢复 tabs。
+1. 业务侧调用 `createTabsManager(options)`，创建根实例、初始化共享上下文，并尝试从存储恢复 tabs。
 2. 业务侧 `app.use(tabsManager)`，触发 `install(app)`。
-3. `install` 会改写 `app.mount`：真正挂载前执行 `registerModules()`。
-4. `registerModules()` 将 `modules` 注册为全局组件：
+3. `install` 会改写 `app.mount`：真正挂载前通过 `TabsSharedContext.registerModules()` 注册页面模块。
+4. `registerModules()` 将 `modules` 转换并注册为全局组件：
    - 同步组件：直接注册
    - 异步组件：包装 `defineAsyncComponent`，并应用 `source` 配置
-5. 插件体系安装 `plugins`，并注入 `app.config.globalProperties.$tabsManager`。
+5. 插件体系安装 `plugins`，并通过 provide 与 `app.config.globalProperties.$tabsManager` 注入当前根实例。
 
 ---
 
@@ -155,10 +156,14 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 3. 若为链接页：
    - 渲染 `DynamicIframeComponent`
    - 合并 `link` 与 `linkProps` 形成最终 URL
-  - iframe `load` 后触发 `onIframeLoad({ event, iframe, tab })`
+
+- iframe `load` 后触发 `onIframeLoad({ event, iframe, tab })`
+
 4. 若为组件页：
-   - 从 app context 查找全局组件
-   - 不存在时渲染 `noExistComponent` 或默认提示
+
+- 从 `TabsSharedContext` 查找已注册组件
+- 不存在时渲染 `noExistComponent` 或默认提示
+
 5. 外层包裹增强 keep-alive：
    - `includeKey = tabs.filter(!tab._noCache && !tab._isRefresh).map(tab._id)`
    - `_noCache` 或 `_isRefresh` 的页面不进入缓存列表
@@ -173,21 +178,21 @@ iframe 缓存独立于 Vue `KeepAlive`：可缓存 iframe 会被放入持久 ifr
 通信模型是“子页发事件给父页”：
 
 1. 父页中调用 `defineTabEvents({ eventName: handler })`
-2. 内部注册到 `EventManager`，键格式：`{当前tabId}_{eventName}`
+2. 内部注册到当前 `TabsManager.events`，键格式：`{当前tabId}_{eventName}`
 3. 子页调用 `tabsManager.emit(eventName, data)`
 4. `emit` 会取当前 tab 的 `_sourceId`，向 `{sourceId}_{eventName}` 分发数据
 
-这个机制天然支持“由谁打开我，我回调给谁”的页面协作模式。
+这个机制天然支持“由谁打开我，我回调给谁”的页面协作模式。事件中心是实例级的，预览容器或弹窗显示容器不会与主工作台串事件。
 
 ---
 
 ## 8. 持久化策略
 
-默认使用 `StorageAdapter(sessionStorage)` 存储 `tabs` 到键 `tabs`。
+根实例默认使用 `StorageAdapter(sessionStorage)` 存储 `tabs` 到键 `tabs`。局部实例默认关闭持久化，只复用共享页面模块，不会写入主工作台 tabs。
 
-- 初始化：`_initOptions` 时恢复 tabs
+- 初始化：创建 `TabsManager` 时恢复 tabs
 - 运行中：打开/激活/关闭/更新等关键操作后回写
-- 清理：`clear()` 时删除存储并清空事件中心
+- 清理：`clear()` 时删除当前实例存储并清空当前实例事件中心
 
 可通过自定义 `storageAdapter` 接入 `localStorage`、IndexedDB 或远端存储。
 
@@ -226,14 +231,20 @@ const tabsManager = createTabsManager({
 
 - 点击标签：激活（通过 `openTab(tab.viewUrl, tab.viewProps)` 复用逻辑）
 - 删除标签：关闭当前标签
+- 拖拽标签：调整排序，默认启用，可通过 `render.draggable: false` 关闭，首页不可拖拽
 - 右键菜单：
   - 刷新此页
+  - 弹窗显示
   - 关闭左侧
   - 关闭右侧
   - 关闭其他
   - 全部关闭
   - 全部刷新
 - 支持图标与标题截断显示（`viewNameMaxLength`）
+- 支持置顶标签（`_viewPinned`）：位于首页之后、普通标签之前
+- 支持禁止拖拽（`_viewNoDrag`）：适合首页、固定页或业务锁定页
+
+弹窗显示会创建局部预览容器，复用根实例的页面模块共享上下文，但拥有自己的 tabs、事件中心、iframe 引用与临时状态，默认不持久化。入口页会作为不可关闭首页保留；当首页之外再打开页面时显示标签栏。
 
 ---
 
@@ -249,7 +260,7 @@ const tabsManager = createTabsManager({
 
 ## 12. 典型接入建议
 
-1. 入口统一创建单例并尽早 `app.use(tabsManager)`。
+1. 入口创建根 `TabsManager` 并尽早 `app.use(tabsManager)`。
 2. `modules` 使用可控的 glob 规则，只暴露真正页面入口组件。
 3. 页面内通过 `defineTabOptions` 动态设置标题/图标/单例/缓存策略。
 4. 有“未保存数据”场景时，优先接入 `onBeforeTabLeave` 与 `onBeforeTabClose`。

@@ -99,9 +99,11 @@ tabsManager.openTab("/views/user/page-index.vue", { userId: 1001 });
 
 ## 核心概念
 
-### TabsManager（单例）
+### TabsManager（实例）
 
-`TabsManager` 是插件核心，负责：
+`TabsManager` 是插件核心运行时。应用入口通常创建一个根实例，预览、弹窗显示等内部容器会创建局部实例并复用根实例的页面模块共享上下文。
+
+弹窗显示使用局部实例承载内容，入口页会作为不可关闭首页保留。
 
 - 维护 tabs 列表、当前激活 tab
 - 执行打开 / 关闭 / 激活 / 刷新等行为
@@ -113,9 +115,11 @@ tabsManager.openTab("/views/user/page-index.vue", { userId: 1001 });
 每个 tab 都包含：
 
 - 页面信息：`viewUrl`、`viewName`、`viewIcon`、`viewProps`
-- 行为标记：`_single`、`_noCache`、`_noClose`、`_isFirst`
+- 行为标记：`_single`、`_noCache`、`_noClose`、`_noDrag`、`_pinned`、`_isFirst`
 - 状态标记：`_isActive`、`_isRefresh`
 - 链路关系：`_sourceId`（来源页签 id）
+
+内置标签栏默认启用拖拽排序，可通过 `render.draggable: false` 关闭。首页标签默认不可拖拽；置顶标签会保持在首页之后、普通标签之前，可通过 `_viewPinned` 和 `_viewNoDrag` 控制。
 
 ### 视图渲染
 

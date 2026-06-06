@@ -6,12 +6,11 @@ import {
   computed,
   createVNode,
   defineComponent,
-  getCurrentInstance,
   provide,
 } from "vue";
 import type { DynamicIframeExpose, IframeMessageEvent } from "@/iframe-message";
 import { INJECT_ACTIVE_TAB_KEY, INJECT_CURRENT_TAB_KEY } from "@/constant";
-import { clone, findVueComponent, TabViewUrl } from "@/utils";
+import { clone, TabViewUrl } from "@/utils";
 import { useTabsManager } from "@/use-tabs-manager";
 
 import DynamicIframeComponent from "@/components/dynamic-iframe.vue";
@@ -33,17 +32,10 @@ const shouldCacheIframeTab = (tab: Tab) => shouldCacheTab(tab) && isIframeTab(ta
 export default defineComponent({
   name: "DynamicContainer",
   setup() {
-    const instance = getCurrentInstance();
     const tabsManager = useTabsManager();
     const managerOptions = tabsManager.options ? (tabsManager.options as unknown as ITabsManagerOptions) : null;
-    const {
-      transitionProps,
-      keepAliveProps,
-      noActiveComponent,
-      noExistComponent,
-      onIframeLoad,
-      onIframeMessage,
-    } = managerOptions || {};
+    const { transitionProps, keepAliveProps, noActiveComponent, noExistComponent, onIframeLoad, onIframeMessage } =
+      managerOptions || {};
     const tabWrapperMap = new Map<string, Component>();
     const iframeRefs = new Map<string, DynamicIframeExpose>();
 
@@ -84,9 +76,7 @@ export default defineComponent({
     };
 
     const keepAliveIncludes = computed<string[]>(() => {
-      const cacheNames = tabsManager.tabs
-        .filter(shouldCacheComponentTab)
-        .map(item => getTabCacheName(item._id));
+      const cacheNames = tabsManager.tabs.filter(shouldCacheComponentTab).map(item => getTabCacheName(item._id));
       return [...new Set(cacheNames)];
     });
 
@@ -147,7 +137,7 @@ export default defineComponent({
               });
             }
 
-            const comp = findVueComponent(instance, currentTab.viewUrl);
+            const comp = tabsManager.resolveComponent(currentTab.viewUrl);
             if (!comp) {
               if (noExistComponent) {
                 return createVNode(noExistComponent);

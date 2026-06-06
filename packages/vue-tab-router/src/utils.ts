@@ -123,4 +123,3 @@ export function findVueComponent(node: ComponentInternalInstance, componentName:
   }
   return node.appContext.components[componentName];
 }
-

@@ -19,7 +19,8 @@
     "build": "vite build",
     "build:watch": "vite build --watch",
     "dev": "vite build --watch",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run --typecheck.enabled --typecheck.tsconfig tsconfig.test.json"
   },
   "keywords": [],
   "author": "xsbcme",
@@ -28,6 +29,7 @@
     "vite-plugin-css-injected-by-js": "catalog:",
     "vite-plugin-dts": "catalog:",
     "vite-plugin-externalize-deps": "catalog:",
+    "vitest": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "@vitejs/plugin-vue": "catalog:",

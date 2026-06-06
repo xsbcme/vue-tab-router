@@ -45,10 +45,10 @@ const tabMenu = useTabMenu<Menu>({
 
 const handleSelectMenu = async (menuKey: string) => {
   tabMenu.handleMenuItemClick(menuKey).catch(err => {
-      if (err) {
-        Message.error(err.message);
-      }
-    });
+    if (err) {
+      Message.error(err.message);
+    }
+  });
 };
 </script>
 <style lang="scss" scoped>

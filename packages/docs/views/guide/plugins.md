@@ -38,19 +38,19 @@ const analyticsPlugin = {
 
 ## Hook 列表
 
-| Hook | 触发时机 |
-| --- | --- |
-| `tab:before-open` | 新标签打开前 |
-| `tab:opened` | 新标签打开后 |
-| `tab:before-active-change` | 激活标签切换前 |
-| `tab:active-changed` | 激活标签切换后 |
-| `tab:before-close` | 标签关闭前 |
-| `tab:closed` | 标签关闭后 |
-| `tab:updated` | 标签配置更新后 |
-| `tab:before-refresh` | 标签刷新前 |
-| `tab:refreshed` | 标签刷新后 |
-| `tabs:cleared` | 标签全部清空后 |
-| `iframe:message` | iframe 消息通过来源校验后 |
+| Hook                       | 触发时机                  |
+| -------------------------- | ------------------------- |
+| `tab:before-open`          | 新标签打开前              |
+| `tab:opened`               | 新标签打开后              |
+| `tab:before-active-change` | 激活标签切换前            |
+| `tab:active-changed`       | 激活标签切换后            |
+| `tab:before-close`         | 标签关闭前                |
+| `tab:closed`               | 标签关闭后                |
+| `tab:updated`              | 标签配置更新后            |
+| `tab:before-refresh`       | 标签刷新前                |
+| `tab:refreshed`            | 标签刷新后                |
+| `tabs:cleared`             | 标签全部清空后            |
+| `iframe:message`           | iframe 消息通过来源校验后 |
 
 ## 处理 iframe 指令
 

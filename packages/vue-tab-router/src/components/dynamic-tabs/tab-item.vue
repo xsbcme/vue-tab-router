@@ -2,8 +2,13 @@
   <div
     class="tabs-nav__item"
     :class="{ 'is-active': isActive, 'is-closable': !tab._noClose }"
+    :draggable="draggable"
     @click="emit('select', tab._id)"
     @contextmenu.prevent="e => emit('contextmenu', e, tab)"
+    @dragstart="e => emit('dragstart', e, tab)"
+    @dragover="e => emit('dragover', e, tab)"
+    @drop="e => emit('drop', e, tab)"
+    @dragend="emit('dragend')"
   >
     <div class="tabs-title">
       <template v-if="showIcon && (tab.viewIcon || defaultIcon)">
@@ -36,12 +41,17 @@ defineProps<{
   showIcon: boolean;
   defaultIcon?: string;
   maxNameLength?: number;
+  draggable?: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: "select", id: string): void;
   (e: "close", id: string): void;
   (e: "contextmenu", event: MouseEvent, tab: Tab): void;
+  (e: "dragstart", event: DragEvent, tab: Tab): void;
+  (e: "dragover", event: DragEvent, tab: Tab): void;
+  (e: "drop", event: DragEvent, tab: Tab): void;
+  (e: "dragend"): void;
 }>();
 </script>
 
@@ -83,6 +93,14 @@ const emit = defineEmits<{
     padding-left: 24px;
   }
 
+  &[draggable="true"] {
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
   &::before,
   &::after {
     content: "";
@@ -113,6 +131,14 @@ const emit = defineEmits<{
     color: var(--tab-color-text-primary, #1d2129);
   }
 
+  &.is-dragging {
+    opacity: 0.5;
+  }
+
+  &.is-drop-target {
+    box-shadow: inset 0 -2px 0 var(--tab-color-primary, #165dff);
+  }
+
   &:hover::before,
   &:hover::after,
   &.is-active::before,
@@ -135,7 +161,9 @@ const emit = defineEmits<{
     background: var(--tab-color-bg-active, #e8ebef);
     color: var(--tab-color-text-primary, #1d2129);
     font-weight: 500;
-    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.02), 0 1px 4px rgba(15, 23, 42, 0.08);
+    box-shadow:
+      0 -1px 0 rgba(0, 0, 0, 0.02),
+      0 1px 4px rgba(15, 23, 42, 0.08);
     &::before {
       left: -8px;
       background: radial-gradient(circle at 0 0, transparent 0 8px, var(--tab-color-bg-active, #e8ebef) 8.5px);

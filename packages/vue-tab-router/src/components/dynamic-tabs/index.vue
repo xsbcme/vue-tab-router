@@ -18,14 +18,20 @@
             v-for="tab in displayTabs"
             :key="tab._id"
             :data-tab-id="tab._id"
+            :class="{ 'is-dragging': draggingTabId === tab._id, 'is-drop-target': dropTargetTabId === tab._id }"
             :tab="tab"
             :is-active="tab._id === tabsManager.activeTab?._id"
             :show-icon="showIcon"
             :default-icon="defaultIcon"
             :max-name-length="tabsManager.options?.viewNameMaxLength"
+            :draggable="isTabDraggable(tab)"
             @select="handleSelectTab"
             @close="handleCloseTab"
             @contextmenu="openContextMenu"
+            @dragstart="handleDragStart"
+            @dragover="handleDragOver"
+            @drop="handleDrop"
+            @dragend="handleDragEnd"
           />
         </div>
       </div>
@@ -49,6 +55,13 @@
       @close="closeContextMenu"
       @action="contextAction"
     />
+
+    <DetachedContainerComponent
+      :visible="Boolean(tabsManager.detachedTab)"
+      :tab="tabsManager.detachedTab"
+      @close="tabsManager.closeDetachedTab()"
+      @error="handleDetachedError"
+    />
   </div>
 </template>
 
@@ -60,6 +73,7 @@ import ContextMenu from "./context-menu.vue";
 import { useTabsManager } from "@/use-tabs-manager";
 import IconArrowLeft from "../icons/icon-arrow-left.vue";
 import IconArrowRight from "../icons/icon-arrow-right.vue";
+import DetachedContainerComponent from "../detached-container/index.vue";
 
 type TabsType = "text" | "line" | "card" | "rounded" | "capsule";
 
@@ -83,11 +97,15 @@ const tabsNavRef = ref<HTMLDivElement>();
 const isOverflowing = ref(false);
 const canScrollLeft = ref(false);
 const canScrollRight = ref(false);
+const draggingTabId = ref<string>();
+const dropTargetTabId = ref<string>();
+const dropPosition = ref<"before" | "after">("before");
 let resizeObserver: ResizeObserver | undefined;
 let scrollStateFrame = 0;
 
 const displayTabs = computed(() => (props.hideFirst ? tabsManager.tabs.filter(t => !t._isFirst) : tabsManager.tabs));
 const activeTabId = computed(() => tabsManager.activeTab?._id);
+const tabsDraggable = computed(() => tabsManager.options.tabsDraggable !== false);
 
 const updateScrollState = () => {
   if (scrollStateFrame) return;
@@ -190,6 +208,58 @@ const handleCloseTab = (key: string) => {
   if (tab) tabsManager.closeTab(tab._id);
 };
 
+const isTabDraggable = (tab: Tab) => tabsDraggable.value && !tab._isFirst && !tab._noDrag;
+
+const canDropTab = (sourceTab: Tab | undefined, targetTab: Tab) => {
+  if (!sourceTab || sourceTab._id === targetTab._id) return false;
+  if (!isTabDraggable(sourceTab) || !isTabDraggable(targetTab)) return false;
+  return Boolean(sourceTab._pinned) === Boolean(targetTab._pinned);
+};
+
+const handleDragStart = (event: DragEvent, tab: Tab) => {
+  if (!isTabDraggable(tab)) {
+    event.preventDefault();
+    return;
+  }
+  draggingTabId.value = tab._id;
+  dropTargetTabId.value = undefined;
+  event.dataTransfer?.setData("text/plain", tab._id);
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+  }
+};
+
+const handleDragOver = (event: DragEvent, targetTab: Tab) => {
+  const sourceTab = tabsManager.getTabById(draggingTabId.value);
+  if (!canDropTab(sourceTab, targetTab)) return;
+  event.preventDefault();
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = "move";
+  }
+  const targetElement = event.currentTarget instanceof HTMLElement ? event.currentTarget : undefined;
+  if (targetElement) {
+    const rect = targetElement.getBoundingClientRect();
+    dropPosition.value = event.clientX > rect.left + rect.width / 2 ? "after" : "before";
+  }
+  dropTargetTabId.value = targetTab._id;
+};
+
+const handleDrop = async (event: DragEvent, targetTab: Tab) => {
+  event.preventDefault();
+  const sourceTabId = draggingTabId.value || event.dataTransfer?.getData("text/plain");
+  const sourceTab = tabsManager.getTabById(sourceTabId);
+  if (sourceTab && canDropTab(sourceTab, targetTab)) {
+    await tabsManager.moveTab(sourceTab._id, targetTab._id, dropPosition.value);
+  }
+  handleDragEnd();
+};
+
+const handleDragEnd = () => {
+  draggingTabId.value = undefined;
+  dropTargetTabId.value = undefined;
+  dropPosition.value = "before";
+};
+
 const contextMenu = reactive<{ visible: boolean; x: number; y: number; tab: Tab | null }>({
   visible: false,
   x: 0,
@@ -214,6 +284,9 @@ const contextAction = (eventName: string) => {
   closeContextMenu();
   if (!tab) return;
   switch (eventName) {
+    case "detach":
+      tabsManager.openDetachedTab(tab._id);
+      break;
     case "refresh":
       tabsManager.refreshTab(tab._id);
       break;
@@ -233,6 +306,10 @@ const contextAction = (eventName: string) => {
       tabsManager.refreshTabAll();
       break;
   }
+};
+
+const handleDetachedError = (error: unknown) => {
+  tabsManager.hooks.call("tab:detached-error", error).catch(() => undefined);
 };
 
 watch([activeTabId, displayTabs], () => scrollActiveTabIntoView(), { flush: "post" });

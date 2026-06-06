@@ -68,10 +68,7 @@ function getQueryValue(query: RouteQuery | undefined, key: string) {
 }
 
 function encodeBase64Url(value: string) {
-  return btoa(encodeURIComponent(value))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/g, "");
+  return btoa(encodeURIComponent(value)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
 function decodeBase64Url(value: string) {
@@ -177,13 +174,17 @@ export function createTabUrlSyncPlugin(
       return rawValue ? deserialize(rawValue) : undefined;
     };
 
-    const writeStateToRoute = async (state: TabUrlState | undefined, mode: "push" | "replace" = options.historyMode || "push") => {
+    const writeStateToRoute = async (
+      state: TabUrlState | undefined,
+      mode: "push" | "replace" = options.historyMode || "push"
+    ) => {
       const route = getCurrentRoute(router);
       if (!shouldSyncRoute(route, options.routePath)) return;
 
       const nextState = state && isAllowedState(state, route, options) ? state : undefined;
       const currentState = readStateFromRoute(route);
-      if (isSameState(currentState, nextState)) return;
+      const hasRawQueryState = Boolean(getQueryValue(route.query, queryKey));
+      if (isSameState(currentState, nextState) && (nextState || !hasRawQueryState)) return;
 
       const query = nextState
         ? { ...(route.query || {}), [queryKey]: serialize(nextState) }

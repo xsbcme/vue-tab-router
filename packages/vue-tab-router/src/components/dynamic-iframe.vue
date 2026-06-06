@@ -1,12 +1,6 @@
 <template>
   <div class="dynamic-iframe">
-    <iframe
-      ref="iframeRef"
-      class="dynamic-iframe-content"
-      :src="iframeUrl"
-      :title="title"
-      @load="onLoad"
-    >
+    <iframe ref="iframeRef" class="dynamic-iframe-content" :src="iframeUrl" :title="title" @load="onLoad">
       您的浏览器不支持内联框架
     </iframe>
     <template v-if="loading">
@@ -93,7 +87,11 @@ const onMessage = (e: MessageEvent) => {
   emit("message", e);
 };
 
-const postMessage = (data: unknown, targetOrigin = resolveIframeMessageTargetOrigin(iframeUrl.value), transfer?: Transferable[]) => {
+const postMessage = (
+  data: unknown,
+  targetOrigin = resolveIframeMessageTargetOrigin(iframeUrl.value),
+  transfer?: Transferable[]
+) => {
   const targetWindow = iframeRef.value?.contentWindow;
   if (!targetWindow) return false;
   if (transfer) {

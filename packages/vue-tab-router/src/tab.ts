@@ -6,7 +6,9 @@ export class Tab {
   _isRefresh?: boolean;
   _isActive?: boolean;
   _noClose?: boolean;
+  _noDrag?: boolean;
   _isFirst?: boolean;
+  _pinned?: boolean;
   _single?: boolean;
   _noCache?: boolean;
   _loading?: boolean;
@@ -29,7 +31,9 @@ export class Tab {
       _sourceId: this._sourceId,
       _isActive: this._isActive,
       _noClose: this._noClose,
+      _noDrag: this._noDrag,
       _isFirst: this._isFirst,
+      _pinned: this._pinned,
       _single: this._single,
       _noCache: this._noCache,
       viewName: this.viewName,

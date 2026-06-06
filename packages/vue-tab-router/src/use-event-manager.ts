@@ -1,5 +1,5 @@
-import { EventManager } from "./event-manager";
+import { useTabsManager } from "./use-tabs-manager";
 
 export function useEventManager() {
-  return EventManager.getInstance();
+  return useTabsManager().events;
 }

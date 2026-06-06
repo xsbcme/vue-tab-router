@@ -4,9 +4,7 @@ interface IFunction {
 }
 
 export class EventManager {
-  private static _instance: EventManager | null = null;
-
-  private constructor() {}
+  public constructor() {}
 
   private events: Map<string, Array<IFunction>> = new Map();
 
@@ -43,12 +41,5 @@ export class EventManager {
 
   clear() {
     this.events.clear();
-  }
-
-  static getInstance(): EventManager {
-    if (!this._instance) {
-      this._instance = new EventManager();
-    }
-    return this._instance;
   }
 }

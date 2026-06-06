@@ -125,11 +125,7 @@ function isBase64Image(str: string) {
 }
 
 function escapeHtmlAttribute(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function calculateViewBoxFromSvgString(svgString: string) {
@@ -154,7 +150,9 @@ function calculateViewBoxFromSvgString(svgString: string) {
     requestAnimationFrame(() => {
       try {
         const elements = Array.from(
-          svgElement.querySelectorAll<SVGGraphicsElement>("path, rect, circle, ellipse, line, polyline, polygon, g, use")
+          svgElement.querySelectorAll<SVGGraphicsElement>(
+            "path, rect, circle, ellipse, line, polyline, polygon, g, use"
+          )
         );
         const graphics = elements.length ? elements : [svgElement as unknown as SVGGraphicsElement];
         let minX = Infinity,

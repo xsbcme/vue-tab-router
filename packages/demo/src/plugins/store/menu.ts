@@ -21,6 +21,10 @@ export default defineStore("menu", () => {
           url: "/src/views/test-workbench/communication-guards/page-index.vue",
         },
         {
+          name: "弹窗显示",
+          url: "/src/views/test-detached/container/page-index.vue",
+        },
+        {
           name: "链接与 Iframe",
           url: "/src/views/test-iframe/message/page-index.vue",
         },

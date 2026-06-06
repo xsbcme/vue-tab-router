@@ -25,13 +25,13 @@ const tabMenu = useTabMenu({
 
 默认识别字段：
 
-| 字段 | 说明 |
-| --- | --- |
+| 字段                      | 说明     |
+| ------------------------- | -------- |
 | `url` / `uri` / `viewUrl` | 页面地址 |
-| `name` / `title` | 标签标题 |
-| `icon` | 标签图标 |
-| `props` / `viewProps` | 打开参数 |
-| `children` | 子菜单 |
+| `name` / `title`          | 标签标题 |
+| `icon`                    | 标签图标 |
+| `props` / `viewProps`     | 打开参数 |
+| `children`                | 子菜单   |
 
 ## key 规则
 

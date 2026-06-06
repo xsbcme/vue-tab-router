@@ -1,4 +1,4 @@
-import { reactive, UnwrapRef, inject } from "vue";
+import { inject } from "vue";
 import type { IframePostMessageOptions } from "./iframe-message";
 import { TabsManager } from "./tabs-manager";
 import { INJECT_CURRENT_TAB_KEY } from "./constant";
@@ -11,7 +11,7 @@ import {
   TabEnterGuard,
   TabLeaveGuard,
 } from "./types";
-import { useEventManager } from "./use-event-manager";
+import { TABS_MANAGER_KEY } from "./tabs-manager-context";
 
 function normalizeTabsManagerOptions(options: TabsManagerOptions): ITabsManagerOptions {
   const views = options.views;
@@ -19,17 +19,21 @@ function normalizeTabsManagerOptions(options: TabsManagerOptions): ITabsManagerO
   const render = options.render;
   const iframe = options.iframe;
   const guards = options.guards;
+  const detached = options.detached;
 
   return {
     modules: views.modules,
     source: views.source,
     storageAdapter: storage?.adapter,
+    storageKey: storage?.key,
+    storageEnabled: storage?.enabled,
     plugins: options.plugins,
     transitionProps: render?.transition,
     keepAliveProps: render?.keepAlive,
     noActiveComponent: render?.noActiveComponent,
     noExistComponent: render?.noExistComponent,
     viewNameMaxLength: render?.viewNameMaxLength,
+    tabsDraggable: render?.draggable,
     iframeMessageOrigins: iframe?.messageOrigins,
     onIframeLoad: iframe?.onLoad,
     onIframeMessage: iframe?.onMessage,
@@ -37,17 +41,22 @@ function normalizeTabsManagerOptions(options: TabsManagerOptions): ITabsManagerO
     onBeforeTabEnter: guards?.beforeEnter,
     onBeforeTabLeave: guards?.beforeLeave,
     onBeforeTabClose: guards?.beforeClose,
+    detachedZIndex: detached?.zIndex,
   };
 }
 
-/** 创建并初始化 TabsManager 单例。 */
+/** 创建并初始化 TabsManager。 */
 export function createTabsManager(options: TabsManagerOptions) {
-  return TabsManager.getInstance()._initOptions(normalizeTabsManagerOptions(options));
+  return new TabsManager(normalizeTabsManagerOptions(options));
 }
 
 /** 获取响应式 TabsManager 实例。 */
-export function useTabsManager(): UnwrapRef<TabsManager> {
-  return reactive(TabsManager.getInstance());
+export function useTabsManager(): TabsManager {
+  const tabsManager = inject(TABS_MANAGER_KEY);
+  if (!tabsManager) {
+    throw new Error("TabsManager 未提供，请先通过 app.use(tabsManager) 安装或在局部容器中 provide TabsManager。");
+  }
+  return tabsManager;
 }
 
 /** 获取当前页面所在 tabId。若不在容器上下文中则返回 `undefined`。 */
@@ -70,7 +79,10 @@ export function postCurrentIframeMessage(
   transfer?: Transferable[]
 ) {
   const tabId = useTabId();
-  const options = typeof optionsOrTargetOrigin === "string" ? { targetOrigin: optionsOrTargetOrigin, transfer } : optionsOrTargetOrigin;
+  const options =
+    typeof optionsOrTargetOrigin === "string"
+      ? { targetOrigin: optionsOrTargetOrigin, transfer }
+      : optionsOrTargetOrigin;
   return useTabsManager().postIframeMessage(tabId, data, options);
 }
 
@@ -88,6 +100,8 @@ export function defineTabOptions(options: IDefineTabOptions) {
         _viewIcon: tab.viewIcon || options.viewIcon,
         _viewSingle: tab._single ?? options.viewSingle,
         _viewNoCache: tab._noCache ?? options.viewNoCache,
+        _viewPinned: tab._pinned ?? options.viewPinned,
+        _viewNoDrag: tab._noDrag ?? options.viewNoDrag,
       },
       tab._id
     );
@@ -101,7 +115,8 @@ export function defineTabOptions(options: IDefineTabOptions) {
 export function defineTabEvents(events: DefineEvents) {
   const tab = inject(INJECT_CURRENT_TAB_KEY)?.value;
   if (tab) {
-    const eventManager = useEventManager();
+    const tabsManager = useTabsManager();
+    const eventManager = tabsManager.events;
     Object.keys(events || {}).forEach(eventName => {
       // key: `${tabId}_${eventName}`
       const _key = `${tab?._id || ""}_${eventName}`;

@@ -18,13 +18,13 @@
 </template>
 
 <script setup lang="ts">
-import { useTabsManager } from '@xsbcme/vue-tab-router';
-import { hookLogs } from '@/plugins/tab-router';
+import { useTabsManager } from "@xsbcme/vue-tab-router";
+import { hookLogs } from "@/plugins/tab-router";
 
 const tabsManager = useTabsManager();
 
 const openTarget = () => {
-  tabsManager.openTab('/src/views/test-router/router-target/page-index.vue', {
+  tabsManager.openTab("/src/views/test-router/router-target/page-index.vue", {
     _viewName: `Hook 目标页 ${Date.now()}`,
     hookSource: true,
   });

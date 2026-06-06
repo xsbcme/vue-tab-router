@@ -20,7 +20,7 @@ export default defineStore("user", () => {
     }
   }
 
-  async function login(username: string, password: string) {
+  async function login(username: string, password: string, redirect?: string) {
     const user = new User();
     user.username = username;
     user.password = password;
@@ -31,7 +31,7 @@ export default defineStore("user", () => {
     tabRouter.openFirstTab("/src/views/home/page-index.vue", {
       _viewName: "首页",
     });
-    vueRouter.replace("/dashboard");
+    vueRouter.replace(normalizeLoginRedirect(redirect));
   }
 
   async function logout() {
@@ -47,3 +47,10 @@ export default defineStore("user", () => {
     logout,
   };
 });
+
+function normalizeLoginRedirect(redirect?: string) {
+  if (!redirect || !redirect.startsWith("/") || redirect.startsWith("//") || redirect.startsWith("/login")) {
+    return "/dashboard";
+  }
+  return redirect;
+}

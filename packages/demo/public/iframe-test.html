@@ -44,6 +44,7 @@
       <div class="actions">
         <button id="ping">发送 ping</button>
         <button id="count">页面内计数 +1</button>
+        <button id="pageMessage">页面内免 tabId 发送</button>
         <button id="open">请求打开 tab</button>
         <button id="refresh">请求刷新当前 iframe tab</button>
       </div>
@@ -66,6 +67,7 @@
         appendLog(`发送：${JSON.stringify(data)}`);
       };
       document.getElementById("ping").onclick = () => send({ type: "iframe:ping", payload: Date.now() });
+      document.getElementById("pageMessage").onclick = () => send({ type: "page:message", time: Date.now() });
       document.getElementById("count").onclick = () => {
         count += 1;
         countValueEl.textContent = String(count);

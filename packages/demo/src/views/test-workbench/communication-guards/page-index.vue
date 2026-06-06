@@ -9,7 +9,7 @@
         <a-button @click="emitToSource">向来源页发送测试事件</a-button>
       </a-space>
       <a-descriptions :column="1" bordered>
-        <a-descriptions-item label="子页回传数据">{{ childMessage || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="子页回传数据">{{ childMessage || "-" }}</a-descriptions-item>
       </a-descriptions>
 
       <a-divider orientation="left">页面级守卫</a-divider>

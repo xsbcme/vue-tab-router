@@ -1,8 +1,8 @@
 <template>
   <div class="preview">
-    <template v-if="tabsManager.tabs.some(t => !t._isFirst)">
+    <template v-if="previewManager.tabs.length > tabsVisibleThreshold">
       <div class="preview-tabs">
-        <DynamicTabsComponent hide-first />
+        <DynamicTabsComponent :hide-first="hideFirstTab" />
       </div>
     </template>
     <div class="preview-content">
@@ -13,9 +13,11 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { computed, watch } from "vue";
+import { computed, provide, reactive, watch } from "vue";
 import { jsonToObject } from "../../utils";
 import { useTabsManager } from "../../use-tabs-manager";
+import { TABS_MANAGER_KEY } from "../../tabs-manager-context";
+import type { TabsManager } from "../../tabs-manager";
 import DynamicContainerComponent from "../dynamic-container";
 import DynamicTabsComponent from "../dynamic-tabs/index.vue";
 
@@ -24,10 +26,14 @@ const props = withDefaults(
     viewUrl: string;
     viewProps?: Record<string, unknown> | string;
     viewName?: string;
+    tabsVisibleThreshold?: number;
+    hideFirstTab?: boolean;
   }>(),
   {
     viewProps: () => ({}),
     viewName: "首页",
+    tabsVisibleThreshold: 1,
+    hideFirstTab: false,
   }
 );
 
@@ -35,7 +41,13 @@ const emit = defineEmits<{
   error: [error: unknown];
 }>();
 
-const tabsManager = useTabsManager();
+const parentTabsManager = useTabsManager();
+const previewManager = reactive(
+  parentTabsManager.createScopedManager({
+    storageEnabled: false,
+  })
+) as TabsManager;
+provide(TABS_MANAGER_KEY, previewManager);
 let openVersion = 0;
 
 const parsedViewProps = computed<Record<string, unknown>>(
@@ -50,7 +62,7 @@ const openPreviewTab = async () => {
   if (!viewUrl) return;
 
   try {
-    await tabsManager.openFirstTab(
+    await previewManager.openFirstTab(
       viewUrl,
       {
         _viewName: props.viewName,
@@ -65,6 +77,12 @@ const openPreviewTab = async () => {
     }
   }
 };
+
+const refresh = () => previewManager.refreshTab();
+
+defineExpose({
+  refresh,
+});
 
 watch(previewKey, openPreviewTab, { immediate: true });
 </script>

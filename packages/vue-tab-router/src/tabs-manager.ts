@@ -1,4 +1,4 @@
-import { App, AsyncComponentLoader, Component, defineAsyncComponent, nextTick, createVNode, defineComponent, toRaw, reactive } from "vue";
+import { App, markRaw, nextTick, toRaw } from "vue";
 import type { IframePostMessageOptions } from "./iframe-message";
 import { Tab } from "./tab";
 import {
@@ -7,7 +7,6 @@ import {
   IOpenTabOptions,
   ITabsManagerOptions,
   IUpdateTabOptions,
-  Modules,
   TabCloseGuard,
   TabEnterGuard,
   TabGuard,
@@ -16,28 +15,45 @@ import {
 } from "./types";
 import { jsonToObject, createRandomString, clone, findParentPathsByPath, stableStringify, TabViewUrl } from "./utils";
 import { STORAGE_TABS_KEY } from "./constant";
-import { useEventManager } from "./use-event-manager";
 import { AbstractStorageAdapter } from "./abstract-storage-adapter";
 import { StorageAdapter } from "./storage-adapter";
 import { runTabGuard } from "./tab-guard";
 import { TabsManagerHooks, TabsManagerPluginCleanup } from "./tabs-manager-plugin";
+import { EventManager } from "./event-manager";
+import { provideTabsManager, TabsSharedContext } from "./tabs-manager-context";
 
 export class TabsManager {
-  private static _instance: TabsManager | null = null;
-  private _options: ITabsManagerOptions | null = null;
+  private _options: ITabsManagerOptions;
   private _app: App | null = null;
   private _tabs: Tab[] = [];
+  private _detachedTab: Partial<Tab> | null = null;
   private _refreshAllTabFlag: boolean = false;
   private _storageAdapter: AbstractStorageAdapter | null = null;
+  private _storageKey: string = STORAGE_TABS_KEY;
+  private _storageEnabled = true;
   private _hooks = new TabsManagerHooks();
   private _pluginCleanups: TabsManagerPluginCleanup[] = [];
   private _pluginsLoaded = false;
+  private _reactiveManager: TabsManager | null = null;
   private _iframeMessenger?: (
     tabId: string,
     data: unknown,
     targetOrigin?: string,
     transfer?: Transferable[]
   ) => boolean;
+
+  public readonly events = new EventManager();
+
+  public constructor(options: ITabsManagerOptions, sharedContext = new TabsSharedContext(options)) {
+    this.sharedContext = markRaw(sharedContext);
+    this._options = options;
+    this._storageEnabled = options.storageEnabled !== false;
+    this._storageKey = options.storageKey || STORAGE_TABS_KEY;
+    this._storageAdapter = this._storageEnabled ? (options.storageAdapter ?? new StorageAdapter()) : null;
+    this._tabs = this.restoreTabs();
+  }
+
+  private readonly sharedContext: TabsSharedContext;
 
   get app() {
     return this._app;
@@ -73,11 +89,19 @@ export class TabsManager {
     return this._tabs.find(item => item._isActive);
   }
 
+  get detachedTab() {
+    return this._detachedTab;
+  }
+
+  get detachedZIndex() {
+    return this._options.detachedZIndex ?? 1000;
+  }
+
   /**
    * 获取全部注册的标签页路径
    */
   get registerTabPaths() {
-    return Object.keys(this._options.modules || {});
+    return this.sharedContext.registerTabPaths;
   }
 
   /**
@@ -87,27 +111,43 @@ export class TabsManager {
     return findParentPathsByPath(this.registerTabPaths, this.activeTab?.viewUrl);
   }
 
-  private constructor() {}
-
-  public static getInstance(): TabsManager {
-    if (!this._instance) {
-      this._instance = new this();
-    }
-    return this._instance;
+  public createScopedManager(options: Partial<ITabsManagerOptions> = {}) {
+    return new TabsManager(
+      {
+        ...this._options,
+        ...options,
+        modules: this._options.modules,
+        source: options.source ?? this._options.source,
+        storageAdapter: options.storageAdapter,
+        storageKey: options.storageKey,
+        storageEnabled: options.storageEnabled ?? false,
+        plugins: options.plugins,
+        onBeforeTabOpen: options.onBeforeTabOpen,
+        onBeforeTabEnter: options.onBeforeTabEnter,
+        onBeforeTabLeave: options.onBeforeTabLeave,
+        onBeforeTabClose: options.onBeforeTabClose,
+      },
+      this.sharedContext
+    );
   }
 
-  public _initOptions(options: ITabsManagerOptions) {
-    this._options = options;
-    this._storageAdapter = options.storageAdapter ?? new StorageAdapter();
-    this._tabs = this._storageAdapter.get(STORAGE_TABS_KEY, []).map(item => new Tab(item));
-    return this;
+  private restoreTabs() {
+    return this.storage?.get<Partial<Tab>[]>(this._storageKey, []).map(item => new Tab(item)) || [];
+  }
+
+  private persistTabs() {
+    this.storage?.set(this._storageKey, toRaw(this._tabs));
+  }
+
+  private clearPersistedTabs() {
+    this.storage?.del(this._storageKey);
   }
 
   private setupPlugins() {
     if (this._pluginsLoaded || !this._app) return;
     this._pluginsLoaded = true;
     const plugins = this._options?.plugins ?? [];
-    const tabsManager = reactive(this) as unknown as TabsManager;
+    const tabsManager = this.getReactiveManager();
     plugins.forEach(plugin => {
       const disposers: TabsManagerPluginCleanup[] = [];
       const setup = typeof plugin === "function" ? plugin : plugin.setup;
@@ -130,42 +170,8 @@ export class TabsManager {
     this._pluginsLoaded = false;
   }
 
-  private registerModules() {
-    const { modules: rawModules, source } = this._options || {};
-    const transformModules = (modules: Modules) => {
-      return Object.keys(modules).reduce((pre, cur) => {
-        const module = modules[cur];
-        pre[cur] = typeof module === "object" && "default" in module ? module.default : module;
-        return pre;
-      }, {} as Record<string, Component | (() => Promise<Component>)>);
-    };
-    const modules = transformModules(rawModules || {});
-    const loadingComponent = defineComponent({
-      setup() {
-        return () => createVNode("div", null, "加载中...");
-      },
-    });
-    const errorComponent = defineComponent({
-      setup() {
-        return () => createVNode("div", null, "出错了!");
-      },
-    });
-    Object.keys(modules).forEach(viewId => {
-      if (!this._app) return;
-      if (this.getAppComponentByName(viewId)) return;
-      let component = modules[viewId];
-      if (typeof component === "function") {
-        const loader = component as AsyncComponentLoader<Component>;
-        component = defineAsyncComponent<Component>({
-          loadingComponent,
-          errorComponent,
-          delay: 500,
-          ...source,
-          loader,
-        });
-      }
-      this._app.component(viewId, component);
-    });
+  public getReactiveManager() {
+    return this._reactiveManager || this;
   }
 
   /**
@@ -180,7 +186,11 @@ export class TabsManager {
   }
 
   private getAppComponentByName(name: string) {
-    return this._app!._context.components[name];
+    return this.sharedContext.resolveComponent(name);
+  }
+
+  public resolveComponent(name: string) {
+    return this.sharedContext.resolveComponent(name);
   }
 
   private isUrl(url: string) {
@@ -194,6 +204,19 @@ export class TabsManager {
     });
   }
 
+  private insertTab(tab: Tab) {
+    if (!tab._pinned) {
+      this._tabs.push(tab);
+      return;
+    }
+    const firstNormalIndex = this._tabs.findIndex(item => !item._isFirst && !item._pinned);
+    if (firstNormalIndex >= 0) {
+      this._tabs.splice(firstNormalIndex, 0, tab);
+      return;
+    }
+    this._tabs.push(tab);
+  }
+
   private setTabNoAllowClose(noAllow: boolean = true, tabId?: string) {
     return nextTick<void>(() => {
       const findTab = this.getTabById(tabId || this.activeTab?._id);
@@ -201,7 +224,7 @@ export class TabsManager {
         return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
       }
       Object.assign<Tab, Partial<Tab>>(findTab, { _noClose: noAllow });
-      this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
+      this.persistTabs();
     });
   }
 
@@ -213,10 +236,11 @@ export class TabsManager {
       }
       this._tabs.forEach(tab => (tab._isFirst = undefined));
       this._tabs[findIndex]._isFirst = true;
+      this._tabs[findIndex]._noDrag = true;
       if (findIndex >= 1) {
         this._tabs.unshift(this._tabs.splice(findIndex, 1)[0]);
       }
-      this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
+      this.persistTabs();
     });
   }
 
@@ -285,6 +309,29 @@ export class TabsManager {
     this._iframeMessenger = messenger;
   }
 
+  public async openDetachedTab(tabId?: string) {
+    const findTab = this.getTabById(tabId || this.activeTab?._id);
+    if (!findTab) {
+      return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
+    }
+    this._detachedTab = clone({
+      viewUrl: findTab.viewUrl,
+      viewName: findTab.viewName,
+      viewIcon: findTab.viewIcon,
+      viewProps: findTab.viewProps,
+      _noCache: findTab._noCache,
+      _single: findTab._single,
+    });
+    await this._hooks.call("tab:detached-opened", clone(this._detachedTab));
+    return this._detachedTab;
+  }
+
+  public async closeDetachedTab() {
+    const detachedTab = this._detachedTab ? clone(this._detachedTab) : undefined;
+    this._detachedTab = null;
+    await this._hooks.call("tab:detached-closed", detachedTab);
+  }
+
   private getIframePostOptions(optionsOrTargetOrigin?: IframePostMessageOptions | string, transfer?: Transferable[]) {
     return typeof optionsOrTargetOrigin === "string"
       ? { targetOrigin: optionsOrTargetOrigin, transfer }
@@ -294,11 +341,7 @@ export class TabsManager {
   /**
    * 向指定 iframe 标签页发送消息。适合插件或需要精确指定目标 tab 的场景。
    */
-  public postIframeMessage(
-    tabId: string | undefined,
-    data: unknown,
-    options?: IframePostMessageOptions
-  ): boolean;
+  public postIframeMessage(tabId: string | undefined, data: unknown, options?: IframePostMessageOptions): boolean;
   public postIframeMessage(
     tabId: string | undefined,
     data: unknown,
@@ -326,7 +369,11 @@ export class TabsManager {
     optionsOrTargetOrigin?: IframePostMessageOptions | string,
     transfer?: Transferable[]
   ) {
-    return this.postIframeMessage(this.activeTab?._id, data, this.getIframePostOptions(optionsOrTargetOrigin, transfer));
+    return this.postIframeMessage(
+      this.activeTab?._id,
+      data,
+      this.getIframePostOptions(optionsOrTargetOrigin, transfer)
+    );
   }
 
   private async runChangeActiveTabGuards(toTab: Partial<Tab>, fromTab = this.activeTab) {
@@ -365,7 +412,7 @@ export class TabsManager {
           Object.assign<Tab, Partial<Tab>>(item, { _isActive: undefined });
         }
       });
-      this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
+      this.persistTabs();
       await this._hooks.call("tab:active-changed", clone(findTab), clone(fromTab));
 
       return tabId;
@@ -381,7 +428,8 @@ export class TabsManager {
       if (!findTab) return;
 
       const parsedOptions = jsonToObject(options, {}) as IUpdateTabOptions;
-      const { _viewName, _viewIcon, _viewUrl, _viewNoCache, _viewSingle, ...viewProps } = parsedOptions;
+      const { _viewName, _viewIcon, _viewUrl, _viewNoCache, _viewSingle, _viewPinned, _viewNoDrag, ...viewProps } =
+        parsedOptions;
 
       // viewProps 采用浅合并，保证未覆盖字段仍然保留。
       const mergedViewProps = { ...findTab.viewProps, ...viewProps };
@@ -393,9 +441,11 @@ export class TabsManager {
         viewProps: mergedViewProps,
         _noCache: _viewNoCache ?? findTab._noCache,
         _single: _viewSingle ?? findTab._single,
+        _pinned: findTab._isFirst ? findTab._pinned : (_viewPinned ?? findTab._pinned),
+        _noDrag: findTab._isFirst ? true : (_viewNoDrag ?? findTab._noDrag),
       });
 
-      this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
+      this.persistTabs();
       return this._hooks.call("tab:updated", clone(findTab));
     });
   }
@@ -415,8 +465,17 @@ export class TabsManager {
   public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions): Promise<string | Window | null>;
   public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions) {
     return nextTick(async () => {
-      const { _viewOutside, _viewOutsideProps, _viewName, _viewIcon, _viewNoCache, _viewSingle, ...viewProps } =
-        jsonToObject(tabOptions || {}, {}) as IOpenTabOptions;
+      const {
+        _viewOutside,
+        _viewOutsideProps,
+        _viewName,
+        _viewIcon,
+        _viewNoCache,
+        _viewSingle,
+        _viewPinned,
+        _viewNoDrag,
+        ...viewProps
+      } = jsonToObject(tabOptions || {}, {}) as IOpenTabOptions;
 
       // 链接型地址（http/https 或 TabViewUrl.createRelative 创建的相对地址）
       if (this.isUrl(viewUrl)) {
@@ -438,6 +497,8 @@ export class TabsManager {
 
         _sourceId: this.activeTab?._id,
         _noCache: _viewNoCache,
+        _pinned: _viewPinned,
+        _noDrag: _viewNoDrag,
         _single: _viewSingle,
         _id: createRandomString(),
       });
@@ -460,7 +521,7 @@ export class TabsManager {
         await this._hooks.call("tab:before-open", clone(newTab), clone(sourceTab));
         await this.runChangeActiveTabGuards(newTab);
 
-        this._tabs.push(newTab);
+        this.insertTab(newTab);
 
         const tabId = await this.changeActiveTab(newTab._id, false);
         await this._hooks.call("tab:opened", clone(newTab), clone(sourceTab));
@@ -476,6 +537,8 @@ export class TabsManager {
           viewIcon: newTab.viewIcon,
           viewProps: newTab.viewProps,
           _noCache: newTab._noCache,
+          _pinned: newTab._pinned,
+          _noDrag: newTab._noDrag,
           _single: newTab._single,
         });
         if (findTab._id !== this.activeTab?._id) {
@@ -487,6 +550,8 @@ export class TabsManager {
           viewIcon: nextTab.viewIcon,
           viewProps: nextTab.viewProps,
           _noCache: nextTab._noCache,
+          _pinned: nextTab._pinned,
+          _noDrag: nextTab._noDrag,
           _single: nextTab._single,
         });
       }
@@ -529,7 +594,7 @@ export class TabsManager {
           }
         }
 
-        const eventManager = useEventManager();
+        const eventManager = this.events;
         const eventPrefix = `${findTab._id}_`;
         eventManager.eventNames.forEach((eventName: string) => {
           if (eventName.startsWith(eventPrefix)) {
@@ -557,7 +622,7 @@ export class TabsManager {
           });
         }
 
-        this.storage?.set(STORAGE_TABS_KEY, toRaw(this._tabs));
+        this.persistTabs();
         await this._hooks.call("tab:closed", clone(findTab), clone(fallbackTab));
       }
     });
@@ -616,7 +681,7 @@ export class TabsManager {
   public emit(eventName: string, data?: unknown, tabId?: string) {
     const findTab = this.getTabById(tabId || this.activeTab?._id);
     if (findTab && findTab._sourceId) {
-      const eventManager = useEventManager();
+      const eventManager = this.events;
       eventManager.emit(`${findTab._sourceId || ""}_${eventName}`, data);
     }
   }
@@ -632,7 +697,32 @@ export class TabsManager {
         const temp = this._tabs[tabIndex1];
         this._tabs[tabIndex1] = this._tabs[tabIndex2];
         this._tabs[tabIndex2] = temp;
+        this.persistTabs();
       }
+    });
+  }
+
+  /**
+   * 移动标签页位置。首页和禁止拖拽标签不可移动；置顶标签只能在首页之后、普通标签之前排序。
+   */
+  public moveTab(tabId: string, targetTabId: string, position: "before" | "after" = "before") {
+    return nextTick(() => {
+      if (tabId === targetTabId) return false;
+      const movingIndex = this._tabs.findIndex(tab => tab._id === tabId);
+      const targetIndex = this._tabs.findIndex(tab => tab._id === targetTabId);
+      if (movingIndex < 0 || targetIndex < 0) return false;
+
+      const movingTab = this._tabs[movingIndex];
+      const targetTab = this._tabs[targetIndex];
+      if (movingTab._isFirst || movingTab._noDrag || targetTab._isFirst || targetTab._noDrag) return false;
+      if (Boolean(movingTab._pinned) !== Boolean(targetTab._pinned)) return false;
+
+      this._tabs.splice(movingIndex, 1);
+      const nextTargetIndex = this._tabs.findIndex(tab => tab._id === targetTabId);
+      const insertIndex = position === "after" ? nextTargetIndex + 1 : nextTargetIndex;
+      this._tabs.splice(insertIndex, 0, movingTab);
+      this.persistTabs();
+      return true;
     });
   }
 
@@ -726,8 +816,8 @@ export class TabsManager {
   public clear() {
     this._tabs = [];
     this._refreshAllTabFlag = false;
-    this.storage?.del(STORAGE_TABS_KEY);
-    useEventManager().clear();
+    this.clearPersistedTabs();
+    this.events.clear();
     this._hooks.call("tabs:cleared");
   }
 
@@ -735,15 +825,16 @@ export class TabsManager {
     this.disposePlugins();
     this._iframeMessenger = undefined;
     this._app = null;
-    this._options = null;
-    TabsManager._instance = null;
+    this._reactiveManager = null;
   }
 
   public install(app: App) {
-    this._app = app;
+    this._app = markRaw(app);
+    this.sharedContext.bindApp(this._app);
+    this._reactiveManager = provideTabsManager(this._app, this);
     const mountApp = app.mount;
     app.mount = (...args) => {
-      this.registerModules();
+      this.sharedContext.registerModules();
       this.setupPlugins();
       // todo 这里应该将标签页列表遍历一遍提取参数缓存进内存中
       return mountApp(...args);
@@ -753,6 +844,5 @@ export class TabsManager {
       this.destroy();
       return unmountApp(...args);
     };
-    app.config.globalProperties.$tabsManager = this;
   }
 }

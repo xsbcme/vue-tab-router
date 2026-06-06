@@ -1,6 +1,11 @@
 <template>
   <div class="menu">
-    <a-menu :selected-keys="selectedKeys" auto-scroll-into-view auto-open-selected @menu-item-click="handleMenuItemClick">
+    <a-menu
+      :selected-keys="selectedKeys"
+      auto-scroll-into-view
+      auto-open-selected
+      @menu-item-click="handleMenuItemClick"
+    >
       <MenuItemComponent :menus="menus" :get-menu-key="getMenuKey" />
     </a-menu>
   </div>

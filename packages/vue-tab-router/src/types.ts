@@ -19,6 +19,16 @@ export interface ITabsManagerOptions {
   storageAdapter?: AbstractStorageAdapter;
 
   /**
+   * 持久化 key。主实例默认使用 `tabs`，临时实例可使用独立 key 或关闭持久化。
+   */
+  storageKey?: string;
+
+  /**
+   * 是否启用持久化。主实例默认启用，临时实例默认关闭。
+   */
+  storageEnabled?: boolean;
+
+  /**
    * 扩展插件。插件会在 `app.use(tabsManager)` 时安装。
    */
   plugins?: TabsManagerPlugin[];
@@ -52,7 +62,7 @@ export interface ITabsManagerOptions {
   noExistComponent?: Component;
 
   /**
-  * iframe 加载完成回调。可通过 `iframe` 访问 DOM；跨域 iframe 只能操作元素本身，不能访问内部 document。
+   * iframe 加载完成回调。可通过 `iframe` 访问 DOM；跨域 iframe 只能操作元素本身，不能访问内部 document。
    */
   onIframeLoad?: (context: IframeLoadEvent) => void;
 
@@ -91,6 +101,16 @@ export interface ITabsManagerOptions {
    * 标签名称最大显示长度（主要用于内置 Tabs 组件）。
    */
   viewNameMaxLength?: number;
+
+  /**
+   * 是否启用内置标签栏拖拽排序。默认启用。
+   */
+  tabsDraggable?: boolean;
+
+  /**
+   * 弹窗显示层级。
+   */
+  detachedZIndex?: number;
 }
 
 /** 页面模块与异步组件配置。 */
@@ -105,6 +125,10 @@ export interface TabsManagerViewsOptions {
 export interface TabsManagerStorageOptions {
   /** 自定义存储适配器，用于持久化 tabs 状态。 */
   adapter?: AbstractStorageAdapter;
+  /** 持久化 key。默认 `tabs`。 */
+  key?: string;
+  /** 是否启用持久化。默认启用。 */
+  enabled?: boolean;
 }
 
 /** 容器渲染、缓存与内置标签栏显示配置。 */
@@ -119,6 +143,14 @@ export interface TabsManagerRenderOptions {
   noExistComponent?: Component;
   /** 标签名称最大显示长度（主要用于内置 Tabs 组件）。 */
   viewNameMaxLength?: number;
+  /** 是否启用内置标签栏拖拽排序。默认 `true`。 */
+  draggable?: boolean;
+}
+
+/** 弹窗显示配置。 */
+export interface TabsManagerDetachedOptions {
+  /** 弹窗显示层级。默认 `1000`。 */
+  zIndex?: number;
 }
 
 /** iframe 页面配置。 */
@@ -159,6 +191,8 @@ export interface TabsManagerOptions {
   iframe?: TabsManagerIframeOptions;
   /** 全局 tab 守卫配置。 */
   guards?: TabsManagerGuardsOptions;
+  /** 弹窗显示配置。 */
+  detached?: TabsManagerDetachedOptions;
 }
 
 /**
@@ -231,6 +265,16 @@ export interface IDefineTabOptions {
    * 是否禁用缓存。
    */
   viewNoCache?: boolean;
+
+  /**
+   * 是否置顶。
+   */
+  viewPinned?: boolean;
+
+  /**
+   * 是否禁止拖拽排序。
+   */
+  viewNoDrag?: boolean;
 }
 
 /**
@@ -261,6 +305,16 @@ export interface IUpdateTabOptions extends Record<string, unknown> {
    * 更新单例设置。
    */
   _viewSingle?: boolean;
+
+  /**
+   * 更新置顶设置。
+   */
+  _viewPinned?: boolean;
+
+  /**
+   * 更新是否禁止拖拽排序。
+   */
+  _viewNoDrag?: boolean;
 }
 
 /**
@@ -286,6 +340,16 @@ export interface IOpenTabOptions extends Record<string, unknown> {
    * 是否禁用缓存。
    */
   _viewNoCache?: boolean;
+
+  /**
+   * 是否置顶。置顶标签排序时位于首页之后、普通标签之前。
+   */
+  _viewPinned?: boolean;
+
+  /**
+   * 是否禁止拖拽排序。首页标签默认禁止拖拽。
+   */
+  _viewNoDrag?: boolean;
 
   /**
    * 是否在新窗口打开（仅对链接型 viewUrl 生效）。

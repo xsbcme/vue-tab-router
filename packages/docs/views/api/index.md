@@ -41,7 +41,7 @@ darkTheme;
 
 ## `createTabsManager(options)`
 
-创建并初始化单例管理器。
+创建并初始化根管理器实例。
 
 关键配置（`TabsManagerOptions`）：
 
@@ -64,7 +64,7 @@ darkTheme;
 
 ## `useTabsManager()`
 
-获取响应式 `tabsManager` 实例。常用属性/方法：
+获取当前作用域注入的响应式 `tabsManager` 实例。常用属性/方法：
 
 - `tabs`, `activeTab`, `registerTabPaths`, `activeTabParentPaths`
 - `openTab`, `openFirstTab`, `changeActiveTab`

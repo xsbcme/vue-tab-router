@@ -1,7 +1,9 @@
 <template>
   <a-card :style="{ height: '100%', overflow: 'auto' }" title="导航与缓存测试">
     <a-space direction="vertical" fill>
-      <a-alert type="info">通过当前面板打开目标页，集中验证打开、复用、多开、更新、刷新、关闭、首页、组件缓存与批量操作。</a-alert>
+      <a-alert type="info"
+        >通过当前面板打开目标页，集中验证打开、复用、多开、更新、刷新、关闭、首页、组件缓存与批量操作。</a-alert
+      >
 
       <a-divider orientation="left">打开与复用</a-divider>
       <a-space wrap>
@@ -35,16 +37,26 @@
         <a-button @click="tabsManager.activeFirstTab()">激活首页</a-button>
         <a-button @click="openManyTabs">批量打开</a-button>
         <a-button @click="swapFirstTwoTabs">交换前两个</a-button>
-        <a-button status="warning" @click="tabsManager.closeTabsByLeft(undefined, { continueOnRejected: true })">关闭左侧</a-button>
-        <a-button status="warning" @click="tabsManager.closeTabsByRight(undefined, { continueOnRejected: true })">关闭右侧</a-button>
-        <a-button status="warning" @click="tabsManager.closeTabsByOther(undefined, { continueOnRejected: true })">关闭其他</a-button>
+        <a-button status="warning" @click="tabsManager.closeTabsByLeft(undefined, { continueOnRejected: true })"
+          >关闭左侧</a-button
+        >
+        <a-button status="warning" @click="tabsManager.closeTabsByRight(undefined, { continueOnRejected: true })"
+          >关闭右侧</a-button
+        >
+        <a-button status="warning" @click="tabsManager.closeTabsByOther(undefined, { continueOnRejected: true })"
+          >关闭其他</a-button
+        >
         <a-button status="danger" @click="clearTabs">清空标签</a-button>
       </a-space>
 
       <a-descriptions :column="1" bordered>
         <a-descriptions-item label="当前标签数">{{ tabsManager.tabs.length }}</a-descriptions-item>
-        <a-descriptions-item label="当前激活页">{{ tabsManager.activeTab?.viewName || tabsManager.activeTab?.viewUrl || '-' }}</a-descriptions-item>
-        <a-descriptions-item label="父路径推导">{{ tabsManager.activeTabParentPaths.join(' / ') || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="当前激活页">{{
+          tabsManager.activeTab?.viewName || tabsManager.activeTab?.viewUrl || "-"
+        }}</a-descriptions-item>
+        <a-descriptions-item label="父路径推导">{{
+          tabsManager.activeTabParentPaths.join(" / ") || "-"
+        }}</a-descriptions-item>
       </a-descriptions>
     </a-space>
   </a-card>
