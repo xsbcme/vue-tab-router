@@ -24,12 +24,10 @@
   </nav>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts" setup generic="BreadcrumbMenu extends object = TabMenuItemLike">
 import { computed } from "vue";
 import DynamicIcon from "../dynamic-icon.vue";
 import { type TabBreadcrumbItem, type TabMenuItemLike, type UseTabMenuOptions, useTabMenu } from "../../use-tab-menu";
-
-type BreadcrumbMenu = TabMenuItemLike;
 
 const props = withDefaults(
   defineProps<{

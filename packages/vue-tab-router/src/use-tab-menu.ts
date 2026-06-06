@@ -7,7 +7,7 @@ import { useTabsManager } from "./use-tabs-manager";
 export type TabMenuProps = Record<string, unknown> | string | null | undefined;
 
 /** 可被 useTabMenu 默认识别的菜单项结构。 */
-export interface TabMenuItemLike extends Record<string, unknown> {
+export interface TabMenuItemLike {
   /** 菜单唯一标识。没有页面地址时作为兜底 key。 */
   id?: string | number;
   /** 菜单名称，同时会作为打开 tab 的默认标题。 */
