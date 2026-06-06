@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { postCurrentIframeMessage, useTabsManager } from '@xsbcme/vue-tab-router';
+import { postCurrentIframeMessage, TabViewUrl, useTabsManager } from '@xsbcme/vue-tab-router';
 import { iframeLogs } from '@/plugins/tab-router';
 
 const tabsManager = useTabsManager();
@@ -58,14 +58,14 @@ const openHttpOutsideWithParams = () => {
 };
 
 const openRelativeInline = () => {
-  tabsManager.openTab('relative:./', {
+  tabsManager.openTab(TabViewUrl.createRelative('./'), {
     _viewName: '内部相对链接',
     menuKey: 'relative-inline',
   });
 };
 
 const openRelativeInlineWithParams = () => {
-  tabsManager.openTab('relative:./', {
+  tabsManager.openTab(TabViewUrl.createRelative('./'), {
     _viewName: '内部相对链接带参',
     menuKey: 'relative-inline-with-params',
     a: 123,
@@ -73,14 +73,14 @@ const openRelativeInlineWithParams = () => {
 };
 
 const openRelativeOutside = () => {
-  tabsManager.openTab('relative:./', {
+  tabsManager.openTab(TabViewUrl.createRelative('./'), {
     _viewOutside: true,
     menuKey: 'relative-outside',
   });
 };
 
 const openRelativeOutsideWithParams = () => {
-  tabsManager.openTab('relative:./', {
+  tabsManager.openTab(TabViewUrl.createRelative('./'), {
     _viewOutside: true,
     menuKey: 'relative-outside-with-params',
     a: 123,
@@ -88,7 +88,7 @@ const openRelativeOutsideWithParams = () => {
 };
 
 const openCachedIframe = async () => {
-  cachedIframeTabId.value = await tabsManager.openTab('relative:/iframe-test.html', {
+  cachedIframeTabId.value = await tabsManager.openTab(TabViewUrl.createRelative('/iframe-test.html'), {
     _viewName: '缓存 Iframe 通信',
     cacheMode: 'enabled',
     iframeDemo: true,
@@ -96,7 +96,7 @@ const openCachedIframe = async () => {
 };
 
 const openNoCacheIframe = () => {
-  tabsManager.openTab('relative:/iframe-test.html', {
+  tabsManager.openTab(TabViewUrl.createRelative('/iframe-test.html'), {
     _viewName: '不缓存 Iframe 通信',
     _viewNoCache: true,
     cacheMode: 'disabled',

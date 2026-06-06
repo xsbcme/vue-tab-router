@@ -8,22 +8,24 @@
 ## 打开 iframe 标签
 
 ```ts
+import { TabViewUrl } from "@xsbcme/vue-tab-router";
+
 const tabsManager = useTabsManager();
 
-tabsManager.openTab("relative:/iframe-test.html", {
+tabsManager.openTab(TabViewUrl.createRelative("/iframe-test.html"), {
   _viewName: "同源 Iframe",
   iframeDemo: true,
 });
 ```
 
-`relative:` 会被解析为当前系统内的相对地址。`http` / `https` 地址也会作为链接型页面处理。
+`TabViewUrl.createRelative()` 会创建当前系统内的相对 iframe 地址。`http` / `https` 地址也会作为链接型页面处理。
 
 ## 缓存与不缓存
 
 iframe 缓存不是 Vue `KeepAlive`，而是由容器维护一个持久 iframe DOM 层。默认会缓存 iframe：切换到其他标签再回来时，iframe 内部状态会保留。
 
 ```ts
-tabsManager.openTab("relative:/iframe-test.html", {
+tabsManager.openTab(TabViewUrl.createRelative("/iframe-test.html"), {
   _viewName: "缓存 Iframe",
 });
 ```
@@ -31,7 +33,7 @@ tabsManager.openTab("relative:/iframe-test.html", {
 禁用缓存时，切换离开后会销毁 iframe，回来时重新加载：
 
 ```ts
-tabsManager.openTab("relative:/iframe-test.html", {
+tabsManager.openTab(TabViewUrl.createRelative("/iframe-test.html"), {
   _viewName: "不缓存 Iframe",
   _viewNoCache: true,
 });

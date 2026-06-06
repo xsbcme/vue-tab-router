@@ -5,15 +5,17 @@
 ## 可识别的链接形式
 
 - `http://` 或 `https://`
-- `relative:` 前缀
+- `TabViewUrl.createRelative()` 创建的相对地址
 
 ```ts
+import { TabViewUrl } from "@xsbcme/vue-tab-router";
+
 await tabsManager.openTab("https://example.com/docs", {
   _viewName: "外部文档",
   lang: "zh-CN",
 });
 
-await tabsManager.openTab("relative:/micro-app/index.html", {
+await tabsManager.openTab(TabViewUrl.createRelative("/micro-app/index.html"), {
   _viewName: "子应用",
   tenantId: "t1",
 });

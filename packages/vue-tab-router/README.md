@@ -247,7 +247,7 @@ tabsManager.openTab("/views/order/page-index.vue", {
 
 ## 2）iframe 内嵌页面
 
-当 `viewUrl` 为 `http/https`，或以 `relative:` 前缀开头时，会使用 iframe 渲染。
+当 `viewUrl` 为 `http/https`，或使用 `TabViewUrl.createRelative()` 创建相对地址时，会使用 iframe 渲染。
 
 ```ts
 tabsManager.openTab("https://example.com/docs", {
@@ -257,7 +257,9 @@ tabsManager.openTab("https://example.com/docs", {
 ```
 
 ```ts
-tabsManager.openTab("relative:/micro-app/index.html", {
+import { TabViewUrl } from "@xsbcme/vue-tab-router";
+
+tabsManager.openTab(TabViewUrl.createRelative("/micro-app/index.html"), {
   _viewName: "子应用",
   tenantId: "t1",
 });
@@ -502,7 +504,7 @@ const tabsManager = createTabsManager({
 
 ## 注意事项
 
-- `relative:` 为内嵌相对链接的前缀，格式为 `relative:/path/to/page.html`
+- 相对 iframe 地址建议使用 `TabViewUrl.createRelative("/path/to/page.html")` 创建
 - `DynamicTabsComponent` 使用组件内置样式，可通过 CSS 变量定制主题
 
 ---

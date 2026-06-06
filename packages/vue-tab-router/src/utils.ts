@@ -1,5 +1,46 @@
 import { Component, ComponentInternalInstance } from "vue";
-import { RELATIVE_VIEW_URL_PREFIX_KEY } from "./constant";
+
+const TAB_VIEW_URL_RELATIVE_PREFIX = "relative:";
+
+export type TabViewUrlRelative = `${typeof TAB_VIEW_URL_RELATIVE_PREFIX}${string}`;
+
+function isTabViewHttpUrl(url: string | undefined) {
+  try {
+    if (!url) return false;
+    const { protocol } = new URL(url);
+    return ["http:", "https:"].includes(protocol);
+  } catch (err) {
+    return false;
+  }
+}
+
+function isTabViewRelativeUrl(url: string | undefined): url is TabViewUrlRelative {
+  return Boolean(url?.startsWith(TAB_VIEW_URL_RELATIVE_PREFIX));
+}
+
+function isTabViewIframeUrl(url: string | undefined) {
+  return isTabViewRelativeUrl(url) || isTabViewHttpUrl(url);
+}
+
+function createRelativeTabViewUrl(url: string): TabViewUrlRelative {
+  if (isTabViewRelativeUrl(url)) return url;
+  return `${TAB_VIEW_URL_RELATIVE_PREFIX}${url}`;
+}
+
+function resolveIframeTabViewUrl(url: string) {
+  if (isTabViewRelativeUrl(url)) {
+    return url.slice(TAB_VIEW_URL_RELATIVE_PREFIX.length);
+  }
+  return url;
+}
+
+export const TabViewUrl = {
+  createRelative: createRelativeTabViewUrl,
+  isHttp: isTabViewHttpUrl,
+  isIframe: isTabViewIframeUrl,
+  isRelative: isTabViewRelativeUrl,
+  resolveIframe: resolveIframeTabViewUrl,
+};
 
 export function findParentPathsByPath(paths: string[], path: string) {
   if (!path) return [];
@@ -27,16 +68,6 @@ export function jsonToObject<T extends string | object>(val: T, def = {}): objec
     return JSON.parse(val);
   } catch {
     return def;
-  }
-}
-
-export function isHttpUrl(url: string | undefined) {
-  try {
-    if (!url) return false;
-    const { protocol } = new URL(url);
-    return ["http:", "https:"].includes(protocol);
-  } catch (err) {
-    return false;
   }
 }
 
@@ -79,12 +110,3 @@ export function findVueComponent(node: ComponentInternalInstance, componentName:
   return node.appContext.components[componentName];
 }
 
-/**
- * 将内部 URL（relative: 前缀或普通 http/https）转换为可直接使用的真实 URL。
- */
-export function resolveViewUrl(url: string) {
-  if (url.startsWith(RELATIVE_VIEW_URL_PREFIX_KEY)) {
-    return url.replace(RELATIVE_VIEW_URL_PREFIX_KEY, "");
-  }
-  return url;
-}

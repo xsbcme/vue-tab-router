@@ -5,9 +5,9 @@
 通常是 `openTab(viewUrl)` 传入值与 `modules` 的 key 不一致。  
 请打印 `Object.keys(modules)`，确认两者完全一致。
 
-## 相对链接应该使用什么前缀？
+## 相对链接应该如何创建？
 
-当前源码使用 `relative:` 前缀。示例：`relative:/micro-app/index.html`。
+使用 `TabViewUrl.createRelative("/micro-app/index.html")` 创建相对 iframe 地址。
 
 ## 为什么内置 `DynamicTabsComponent` 样式不完整？
 

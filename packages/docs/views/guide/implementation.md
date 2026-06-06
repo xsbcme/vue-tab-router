@@ -76,7 +76,7 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 
 ### A. URL 判定
 
-- 若 `viewUrl` 以 `relative:` 开头或是 `http/https`，视为链接型页面
+- 若 `viewUrl` 是 `http/https` 或通过 `TabViewUrl.createRelative()` 创建，视为链接型页面
 - `_viewOutside = true` 时直接 `window.open()`，不进入内部 tabs
 - 否则进入内部 tab + iframe 渲染链路
 
@@ -238,7 +238,7 @@ const tabsManager = createTabsManager({
 ## 11. 已知边界与注意事项
 
 - `viewNoCache` 用于控制是否禁用缓存。
-- URL 前缀常量为 `relative:`，用于标识相对链接。
+- 相对 iframe 地址通过 `TabViewUrl.createRelative()` 创建。
 - 页面级 `onBeforeTabEnter` 只在页面处于 tab 容器上下文内注册后生效。
 - `openFirstTab` 用于打开首页标签。
 - `closeTabsByLeft/Right/Other` 会先激活目标标签，再逐个关闭其他标签。

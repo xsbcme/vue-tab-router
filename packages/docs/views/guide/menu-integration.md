@@ -61,9 +61,11 @@ createTabMenuKey("http://www.baidu.com/", { _viewOutside: true });
 相同地址但不同业务菜单时，建议传稳定业务字段：
 
 ```ts
+import { TabViewUrl } from "@xsbcme/vue-tab-router";
+
 {
   name: "内部相对链接",
-  url: "relative:./",
+  url: TabViewUrl.createRelative("./"),
   props: {
     _viewName: "内部相对链接",
     menuKey: "relative-inline",

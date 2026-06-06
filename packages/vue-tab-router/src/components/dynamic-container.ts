@@ -9,9 +9,9 @@ import {
   getCurrentInstance,
   provide,
 } from "vue";
-import { INJECT_ACTIVE_TAB_KEY, INJECT_CURRENT_TAB_KEY, RELATIVE_VIEW_URL_PREFIX_KEY } from "@/constant";
 import type { DynamicIframeExpose, IframeMessageEvent } from "@/iframe-message";
-import { clone, findVueComponent, isHttpUrl, resolveViewUrl } from "@/utils";
+import { INJECT_ACTIVE_TAB_KEY, INJECT_CURRENT_TAB_KEY } from "@/constant";
+import { clone, findVueComponent, TabViewUrl } from "@/utils";
 import { useTabsManager } from "@/use-tabs-manager";
 
 import DynamicIframeComponent from "@/components/dynamic-iframe.vue";
@@ -22,7 +22,7 @@ type IframeRefValue = Element | ComponentPublicInstance | DynamicIframeExpose | 
 
 const getTabCacheName = (tabId: string) => `TabCache_${tabId}`;
 
-const isIframeTab = (tab: Tab) => tab.viewUrl.startsWith(RELATIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(tab.viewUrl);
+const isIframeTab = (tab: Tab) => TabViewUrl.isIframe(tab.viewUrl);
 
 const shouldCacheTab = (tab: Tab) => !tab._noCache && !tab._isRefresh;
 
@@ -131,8 +131,8 @@ export default defineComponent({
             const currentTab = tabsManager.getTabById(tabId);
             if (!currentTab || currentTab._isRefresh) return null;
 
-            if (currentTab.viewUrl.startsWith(RELATIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(currentTab.viewUrl)) {
-              const viewUrl = resolveViewUrl(currentTab.viewUrl);
+            if (TabViewUrl.isIframe(currentTab.viewUrl)) {
+              const viewUrl = TabViewUrl.resolveIframe(currentTab.viewUrl);
               return createVNode(DynamicIframeComponent, {
                 key: currentTab._id,
                 ref: (exposed: IframeRefValue) => setIframeRef(currentTab._id, exposed),
@@ -202,7 +202,7 @@ export default defineComponent({
         },
         cachedIframeTabs.value.map(currentTab => {
           const isActive = activeCachedIframeTabId.value === currentTab._id;
-          const viewUrl = resolveViewUrl(currentTab.viewUrl);
+          const viewUrl = TabViewUrl.resolveIframe(currentTab.viewUrl);
           return createVNode(
             "div",
             {

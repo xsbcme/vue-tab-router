@@ -14,8 +14,8 @@ import {
   TabGuardName,
   TabLeaveGuard,
 } from "./types";
-import { isHttpUrl, jsonToObject, createRandomString, clone, findParentPathsByPath, resolveViewUrl } from "./utils";
-import { RELATIVE_VIEW_URL_PREFIX_KEY, STORAGE_TABS_KEY } from "./constant";
+import { jsonToObject, createRandomString, clone, findParentPathsByPath, TabViewUrl } from "./utils";
+import { STORAGE_TABS_KEY } from "./constant";
 import { useEventManager } from "./use-event-manager";
 import { AbstractStorageAdapter } from "./abstract-storage-adapter";
 import { StorageAdapter } from "./storage-adapter";
@@ -183,7 +183,7 @@ export class TabsManager {
   }
 
   private isUrl(url: string) {
-    return url?.startsWith(RELATIVE_VIEW_URL_PREFIX_KEY) || isHttpUrl(url);
+    return TabViewUrl.isIframe(url);
   }
 
   private getTabByViewUrlAndProps(viewUrl: string, props: Record<string, unknown> | undefined) {
@@ -417,9 +417,9 @@ export class TabsManager {
       const { _viewOutside, _viewOutsideProps, _viewName, _viewIcon, _viewNoCache, _viewSingle, ...viewProps } =
         jsonToObject(tabOptions || {}, {}) as IOpenTabOptions;
 
-      // 链接型地址（http/https 或 relative: 前缀）
+      // 链接型地址（http/https 或 TabViewUrl.createRelative 创建的相对地址）
       if (this.isUrl(viewUrl)) {
-        const newViewUrl = resolveViewUrl(viewUrl);
+        const newViewUrl = TabViewUrl.resolveIframe(viewUrl);
         if (_viewOutside) {
           const { target, features } = _viewOutsideProps || {};
           return window.open(newViewUrl, target, features);

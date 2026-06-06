@@ -58,6 +58,7 @@ import {
   getTabMenuKey,
   lightTheme,
   normalizeTabMenuProps,
+  TabViewUrl,
   themeToCssVariables,
   useTabId,
   useTabsManager,
@@ -91,7 +92,7 @@ const menuKeyRows = computed(() => [
   },
   {
     name: '相对链接业务 key',
-    key: getTabMenuKey({ url: 'relative:./', props: { _viewName: '相对链接', menuKey: 'relative-inline' } } satisfies Partial<TabMenuItemLike>),
+    key: getTabMenuKey({ url: TabViewUrl.createRelative('./'), props: { _viewName: '相对链接', menuKey: 'relative-inline' } } satisfies Partial<TabMenuItemLike>),
   },
 ]);
 
