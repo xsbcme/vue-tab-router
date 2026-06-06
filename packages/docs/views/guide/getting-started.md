@@ -33,6 +33,8 @@ export default tabsManager;
 
 > `modules` 的 key（例如 `'/src/views/user/page-index.vue'`）就是后续 `openTab(viewUrl)` 的 `viewUrl`。
 
+如果希望统一配置页面标题、图标、默认单例策略或详情页层级，可以继续配置 `views.meta`。完整说明见 [页面模块与元数据](/views/guide/view-meta)。
+
 ## 2. 在布局中放置容器
 
 ```vue
@@ -78,4 +80,4 @@ tabsManager.openTab("/src/views/about/page-index.vue", {
 - 组合式：`useTabsManager()`
 - 选项式：`this.$tabsManager`
 
-下一步建议阅读 [基础页面导航](/views/guide/basic-navigation) 和 [页面缓存控制](/views/guide/cache-control)。
+下一步建议阅读 [基础页面导航](/views/guide/basic-navigation)、[页面模块与元数据](/views/guide/view-meta) 和 [页面缓存控制](/views/guide/cache-control)。

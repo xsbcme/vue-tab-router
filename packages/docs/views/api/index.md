@@ -1,287 +1,92 @@
 # API 总览
 
-本文以当前 `@xsbcme/vue-tab-router` 源码导出为准。
+本文按使用场景整理 `@xsbcme/vue-tab-router` 的公开 API。建议先阅读指南，再回到这里查具体参数和返回值。
 
-## 导出成员
+## 导入入口
 
 ```ts
-// components
-DynamicContainerComponent;
-DynamicTabsComponent;
-DynamicIconComponent;
-PreviewContainerComponent;
-
-// composables / factory
-createTabsManager;
-useTabsManager;
-useTabMenu;
-useTabId;
-defineTabOptions;
-defineTabEvents;
-onBeforeTabLeave;
-onBeforeTabClose;
-onBeforeTabEnter;
-
-// adapters / abstract
-AbstractStorageAdapter;
-StorageAdapter;
-
-// plugins
-TabsManagerPlugin;
-TabsManagerPluginContext;
-TabsManagerHooks;
-
-// theme
-applyTheme;
-themeToCssVariables;
-defaultTheme;
-lightTheme;
-darkTheme;
+import {
+  createTabsManager,
+  useTabsManager,
+  useTabMenu,
+  DynamicTabsComponent,
+  DynamicContainerComponent,
+  createTabUrlSyncPlugin,
+} from "@xsbcme/vue-tab-router";
 ```
 
-## `createTabsManager(options)`
+完整导出来自包入口：
 
-创建并初始化根管理器实例。
+```ts
+export * from "./components";
+export * from "./use-tabs-manager";
+export * from "./use-tab-menu";
+export * from "./iframe-message";
+export * from "./abstract-storage-adapter";
+export * from "./storage-adapter";
+export * from "./tabs-manager-plugin";
+export * from "./tab-url-sync-plugin";
+export * from "./types";
+export { TabViewUrl, type TabViewUrlRelative } from "./utils";
+```
 
-关键配置（`TabsManagerOptions`）：
+## 分类索引
 
-- `views.modules`: 页面模块映射（同步组件或懒加载函数）
-- `views.source`: 透传给 `defineAsyncComponent` 的默认配置
-- `storage.adapter`: 自定义持久化适配器
-- `plugins`: 扩展插件列表
-- `render.transition`: 页面切换过渡配置
-- `render.keepAlive`: 缓存配置（如 `max`）
-- `render.noActiveComponent`: 无激活页时渲染组件
-- `render.noExistComponent`: 目标页面不存在时渲染组件
-- `render.viewNameMaxLength`: 内置标签组件标题最大显示长度
-- `iframe.onLoad`: iframe 加载完成回调，可访问 iframe 元素
-- `iframe.messageOrigins`: 允许接收 iframe 消息的来源，默认只允许同源
-- `iframe.onMessage`: iframe 发送 `postMessage` 时触发
-- `guards.beforeOpen`: 全局打开前守卫
-- `guards.beforeEnter`: 全局激活前守卫
-- `guards.beforeLeave`: 全局离开前守卫
-- `guards.beforeClose`: 全局关闭前守卫
+| 分类 | 适合查什么 |
+| --- | --- |
+| [TabsManager](/views/api/tabs-manager) | 创建实例、打开/关闭/刷新/更新标签、弹窗显示、scoped manager。 |
+| [组合式 API](/views/api/composables) | `useTabsManager`、`useTabMenu`、页面内声明标题和守卫。 |
+| [内置组件](/views/api/components) | `DynamicContainerComponent`、`DynamicTabsComponent`、面包屑、预览容器等。 |
+| [插件与 hooks](/views/api/plugins) | 自定义插件、生命周期 hooks、URL 同步插件。 |
+| [类型与工具](/views/api/types-and-utils) | `TabsManagerOptions`、`IOpenTabOptions`、`TabViewMeta`、`TabViewUrl`、存储适配器。 |
 
-## `useTabsManager()`
+## 常用组合
 
-获取当前作用域注入的响应式 `tabsManager` 实例。常用属性/方法：
+创建工作台：
 
-- `tabs`, `activeTab`, `registerTabPaths`, `activeTabParentPaths`
-- `openTab`, `openFirstTab`, `changeActiveTab`
-- `closeTab`, `closeTabByAll`, `closeTabsByLeft/Right/Other`
-- `refreshTab`, `refreshTabAll`, `updateTabOptions`
-- `postActiveIframeMessage`, `postIframeMessage`, `emit`, `activeFirstTab`, `clear`
+```ts
+const tabsManager = createTabsManager({
+  views: {
+    modules: import.meta.glob("@/views/**/page-index.vue", { eager: false }),
+  },
+});
+```
 
-## `useTabMenu(options?)`
+布局渲染：
 
-把菜单项与当前激活标签联动起来，返回可直接绑定菜单组件的 `selectedKeys`，并提供统一的 key 生成与点击打开方法。
+```vue
+<template>
+  <DynamicTabsComponent />
+  <DynamicContainerComponent />
+</template>
+```
+
+菜单联动：
 
 ```ts
 const tabMenu = useTabMenu({
   menus: () => menus,
 });
-
-tabMenu.selectedKeys;
-tabMenu.getMenuKey(menu);
-tabMenu.handleMenuItemClick(menuKey);
 ```
 
-默认识别菜单字段：`url` / `uri` / `viewUrl`、`name` / `title`、`icon`、`props` / `viewProps`、`children`。如果业务字段不同，可通过 `getViewUrl`、`getViewName`、`getViewIcon`、`getViewProps`、`getChildren` 或 `getMenuKey` 自定义。
-
-默认菜单 key 会忽略 `_viewName`、`_viewIcon`、`_viewNoCache`、`_viewSingle`，但会保留 `_viewOutside`、`_viewOutsideProps` 和业务参数。因此相同 URL 的内部链接和新窗口外部链接不会串选。相同相对地址对应多个业务菜单时，建议在 `props` 中传入稳定的 `menuKey`。
-
-## `openTab(viewUrl, options?)`
-
-重载返回：
-
-- 组件/内联链接模式：`Promise<string>`（tabId）
-- 新窗口模式（`_viewOutside: true`）：`Promise<Window>`
-
-`IOpenTabOptions` 常用字段：
-
-- `_viewName`: 标题
-- `_viewIcon`: 图标
-- `_viewSingle`: 是否单例
-- `_viewNoCache`: 是否禁用缓存
-- `_viewOutside`: 是否新窗口打开链接
-- `_viewOutsideProps`: `window.open` 参数（`target`、`features`）
-
-其余字段会进入 `viewProps`。
-
-## 关闭选项
-
-`closeTab` 与批量关闭方法支持关闭选项：
+地址栏同步：
 
 ```ts
-await tabsManager.closeTab(tabId, {
-  ignoreNoClose: true,
-  skipGuard: true,
-});
-
-await tabsManager.closeTabsByOther(tabId, {
-  continueOnRejected: true,
+createTabUrlSyncPlugin(router, {
+  routePath: "/dashboard",
+  queryKey: "activeTab",
 });
 ```
 
-| 字段                 | 说明                                           |
-| -------------------- | ---------------------------------------------- |
-| `ignoreNoClose`      | 忽略 `_noClose`，允许关闭不可关闭标签          |
-| `skipGuard`          | 跳过关闭守卫与关闭回退时的切换守卫             |
-| `continueOnRejected` | 批量关闭时某个标签被守卫拒绝后继续处理后续标签 |
+## 命名规则
 
-## 页面内 API
+- `_view*` 字段是内置 tab 行为或展示参数。
+- 非 `_view*` 字段会进入 `tab.viewProps`，并作为页面组件 props。
+- `viewUrl` 是打开页面的唯一入口，可以是组件 key、http/https 链接，也可以是 `TabViewUrl.createRelative()` 生成的相对 iframe 地址。
 
-### `useTabId()`
+## 下一步
 
-返回当前页面所在标签页 id（需在容器上下文内）。
-
-### `defineTabOptions(options)`
-
-更新当前标签页元信息：
-
-- `viewName`
-- `viewIcon`
-- `viewSingle`
-- `viewNoCache`
-
-### `defineTabEvents(events)`
-
-定义当前页可接收事件，供子页通过 `emit` 回调来源页。
-
-### `onBeforeTabEnter(guard)` / `onBeforeTabLeave(guard)` / `onBeforeTabClose(guard)`
-
-注册页面级守卫。返回 `false`、抛错或返回 rejected Promise 会中断流程。
-
-## 内置组件
-
-### `DynamicContainerComponent`
-
-根据当前激活标签渲染 Vue 组件或 iframe，是内容区必须放置的组件。
-
-iframe 页面可以通过 `window.parent.postMessage` 与宿主通信。宿主可通过 `onIframeMessage` 或插件 hook `iframe:message` 接收消息，并通过 `message.reply()`、`tabsManager.postActiveIframeMessage(data)` 或 `tabsManager.postIframeMessage(tabId, data)` 回发。
-
-iframe 默认会缓存，切换标签后保留内部 DOM 与页面状态。传 `_viewNoCache: true` 时不会进入持久 iframe 层，切换回来会重新加载。
-
-```ts
-const tabsManager = createTabsManager({
-  views: {
-    modules,
-  },
-  iframe: {
-    messageOrigins: ["self", "https://example.com"],
-    onMessage(message) {
-      if (message.data?.type === "refresh-current") {
-        tabsManager.refreshTab(message.tabId);
-        message.reply({ type: "refreshed" });
-      }
-    },
-  },
-  plugins: [
-    ({ hooks, tabsManager }) => {
-      hooks.on("iframe:message", message => {
-        if (message.data?.type === "open-tab") {
-          tabsManager.openTab(message.data.viewUrl, message.data.options);
-        }
-      });
-    },
-  ],
-});
-```
-
-布局、工具栏等外部区域通常只需要操作当前激活 iframe：
-
-```ts
-tabsManager.postActiveIframeMessage({ type: "set-theme", theme: "dark" });
-```
-
-页面组件内部可使用组合式函数向自己所在的 iframe 页签发消息，不需要手动传 tabId：
-
-```ts
-import { postCurrentIframeMessage } from "@xsbcme/vue-tab-router";
-
-postCurrentIframeMessage({ type: "reload-data" });
-```
-
-iframe 加载完成后可通过 `onIframeLoad` 操作 iframe 元素；同源 iframe 还可以访问内部文档：
-
-```ts
-createTabsManager({
-  views: {
-    modules,
-  },
-  iframe: {
-    onLoad({ iframe, tab }) {
-      iframe.style.backgroundColor = "#fff";
-
-      try {
-        if (tab.viewProps?.hideHeader && iframe.contentDocument) {
-          const style = iframe.contentDocument.createElement("style");
-          style.textContent = ".layout-header { display: none; }";
-          iframe.contentDocument.head.appendChild(style);
-        }
-      } catch {
-        // 跨域 iframe 不能访问内部 document。
-      }
-    },
-  },
-});
-```
-
-跨域 iframe 只能操作 iframe 元素本身，不能访问内部 `document`。
-
-iframe 页面中发送消息：
-
-```ts
-window.parent.postMessage({ type: "refresh-current" }, window.location.origin);
-```
-
-默认只接收同源消息。跨域 iframe 需要显式配置 `iframeMessageOrigins`，不建议在生产环境使用 `"*"`。
-
-### `DynamicTabsComponent`
-
-内置标签栏，支持 `type`、`showIcon`、`defaultIcon`、`hideFirst`。
-
-### `PreviewContainerComponent`
-
-用于跨系统嵌入预览场景，会将目标页作为首页标签打开，默认标题为“首页”，且默认不显示在上方标签栏；目标页继续打开其它页面后才显示标签栏。`viewUrl`、`viewProps` 或 `viewName` 变化时会清空旧页签并重新打开预览页；关闭或打开失败时会触发 `error` 事件。
-
-### `DynamicIconComponent`
-
-根据图标名查找已注册 Vue 组件，也支持直接传入 SVG 字符串、图片路径或 base64 图片。
-
-## 存储适配器
-
-`AbstractStorageAdapter` 需要实现：
-
-- `get(key, def?)`
-- `set(key, value)`
-- `del(key)`
-
-内置 `StorageAdapter` 默认使用 `sessionStorage`。
-
-## 扩展插件
-
-通过 `createTabsManager({ views, plugins })` 挂载插件。插件可以是函数，也可以是带 `setup` 的对象。
-
-```ts
-const tabsManager = createTabsManager({
-  views: {
-    modules,
-  },
-  plugins: [
-    ({ hooks }) => {
-      hooks.on("tab:opened", tab => {
-        console.log("opened", tab.viewUrl);
-      });
-    },
-  ],
-});
-```
-
-`setup` 返回的函数会在应用卸载时执行，也可以通过 `ctx.onDispose(cleanup)` 注册多个清理函数。
-
-## 主题 API
-
-- `applyTheme(theme, element?)`: 将主题转换为 CSS 变量并写入元素
-- `themeToCssVariables(theme)`: 返回 CSS 变量对象
-- `defaultTheme` / `lightTheme` / `darkTheme`: 内置主题
+- 想查 `openTab` 参数：看 [TabsManager](/views/api/tabs-manager)。
+- 想查菜单和面包屑返回值：看 [组合式 API](/views/api/composables)。
+- 想查 URL 同步参数：看 [插件与 hooks](/views/api/plugins)。
+- 想查配置类型：看 [类型与工具](/views/api/types-and-utils)。

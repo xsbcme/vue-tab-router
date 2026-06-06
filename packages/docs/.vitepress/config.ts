@@ -67,7 +67,9 @@ export default defineConfig({
             { text: "基础页面导航", link: "/views/guide/basic-navigation" },
             { text: "内联页面导航", link: "/views/guide/inline-navigation" },
             { text: "外链页面导航", link: "/views/guide/outside-navigation" },
+            { text: "页面模块与元数据", link: "/views/guide/view-meta" },
             { text: "菜单联动", link: "/views/guide/menu-integration" },
+            { text: "面包屑导航", link: "/views/guide/breadcrumb" },
             { text: "页面缓存控制", link: "/views/guide/cache-control" },
           ],
         },
@@ -104,7 +106,14 @@ export default defineConfig({
       "/views/api/": [
         {
           text: "API 参考",
-          items: [{ text: "总览", link: "/views/api/" }],
+          items: [
+            { text: "总览", link: "/views/api/" },
+            { text: "TabsManager", link: "/views/api/tabs-manager" },
+            { text: "组合式 API", link: "/views/api/composables" },
+            { text: "内置组件", link: "/views/api/components" },
+            { text: "插件与 hooks", link: "/views/api/plugins" },
+            { text: "类型与工具", link: "/views/api/types-and-utils" },
+          ],
         },
       ],
       "/views/demo/": [

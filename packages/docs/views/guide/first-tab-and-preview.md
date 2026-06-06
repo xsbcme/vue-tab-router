@@ -14,6 +14,24 @@ await tabsManager.openFirstTab("/src/views/home/page-index.vue", { _viewName: "�
 - `replace`：替换现有首页（默认）
 - `move`：将目标页签移动到首位
 
+首页会被标记为 `_isFirst=true` 且 `_noClose=true`，内置标签栏不会允许用户直接关闭它。
+
+## 登录后打开首页
+
+后台系统常见做法是在登录成功后打开首页，然后进入工作台：
+
+```ts
+async function login() {
+  await tabsManager.openFirstTab("/src/views/home/page-index.vue", {
+    _viewName: "首页",
+  });
+
+  router.replace("/dashboard");
+}
+```
+
+如果使用地址栏同步插件，进入 `/dashboard` 后会自动补齐当前首页 tab 的 URL 状态。
+
 ## 激活首页：`activeFirstTab`
 
 ```ts
@@ -43,8 +61,24 @@ const handlePreviewError = (error: unknown) => {
 </script>
 ```
 
+## 预览容器与主工作台的关系
+
+预览容器内部使用 scoped manager：
+
+- 复用根实例的页面模块注册和异步组件配置。
+- 拥有独立的 tabs、activeTab、事件中心和 iframe 状态。
+- 默认关闭持久化，不会污染主工作台的标签组。
+
+因此它适合“在一个局部区域临时预览某个页面”的场景，而不是替代主工作台容器。
+
 ## 典型应用场景
 
 - 后台系统默认首页固定不关闭
 - “单页预览模式”用于嵌入其他壳系统
 - 临时预览页避免污染当前工作标签组
+
+## 使用建议
+
+- 主工作台用 `DynamicTabsComponent + DynamicContainerComponent`。
+- 详情弹层、抽屉、外部嵌入场景用 `PreviewContainerComponent`。
+- 需要独立持久化时，可改用 `tabsManager.createScopedManager()` 自行创建局部实例。

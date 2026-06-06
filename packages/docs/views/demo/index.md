@@ -15,6 +15,14 @@ pnpm dev:demo
 pnpm --filter @xsbcme/demo dev
 ```
 
+启动后进入登录页，任意填写账号、密码、验证码即可登录。Demo 会打开首页 tab 并跳转到工作台。
+
+如果启用了地址栏同步插件，登录后 URL 会带上当前激活 tab 状态，例如：
+
+```txt
+/#/dashboard?activeTab=...
+```
+
 ## 构建
 
 ```sh
@@ -33,6 +41,63 @@ Demo 菜单采用“能力域聚合面板”的方式组织。左侧菜单不再
 | 链接与 Iframe | `src/views/test-iframe/message`                 | 内部链接、外部链接、相对链接、iframe 缓存、不缓存、`postIframeMessage`、`postActiveIframeMessage`、`postCurrentIframeMessage` |
 | 插件与主题    | `src/views/test-theme/icons`                    | `plugins`、`TabsManagerHooks`、`DynamicIconComponent`、`DynamicTabsComponent`、`applyTheme`                                   |
 | 项目实践      | `src/views/practice/test-table-detail`          | 表格打开详情、多页面来源链路、业务场景接入                                                                                    |
+
+## 建议验证路径
+
+### 1. 验证基础标签页
+
+进入“导航与缓存”：
+
+1. 点击打开单例页面，重复点击应复用同一个 tab。
+2. 点击打开多开页面，携带不同参数时会出现多个 tab。
+3. 点击刷新当前页，观察页面重新渲染。
+4. 点击批量关闭，验证首页不可关闭。
+
+### 2. 验证页面元数据和面包屑
+
+进入“项目实践”：
+
+1. 从表格打开项目详情。
+2. 观察面包屑显示 `测试工作台 / 项目实践 / 项目详情`。
+3. 点击“项目实践”，应返回上级页面。
+4. 不需要在左侧菜单中配置“项目详情”，层级来自 `views.meta`。
+
+### 3. 验证 URL 同步
+
+切换任意 tab 后观察地址栏：
+
+```txt
+/#/dashboard?activeTab=...
+```
+
+刷新页面后，插件会从 `activeTab` 参数恢复当前 tab。浏览器前进/后退会在历史里的激活 tab 间切换。
+
+### 4. 验证浏览器标题同步
+
+切换 tab 后，浏览器标签页标题会更新为：
+
+```txt
+页面标题 - Vue Tab Router Demo
+```
+
+对应配置位于 `packages/demo/src/plugins/tab-router/index.ts`。
+
+### 5. 验证 iframe 通信
+
+进入“链接与 Iframe”：
+
+1. 打开相对 iframe 页面。
+2. 在 iframe 内触发消息发送。
+3. 观察宿主日志区是否出现 message 记录。
+4. 使用宿主按钮向当前 iframe 发送消息。
+
+### 6. 验证守卫和 hooks
+
+进入“通信与守卫”：
+
+1. 打开页面级守卫示例。
+2. 尝试切换或关闭 tab。
+3. 观察全局守卫日志和插件 hook 日志。
 
 ## 测试目标页
 
@@ -69,3 +134,28 @@ packages/demo
 ```
 
 Demo 依赖工作区内的 `@xsbcme/vue-tab-router`，因此修改插件源码后重新构建即可在 demo 中验证。
+
+## 常见问题
+
+### pnpm run dev 启动失败？
+
+仓库根目录可能没有直接配置 `dev` 脚本，建议使用明确的 demo 命令：
+
+```sh
+pnpm --filter @xsbcme/demo dev
+```
+
+或查看根目录 `package.json` 中当前可用脚本。
+
+### 改了核心包但 demo 没变化？
+
+demo 依赖工作区包。建议重新执行：
+
+```sh
+pnpm --filter @xsbcme/vue-tab-router build
+pnpm --filter @xsbcme/demo dev
+```
+
+### 登录后没有恢复上次 tab？
+
+检查 `sessionStorage` 中是否还有 tabs 数据，以及 URL 中是否有 `activeTab` 参数。退出登录时 demo 会清空 tab 状态。

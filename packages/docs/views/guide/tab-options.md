@@ -55,3 +55,36 @@ await tabsManager.updateTabOptions({
 
 > [!TIP]
 > 复用判断的第一优先级是 `viewUrl + viewProps` 的完整匹配。
+
+## 与 views.meta 的关系
+
+如果某个页面的标题、图标、单例、缓存策略是固定默认值，建议放在 `views.meta.props` 中统一配置：
+
+```ts
+createTabsManager({
+  views: {
+    modules,
+    meta: [
+      {
+        title: "用户详情",
+        icon: "IconUser",
+        viewUrl: "/src/views/user/detail/page-index.vue",
+        props: {
+          _viewSingle: true,
+          _viewNoCache: false,
+        },
+      },
+    ],
+  },
+});
+```
+
+这样业务打开页面时可以只写：
+
+```ts
+await tabsManager.openTab("/src/views/user/detail/page-index.vue", {
+  userId: 1001,
+});
+```
+
+`openTab` 显式传入的字段仍然会覆盖 `views.meta` 的默认值。更多配置见 [页面模块与元数据](/views/guide/view-meta)。

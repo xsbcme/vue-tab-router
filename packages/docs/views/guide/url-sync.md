@@ -30,6 +30,42 @@ const tabsManager = createTabsManager({
 
 如果进入页面时 URL 中没有 `tab` 参数，但当前已经有激活标签页，插件默认会使用 `replace` 补齐当前激活 tab 的 URL 状态。这样登录成功进入工作台后，也能得到可复制、可刷新的标签页地址。
 
+## 常用配置
+
+| 配置 | 默认值 | 说明 |
+| --- | --- | --- |
+| `queryKey` | `"tab"` | 存储当前激活 tab 状态的 query 参数名。 |
+| `routePath` | 不限制 | 只在指定外层路由上同步，例如 `/dashboard`。 |
+| `historyMode` | `"push"` | 打开或切换标签时写入历史的方式。首次写入会自动改用 `replace`。 |
+| `syncInitialActiveTab` | `true` | URL 没有 tab 状态但当前已有激活 tab 时，是否补齐 URL。 |
+| `syncDocumentTitle` | `true` | 是否跟随当前激活 tab 更新浏览器标题。 |
+| `formatDocumentTitle` | 无 | 自定义浏览器标题格式。 |
+| `allowExternal` | `false` | 是否允许 URL 打开 `http` / `https` 外部 iframe 页面。 |
+| `allowRelative` | `true` | 是否允许 URL 打开 `TabViewUrl.createRelative` 创建的相对 iframe 页面。 |
+| `validate` | 无 | 从 URL 打开 tab 前的自定义校验。 |
+| `serialize` / `deserialize` | base64url JSON | 自定义 URL 状态序列化方式。 |
+| `onError` | `console.error` | 同步失败、反序列化失败、目标页面未注册等错误回调。 |
+
+## 登录后进入工作台
+
+后台项目常见流程是：用户登录成功后先打开首页 tab，再跳转到 `/dashboard`。
+
+```ts
+await tabsManager.openFirstTab("/src/views/home/page-index.vue", {
+  _viewName: "首页",
+});
+
+router.replace("/dashboard");
+```
+
+如果插件配置了 `routePath: "/dashboard"`，在登录页打开首页时不会写 URL，因为当前路由还不是 `/dashboard`。进入 `/dashboard` 后，`syncInitialActiveTab` 会再次检查当前 active tab，并用 `replace` 补齐：
+
+```txt
+/#/dashboard?tab=...
+```
+
+因此登录成功后的地址可以直接复制、刷新，也不会额外增加一条浏览器历史记录。
+
 ## 传递页面参数
 
 URL 状态包含：
