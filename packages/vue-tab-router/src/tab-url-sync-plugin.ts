@@ -32,6 +32,12 @@ export interface TabUrlState {
 export interface CreateTabUrlSyncPluginOptions {
   /** 存储当前激活 tab 状态的 query 参数名。 */
   queryKey?: string;
+  /** 初始化时如果 URL 没有 tab 状态，是否把当前激活 tab 写入 URL。默认开启。 */
+  syncInitialActiveTab?: boolean;
+  /** tab 激活、更新、关闭时是否同步浏览器标题。默认开启。 */
+  syncDocumentTitle?: boolean;
+  /** 自定义浏览器标题。返回空值时会回退到默认标题。 */
+  formatDocumentTitle?: (tab: Partial<Tab> | undefined, route: TabUrlSyncRoute) => string | undefined;
   /** 限制只在指定路由 path 上同步。默认不限制。 */
   routePath?: string | ((route: TabUrlSyncRoute) => boolean);
   /** tab 切换时写入历史记录的方式。 */
@@ -156,10 +162,13 @@ export function createTabUrlSyncPlugin(
   const queryKey = options.queryKey || DEFAULT_QUERY_KEY;
   const serialize = options.serialize || defaultSerialize;
   const deserialize = options.deserialize || defaultDeserialize;
+  const syncInitialActiveTab = options.syncInitialActiveTab !== false;
+  const syncDocumentTitle = options.syncDocumentTitle !== false;
 
   return ({ tabsManager, hooks }) => {
     let applyingRoute = false;
     let applyingTab = false;
+    const initialDocumentTitle = typeof document === "undefined" ? "" : document.title;
 
     const reportError = (error: unknown) => {
       if (options.onError) {
@@ -172,6 +181,15 @@ export function createTabUrlSyncPlugin(
     const readStateFromRoute = (route: TabUrlSyncRoute) => {
       const rawValue = getQueryValue(route.query, queryKey);
       return rawValue ? deserialize(rawValue) : undefined;
+    };
+
+    const updateDocumentTitle = (tab: Partial<Tab> | undefined = tabsManager.activeTab) => {
+      if (!syncDocumentTitle || typeof document === "undefined") return;
+      const route = getCurrentRoute(router);
+      if (!shouldSyncRoute(route, options.routePath)) return;
+
+      const formattedTitle = options.formatDocumentTitle?.(tab, route);
+      document.title = formattedTitle || tab?.viewName || tab?.viewUrl || initialDocumentTitle;
     };
 
     const writeStateToRoute = async (
@@ -222,6 +240,7 @@ export function createTabUrlSyncPlugin(
         if (replaceAfterOpen) {
           await writeStateToRoute(state, "replace");
         }
+        updateDocumentTitle(tabsManager.activeTab);
       } catch (error) {
         reportError(error);
       } finally {
@@ -229,29 +248,43 @@ export function createTabUrlSyncPlugin(
       }
     };
 
-    applyRouteState(getCurrentRoute(router), true);
+    const syncInitialActiveTabToRoute = async () => {
+      if (!syncInitialActiveTab) return;
+      const route = getCurrentRoute(router);
+      if (!shouldSyncRoute(route, options.routePath) || getQueryValue(route.query, queryKey)) return;
+      await writeStateToRoute(normalizeState(tabsManager.activeTab), "replace");
+    };
+
+    const applyInitialRouteState = applyRouteState(getCurrentRoute(router), true);
+    updateDocumentTitle();
+    Promise.resolve(applyInitialRouteState).then(syncInitialActiveTabToRoute);
 
     const removeRouteListener = router.afterEach?.(to => {
-      applyRouteState(to);
+      applyRouteState(to).then(syncInitialActiveTabToRoute);
     });
 
     const removeOpened = hooks.on("tab:opened", tab => {
+      updateDocumentTitle(tab);
       if (applyingRoute) return;
       return writeStateToRoute(normalizeState(tab));
     });
     const removeActiveChanged = hooks.on("tab:active-changed", tab => {
+      updateDocumentTitle(tab);
       if (applyingRoute) return;
       return writeStateToRoute(normalizeState(tab));
     });
     const removeUpdated = hooks.on("tab:updated", tab => {
+      updateDocumentTitle(tab);
       if (applyingRoute) return;
       return writeStateToRoute(normalizeState(tab), "replace");
     });
     const removeClosed = hooks.on("tab:closed", (_closedTab, fallbackTab) => {
+      updateDocumentTitle(fallbackTab);
       if (applyingRoute) return;
       return writeStateToRoute(normalizeState(fallbackTab), "replace");
     });
     const removeCleared = hooks.on("tabs:cleared", () => {
+      updateDocumentTitle(undefined);
       if (applyingRoute) return;
       return writeStateToRoute(undefined, "replace");
     });

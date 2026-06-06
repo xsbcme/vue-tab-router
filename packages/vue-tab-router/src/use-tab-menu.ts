@@ -1,6 +1,6 @@
 import { computed, MaybeRefOrGetter, toValue, type ComputedRef } from "vue";
 import type { Tab } from "./tab";
-import type { IOpenTabOptions } from "./types";
+import type { IOpenTabOptions, TabViewMeta } from "./types";
 import { jsonToObject, stableStringify } from "./utils";
 import { useTabsManager } from "./use-tabs-manager";
 
@@ -62,16 +62,38 @@ export interface UseTabMenuReturn<Menu extends object = TabMenuItemLike> {
   tabsManager: ReturnType<typeof useTabsManager>;
   /** 当前菜单选中 key，可直接绑定菜单组件。 */
   selectedKeys: ComputedRef<string[]>;
+  /** 当前激活 tab 对应的菜单路径。 */
+  activeMenuPath: ComputedRef<Menu[]>;
+  /** 当前激活 tab 对应的面包屑数据。 */
+  breadcrumbs: ComputedRef<TabBreadcrumbItem<Menu>[]>;
   /** 获取菜单项 key。 */
   getMenuKey: (menu: Menu) => string;
   /** 获取 tab 对应的菜单 key。 */
   getTabKey: (tab: Partial<Tab>) => string;
   /** 按 key 从菜单树中查找菜单项。 */
   findMenu: (key: string, menus?: Menu[]) => Menu | undefined;
+  /** 按 key 从菜单树中查找菜单路径。 */
+  findMenuPath: (key: string, menus?: Menu[]) => Menu[];
   /** 打开指定菜单项对应的 tab。 */
   openMenu: (menu: Menu) => Promise<unknown>;
   /** 菜单点击处理函数，可直接绑定 menu-item-click。 */
   handleMenuItemClick: (key: string) => Promise<unknown>;
+}
+
+/** 面包屑数据项。 */
+export interface TabBreadcrumbItem<Menu extends object = TabMenuItemLike> {
+  /** 面包屑唯一 key。 */
+  key: string;
+  /** 面包屑显示标题。 */
+  title: string;
+  /** 面包屑图标。 */
+  icon?: string;
+  /** 对应菜单项；fallback 项可能不存在。 */
+  menu?: Menu;
+  /** 对应页面地址。 */
+  viewUrl?: string;
+  /** 是否可点击打开对应 tab。 */
+  clickable: boolean;
 }
 
 const TAB_OPTION_PREFIX = "_view";
@@ -157,6 +179,66 @@ function findMenuByKey<Menu extends object>(
   }
 }
 
+export function findMenuPathByKey<Menu extends object>(
+  menus: Menu[],
+  key: string,
+  getKey: (menu: Menu) => string,
+  getChildren: (menu: Menu) => Menu[] | undefined
+): Menu[] {
+  for (const menu of menus) {
+    if (getKey(menu) === key) return [menu];
+    const children = getChildren(menu);
+    if (Array.isArray(children)) {
+      const childPath = findMenuPathByKey(children, key, getKey, getChildren);
+      if (childPath.length) return [menu, ...childPath];
+    }
+  }
+  return [];
+}
+
+function createTabBreadcrumbItem<Menu extends object>(
+  tab: Partial<Tab>,
+  getTabKey: (tab: Partial<Tab>) => string
+): TabBreadcrumbItem<Menu> {
+  return {
+    key: getTabKey(tab) || tab._id || tab.viewUrl || "active-tab",
+    title: tab.viewName || tab.viewUrl || "未命名",
+    icon: tab.viewIcon,
+    viewUrl: tab.viewUrl,
+    clickable: false,
+  };
+}
+
+function createMenuBreadcrumbItems<Menu extends object>(
+  menuPath: Menu[],
+  getMenuKey: (menu: Menu) => string,
+  getViewUrl: (menu: Menu) => string | undefined,
+  getViewName: (menu: Menu) => string | undefined,
+  getViewIcon: (menu: Menu) => string | undefined
+): TabBreadcrumbItem<Menu>[] {
+  return menuPath.map(menu => {
+    const viewUrl = getViewUrl(menu);
+    return {
+      key: getMenuKey(menu),
+      title: getViewName(menu) || viewUrl || getMenuKey(menu),
+      icon: getViewIcon(menu),
+      menu,
+      viewUrl,
+      clickable: Boolean(viewUrl),
+    };
+  });
+}
+
+function createViewMetaBreadcrumbItems<Menu extends object>(metaPath: TabViewMeta[]): TabBreadcrumbItem<Menu>[] {
+  return metaPath.map(meta => ({
+    key: meta.viewUrl || String(meta.id ?? meta.title ?? "view-meta"),
+    title: meta.title || meta.viewUrl || String(meta.id ?? "未命名"),
+    icon: meta.icon,
+    viewUrl: meta.viewUrl,
+    clickable: Boolean(meta.viewUrl),
+  }));
+}
+
 export function useTabMenu<Menu extends object = TabMenuItemLike>(
   options: UseTabMenuOptions<Menu> = {}
 ): UseTabMenuReturn<Menu> {
@@ -203,6 +285,61 @@ export function useTabMenu<Menu extends object = TabMenuItemLike>(
     return findMenuByKey(menus, key, getMenuKey, getChildren);
   };
 
+  const findMenuPath = (key: string, menus = toValue(options.menus) ?? []) => {
+    return findMenuPathByKey(menus, key, getMenuKey, getChildren);
+  };
+
+  const activeMenuPath = computed(() => {
+    if (!tabsManager.activeTab) return [];
+    const key = getTabKey(tabsManager.activeTab);
+    return key ? findMenuPath(key) : [];
+  });
+
+  const breadcrumbs = computed<TabBreadcrumbItem<Menu>[]>(() => {
+    const activeTab = tabsManager.activeTab;
+    if (!activeTab) return [];
+
+    const viewMetaPath = tabsManager.getViewMetaPath(activeTab.viewUrl);
+    if (viewMetaPath.length) {
+      return createViewMetaBreadcrumbItems<Menu>(viewMetaPath);
+    }
+
+    const menuPath = activeMenuPath.value;
+    if (menuPath.length) {
+      return createMenuBreadcrumbItems(menuPath, getMenuKey, getViewUrl, getViewName, getViewIcon);
+    }
+
+    const inferredBreadcrumbs = tabsManager.activeTabParentPaths
+      .filter(parentPath => parentPath !== activeTab.viewUrl)
+      .map(parentPath => {
+        const parentMenuPath = findMenuPath(parentPath);
+        if (parentMenuPath.length) {
+          return createMenuBreadcrumbItems(parentMenuPath, getMenuKey, getViewUrl, getViewName, getViewIcon);
+        }
+
+        const parentTab = tabsManager.tabs.find(tab => tab.viewUrl === parentPath);
+        if (parentTab) {
+          return [createTabBreadcrumbItem<Menu>(parentTab, getTabKey)];
+        }
+
+        return [
+          {
+            key: parentPath,
+            title: parentPath,
+            viewUrl: parentPath,
+            clickable: false,
+          },
+        ] satisfies TabBreadcrumbItem<Menu>[];
+      })
+      .flat();
+
+    const uniqueBreadcrumbs = inferredBreadcrumbs.filter((item, index, list) => {
+      return list.findIndex(current => current.key === item.key) === index;
+    });
+
+    return [...uniqueBreadcrumbs, createTabBreadcrumbItem<Menu>(activeTab, getTabKey)];
+  });
+
   const openMenu = (menu: Menu) => {
     const viewUrl = getViewUrl(menu);
     if (!viewUrl) return Promise.resolve(undefined);
@@ -224,9 +361,12 @@ export function useTabMenu<Menu extends object = TabMenuItemLike>(
   return {
     tabsManager,
     selectedKeys,
+    activeMenuPath,
+    breadcrumbs,
     getMenuKey,
     getTabKey,
     findMenu,
+    findMenuPath,
     openMenu,
     handleMenuItemClick,
   };

@@ -1,7 +1,14 @@
+// @vitest-environment jsdom
+
 import { ref, type Ref } from "vue";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTabsManager } from "../src/use-tabs-manager";
-import { createTabUrlSyncPlugin, type TabUrlSyncRoute, type TabUrlSyncRouter } from "../src/tab-url-sync-plugin";
+import {
+  createTabUrlSyncPlugin,
+  type CreateTabUrlSyncPluginOptions,
+  type TabUrlSyncRoute,
+  type TabUrlSyncRouter,
+} from "../src/tab-url-sync-plugin";
 import { TabViewUrl } from "../src/utils";
 
 type RouteQuery = NonNullable<TabUrlSyncRoute["query"]>;
@@ -40,8 +47,8 @@ function createRouterStub(initialRoute: TabUrlSyncRoute = { path: "/dashboard", 
   };
 }
 
-function createSyncedTabsManager(router: TabUrlSyncRouter) {
-  const tabsManager = createTabsManager({
+function createTestTabsManager() {
+  return createTabsManager({
     views: {
       modules: {},
     },
@@ -49,8 +56,16 @@ function createSyncedTabsManager(router: TabUrlSyncRouter) {
       enabled: false,
     },
   });
+}
+
+function setupUrlSyncPlugin(
+  router: TabUrlSyncRouter,
+  options: CreateTabUrlSyncPluginOptions = {},
+  tabsManager = createTestTabsManager()
+) {
   const plugin = createTabUrlSyncPlugin(router, {
     routePath: "/dashboard",
+    ...options,
   });
   const setupPlugin = typeof plugin === "function" ? plugin : plugin.setup;
 
@@ -64,8 +79,13 @@ function createSyncedTabsManager(router: TabUrlSyncRouter) {
   return { tabsManager, cleanup };
 }
 
+function createSyncedTabsManager(router: TabUrlSyncRouter, options: CreateTabUrlSyncPluginOptions = {}) {
+  return setupUrlSyncPlugin(router, options);
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
+  document.title = "";
 });
 
 describe("createTabUrlSyncPlugin", () => {
@@ -114,5 +134,95 @@ describe("createTabUrlSyncPlugin", () => {
 
     expect(router.replace).toHaveBeenCalledWith({ query: {} });
     expect(router.currentRoute.value.query?.tab).toBeUndefined();
+  });
+
+  it("supports custom query keys", async () => {
+    const router = createRouterStub();
+    const { tabsManager } = createSyncedTabsManager(router, { queryKey: "activeTab" });
+
+    await tabsManager.openTab(TabViewUrl.createRelative("/reports/summary"), {
+      _viewName: "统计报表",
+    });
+
+    const queryValue = router.currentRoute.value.query?.activeTab;
+    expect(typeof queryValue).toBe("string");
+    expect(router.currentRoute.value.query?.tab).toBeUndefined();
+
+    const targetRouter = createRouterStub({ path: "/dashboard", query: { activeTab: queryValue as string } });
+    const { tabsManager: targetManager } = createSyncedTabsManager(targetRouter, { queryKey: "activeTab" });
+
+    await expect.poll(() => targetManager.activeTab?.viewName).toBe("统计报表");
+  });
+
+  it("removes invalid serialized values from custom query keys", async () => {
+    const router = createRouterStub({ path: "/dashboard", query: { activeTab: "not-valid-base64url", tab: "keep" } });
+    createSyncedTabsManager(router, { queryKey: "activeTab" });
+    await Promise.resolve();
+
+    expect(router.replace).toHaveBeenCalledWith({ query: { tab: "keep" } });
+    expect(router.currentRoute.value.query?.activeTab).toBeUndefined();
+    expect(router.currentRoute.value.query?.tab).toBe("keep");
+  });
+
+  it("syncs the initial active tab to the route by default", async () => {
+    const router = createRouterStub();
+    const tabsManager = createTestTabsManager();
+
+    await tabsManager.openTab(TabViewUrl.createRelative("/home"), { _viewName: "首页" });
+    setupUrlSyncPlugin(router, {}, tabsManager);
+
+    await expect.poll(() => router.currentRoute.value.query?.tab).toEqual(expect.any(String));
+    expect(router.replace).toHaveBeenCalled();
+  });
+
+  it("syncs the initial active tab after entering the matched route", async () => {
+    const router = createRouterStub({ path: "/login", query: {} });
+    const tabsManager = createTestTabsManager();
+
+    await tabsManager.openTab(TabViewUrl.createRelative("/home"), { _viewName: "首页" });
+    setupUrlSyncPlugin(router, {}, tabsManager);
+    await Promise.resolve();
+    expect(router.currentRoute.value.query?.tab).toBeUndefined();
+
+    await router.replace({ path: "/dashboard", query: {} });
+
+    await expect.poll(() => router.currentRoute.value.query?.tab).toEqual(expect.any(String));
+  });
+
+  it("can disable initial active tab route sync", async () => {
+    const router = createRouterStub();
+    const tabsManager = createTestTabsManager();
+
+    await tabsManager.openTab(TabViewUrl.createRelative("/home"), { _viewName: "首页" });
+    setupUrlSyncPlugin(router, { syncInitialActiveTab: false }, tabsManager);
+    await Promise.resolve();
+
+    expect(router.currentRoute.value.query?.tab).toBeUndefined();
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+
+  it("syncs document title with the active tab by default", async () => {
+    const router = createRouterStub();
+    const { tabsManager } = createSyncedTabsManager(router);
+
+    await tabsManager.openTab(TabViewUrl.createRelative("/reports"), { _viewName: "统计报表" });
+    expect(document.title).toBe("统计报表");
+
+    await tabsManager.openTab(TabViewUrl.createRelative("/settings"), { _viewName: "系统设置" });
+    expect(document.title).toBe("系统设置");
+
+    await tabsManager.clear();
+    expect(document.title).toBe("");
+  });
+
+  it("supports custom document title formatting", async () => {
+    const router = createRouterStub();
+    const { tabsManager } = createSyncedTabsManager(router, {
+      formatDocumentTitle: tab => (tab?.viewName ? `${tab.viewName} - Demo` : "Demo"),
+    });
+
+    await tabsManager.openTab(TabViewUrl.createRelative("/reports"), { _viewName: "统计报表" });
+
+    expect(document.title).toBe("统计报表 - Demo");
   });
 });

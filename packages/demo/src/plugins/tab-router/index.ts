@@ -1,6 +1,7 @@
 import { ref, createVNode } from "vue";
 import { createTabsManager, createTabUrlSyncPlugin, StorageAdapter } from "@xsbcme/vue-tab-router";
 import router from "@/plugins/vue-router";
+import { createDemoTabsManagerPlugin } from "./demo-plugin";
 
 export const storageAdapter = new StorageAdapter(sessionStorage);
 export const hookLogs = ref<string[]>([]);
@@ -14,6 +15,57 @@ const pushLog = (logs: typeof hookLogs, message: string) => {
 const tabsManager = createTabsManager({
   views: {
     modules: import.meta.glob("@/views/**/page-index.vue", { eager: false }),
+    meta: [
+      {
+        title: "测试工作台",
+        children: [
+          {
+            title: "API 覆盖检查",
+            viewUrl: "/src/views/test-api/overview/page-index.vue",
+          },
+          {
+            title: "导航与缓存",
+            viewUrl: "/src/views/test-workbench/navigation-cache/page-index.vue",
+            props: {
+              _viewSingle: true,
+            },
+          },
+          {
+            title: "通信与守卫",
+            viewUrl: "/src/views/test-workbench/communication-guards/page-index.vue",
+          },
+          {
+            title: "项目实践",
+            viewUrl: "/src/views/practice/test-table-detail/page-index.vue",
+            props: {
+              _viewSingle: true,
+            },
+            children: [
+              {
+                title: "项目详情",
+                viewUrl: "/src/views/practice/test-table-detail/table-detail/page-index.vue",
+              },
+            ],
+          },
+          {
+            title: "弹窗显示",
+            viewUrl: "/src/views/test-detached/container/page-index.vue",
+            props: {
+              _viewSingle: true,
+            },
+          },
+          {
+            title: "链接与 Iframe",
+            viewUrl: "/src/views/test-iframe/message/page-index.vue",
+          },
+          {
+            title: "插件与主题",
+            icon: "IconApps",
+            viewUrl: "/src/views/test-theme/icons/page-index.vue",
+          },
+        ],
+      },
+    ],
   },
   storage: {
     adapter: storageAdapter,
@@ -29,6 +81,7 @@ const tabsManager = createTabsManager({
   },
   detached: {
     zIndex: 900,
+    fullscreen: false,
   },
   iframe: {
     messageOrigins: ["self"],
@@ -62,50 +115,16 @@ const tabsManager = createTabsManager({
   plugins: [
     createTabUrlSyncPlugin(router, {
       routePath: "/dashboard",
+      queryKey: "activeTab",
+      syncInitialActiveTab: true,
+      syncDocumentTitle: true,
+      formatDocumentTitle: tab => (tab?.viewName ? `${tab.viewName} - Vue Tab Router Demo` : "Vue Tab Router Demo"),
       allowExternal: false,
       onError: error => {
         pushLog(hookLogs, `url-sync ${error instanceof Error ? error.message : String(error)}`);
       },
     }),
-    ({ hooks, tabsManager }) => {
-      hooks.on("tab:before-open", tab => {
-        pushLog(hookLogs, `before-open ${tab.viewName || tab.viewUrl}`);
-      });
-      hooks.on("tab:opened", tab => {
-        pushLog(hookLogs, `opened ${tab.viewName || tab.viewUrl}`);
-      });
-      hooks.on("tab:active-changed", tab => {
-        pushLog(hookLogs, `active ${tab.viewName || tab.viewUrl}`);
-      });
-      hooks.on("tab:updated", tab => {
-        pushLog(hookLogs, `updated ${tab.viewName || tab.viewUrl}`);
-      });
-      hooks.on("tab:before-refresh", tab => {
-        pushLog(hookLogs, `before-refresh ${tab.viewName || tab.viewUrl}`);
-      });
-      hooks.on("tab:refreshed", tab => {
-        pushLog(hookLogs, `refreshed ${tab.viewName || tab.viewUrl}`);
-      });
-      hooks.on("tab:closed", tab => {
-        pushLog(hookLogs, `closed ${tab.viewName || tab.viewUrl}`);
-      });
-      hooks.on("tabs:cleared", () => {
-        pushLog(hookLogs, "tabs cleared");
-      });
-      hooks.on("iframe:message", message => {
-        const data = message.data;
-        if (!data || typeof data !== "object") return;
-        const payload = data as Record<string, unknown>;
-        if (payload.type === "iframe:open-tab" && typeof payload.viewUrl === "string") {
-          const options = payload.options && typeof payload.options === "object" ? payload.options : {};
-          tabsManager.openTab(payload.viewUrl, options as Record<string, unknown>);
-          message.reply({ type: "host:opened", viewUrl: payload.viewUrl });
-        }
-      });
-      return () => {
-        pushLog(hookLogs, `plugin disposed ${tabsManager.tabs.length}`);
-      };
-    },
+    createDemoTabsManagerPlugin(hookLogs),
   ],
   guards: {
     beforeOpen: async (to, from) => {

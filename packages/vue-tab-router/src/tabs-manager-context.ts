@@ -9,7 +9,7 @@ import {
   markRaw,
   reactive,
 } from "vue";
-import type { ITabsManagerOptions, Modules } from "./types";
+import type { ITabsManagerOptions, Modules, TabViewMeta } from "./types";
 import type { TabsManager } from "./tabs-manager";
 
 export const TABS_MANAGER_KEY = Symbol("TabsManager") as InjectionKey<TabsManager>;
@@ -18,8 +18,11 @@ export class TabsSharedContext {
   private app: App | null = null;
   private registered = false;
   private componentMap = new Map<string, Component>();
+  private viewMetaPathMap = new Map<string, TabViewMeta[]>();
 
-  constructor(private readonly options: ITabsManagerOptions) {}
+  constructor(private readonly options: ITabsManagerOptions) {
+    this.indexViewMeta(options.viewMeta || []);
+  }
 
   get modules() {
     return this.options.modules;
@@ -31,6 +34,10 @@ export class TabsSharedContext {
 
   get registerTabPaths() {
     return Object.keys(this.modules || {});
+  }
+
+  get viewMeta() {
+    return this.options.viewMeta || [];
   }
 
   public bindApp(app: App) {
@@ -54,6 +61,29 @@ export class TabsSharedContext {
 
   public resolveComponent(viewId: string) {
     return this.componentMap.get(viewId) || this.app?._context.components[viewId];
+  }
+
+  public getViewMeta(viewUrl: string | undefined) {
+    if (!viewUrl) return undefined;
+    const path = this.viewMetaPathMap.get(viewUrl);
+    return path?.[path.length - 1];
+  }
+
+  public getViewMetaPath(viewUrl: string | undefined) {
+    if (!viewUrl) return [];
+    return this.viewMetaPathMap.get(viewUrl) || [];
+  }
+
+  private indexViewMeta(metas: TabViewMeta[], parentPath: TabViewMeta[] = []) {
+    metas.forEach(meta => {
+      const currentPath = [...parentPath, meta];
+      if (meta.viewUrl) {
+        this.viewMetaPathMap.set(meta.viewUrl, currentPath);
+      }
+      if (Array.isArray(meta.children)) {
+        this.indexViewMeta(meta.children, currentPath);
+      }
+    });
   }
 
   private transformModules(modules: Modules) {

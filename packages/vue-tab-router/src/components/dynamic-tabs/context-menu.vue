@@ -4,7 +4,12 @@
       <div class="tabs-ctx-overlay" @click="emit('close')" @contextmenu.prevent="emit('close')" />
       <ul class="tabs-ctx-menu" :style="{ left: x + 'px', top: y + 'px' }">
         <template v-for="(group, groupIndex) in menuGroups" :key="groupIndex">
-          <li v-for="item in group" :key="item.action" @click="emit('action', item.action)">
+          <li
+            v-for="item in group"
+            :key="item.action"
+            :class="{ 'is-disabled': item.disabled }"
+            @click="!item.disabled && emit('action', item.action)"
+          >
             <component :is="item.icon" size="14" />
             {{ item.label }}
           </li>
@@ -16,18 +21,21 @@
 </template>
 
 <script lang="ts" setup>
-import { markRaw } from "vue";
+import { computed, markRaw } from "vue";
 import IconRefresh from "../icons/icon-refresh.vue";
 import IconArrowLeft from "../icons/icon-arrow-left.vue";
 import IconArrowRight from "../icons/icon-arrow-right.vue";
 import IconClose from "../icons/icon-close.vue";
 import IconFolderDelete from "../icons/icon-folder-delete.vue";
 import IconExternal from "../icons/icon-external.vue";
+import IconPin from "../icons/icon-pin.vue";
+import type { Tab } from "../../tab";
 
-defineProps<{
+const props = defineProps<{
   visible: boolean;
   x: number;
   y: number;
+  tab?: Tab | null;
 }>();
 
 const emit = defineEmits<{
@@ -35,9 +43,17 @@ const emit = defineEmits<{
   (e: "action", action: string): void;
 }>();
 
-const menuGroups = [
+const menuGroups = computed(() => [
   [{ action: "detach", icon: markRaw(IconExternal), label: "弹窗显示" }],
-  [{ action: "refresh", icon: markRaw(IconRefresh), label: "刷新此页" }],
+  [
+    {
+      action: "toggle-pinned",
+      icon: markRaw(IconPin),
+      label: props.tab?._pinned ? "取消置顶" : "置顶",
+      disabled: Boolean(props.tab?._isFirst),
+    },
+    { action: "refresh", icon: markRaw(IconRefresh), label: "刷新此页" },
+  ],
   [
     { action: "close-left", icon: markRaw(IconArrowLeft), label: "关闭左侧" },
     { action: "close-right", icon: markRaw(IconArrowRight), label: "关闭右侧" },
@@ -45,7 +61,7 @@ const menuGroups = [
     { action: "close-all", icon: markRaw(IconFolderDelete), label: "全部关闭" },
   ],
   [{ action: "refresh-all", icon: markRaw(IconRefresh), label: "全部刷新" }],
-];
+]);
 </script>
 
 <style lang="scss" scoped>
@@ -79,6 +95,16 @@ const menuGroups = [
 
     &:hover {
       background: var(--tab-color-bg-hover, #f2f3f5);
+    }
+
+    &.is-disabled {
+      color: var(--tab-color-text-disabled, #86909c);
+      cursor: not-allowed;
+      opacity: 0.55;
+
+      &:hover {
+        background: transparent;
+      }
     }
   }
 

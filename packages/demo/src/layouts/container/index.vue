@@ -19,6 +19,12 @@
           <template v-if="tabsMangager.tabs.length > 0">
             <TabbarComponent />
           </template>
+          <DynamicBreadcrumbComponent
+            class="container-breadcrumb"
+            :menus="menuStore.getMenus"
+            :get-menu-key="tabMenu.getMenuKey"
+            :show-icon="false"
+          />
           <a-layout-content :style="{ overflow: 'hidden' }">
             <ContentComponent />
           </a-layout-content>
@@ -29,7 +35,7 @@
 </template>
 <script lang="ts" setup>
 import { useMenuStore } from "@/plugins/store";
-import { useTabMenu, useTabsManager } from "@xsbcme/vue-tab-router";
+import { DynamicBreadcrumbComponent, useTabMenu, useTabsManager } from "@xsbcme/vue-tab-router";
 import { Menu } from "@/model/menu";
 import { Message } from "@arco-design/web-vue";
 import NavbarComponent from "./navbar.vue";
@@ -81,6 +87,10 @@ const handleSelectMenu = async (menuKey: string) => {
 
   :deep(.arco-layout-sider-children) {
     overflow: hidden;
+  }
+
+  .container-breadcrumb {
+    border-bottom: 1px solid var(--color-border);
   }
 }
 </style>

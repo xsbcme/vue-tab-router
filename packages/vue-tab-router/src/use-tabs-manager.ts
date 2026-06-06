@@ -23,6 +23,7 @@ function normalizeTabsManagerOptions(options: TabsManagerOptions): ITabsManagerO
 
   return {
     modules: views.modules,
+    viewMeta: views.meta,
     source: views.source,
     storageAdapter: storage?.adapter,
     storageKey: storage?.key,
@@ -42,6 +43,7 @@ function normalizeTabsManagerOptions(options: TabsManagerOptions): ITabsManagerO
     onBeforeTabLeave: guards?.beforeLeave,
     onBeforeTabClose: guards?.beforeClose,
     detachedZIndex: detached?.zIndex,
+    detachedFullscreen: detached?.fullscreen,
   };
 }
 

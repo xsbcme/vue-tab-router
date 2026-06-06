@@ -52,6 +52,7 @@
       :visible="contextMenu.visible"
       :x="contextMenu.x"
       :y="contextMenu.y"
+      :tab="contextMenu.tab"
       @close="closeContextMenu"
       @action="contextAction"
     />
@@ -289,6 +290,9 @@ const contextAction = (eventName: string) => {
       break;
     case "refresh":
       tabsManager.refreshTab(tab._id);
+      break;
+    case "toggle-pinned":
+      tabsManager.updateTabOptions({ _viewPinned: !tab._pinned }, tab._id);
       break;
     case "close-left":
       tabsManager.closeTabsByLeft(tab._id);

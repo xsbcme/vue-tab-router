@@ -28,6 +28,8 @@ const tabsManager = createTabsManager({
 
 刷新或直接访问带 `tab` 参数的地址时，插件会读取参数并调用 `tabsManager.openTab(viewUrl, options)` 打开对应标签。
 
+如果进入页面时 URL 中没有 `tab` 参数，但当前已经有激活标签页，插件默认会使用 `replace` 补齐当前激活 tab 的 URL 状态。这样登录成功进入工作台后，也能得到可复制、可刷新的标签页地址。
+
 ## 传递页面参数
 
 URL 状态包含：
@@ -66,6 +68,7 @@ tabsManager.openTab(viewUrl, {
 默认策略：
 
 - 首次写入 `tab` 参数时使用 `replace`
+- 初始化时补齐当前激活 tab 也使用 `replace`
 - 后续打开或切换标签时使用 `push`
 - 更新、关闭、清空标签时使用 `replace`
 
@@ -93,6 +96,66 @@ createTabUrlSyncPlugin(router, {
 ```ts
 createTabUrlSyncPlugin(router, {
   queryKey: "activeTab",
+});
+```
+
+默认参数名是 `tab`，因此默认地址类似：
+
+```txt
+/#/dashboard?tab=...
+```
+
+配置 `queryKey` 后，插件会使用新的参数名读写和清理 URL：
+
+```txt
+/#/dashboard?activeTab=...
+```
+
+这个配置适合外层路由已经占用了 `tab`，或希望与业务系统的 URL 参数命名保持一致的场景。
+
+## 初始化同步
+
+默认情况下，如果插件安装时当前已经有激活 tab，且 URL 中没有 tab 状态，插件会把当前激活 tab 写入 URL：
+
+```ts
+createTabUrlSyncPlugin(router, {
+  syncInitialActiveTab: true,
+});
+```
+
+该配置默认开启。如希望首次进入工作台时保持干净 URL，可关闭：
+
+```ts
+createTabUrlSyncPlugin(router, {
+  syncInitialActiveTab: false,
+});
+```
+
+## 浏览器标题同步
+
+插件默认会根据当前激活 tab 更新浏览器标签页标题：
+
+```ts
+createTabUrlSyncPlugin(router, {
+  syncDocumentTitle: true,
+});
+```
+
+标题优先使用 `tab.viewName`，没有标题时回退到 `tab.viewUrl`。如果需要拼接系统名，可以自定义格式：
+
+```ts
+createTabUrlSyncPlugin(router, {
+  formatDocumentTitle(tab) {
+    return tab?.viewName ? `${tab.viewName} - 管理后台` : "管理后台";
+  },
+});
+```
+
+如需关闭标题同步，可设置：
+
+```ts
+createTabUrlSyncPlugin(router, {
+  syncDocumentTitle: false,
 });
 ```
 

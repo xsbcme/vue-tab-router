@@ -73,7 +73,7 @@ const emit = defineEmits<{
 }>();
 
 const tabsManager = useTabsManager();
-const isFullscreen = ref(true);
+const isFullscreen = ref(tabsManager.detachedFullscreen);
 const fullscreenTitle = computed(() => (isFullscreen.value ? "退出全屏显示" : "全屏显示"));
 const previewRef = ref<InstanceType<typeof PreviewContainerComponent>>();
 
@@ -89,7 +89,7 @@ watch(
   () => props.visible,
   visible => {
     if (visible) {
-      isFullscreen.value = true;
+      isFullscreen.value = tabsManager.detachedFullscreen;
     }
   }
 );

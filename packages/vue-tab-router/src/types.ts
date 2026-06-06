@@ -14,6 +14,11 @@ export interface ITabsManagerOptions {
   modules: Record<string, () => Promise<Component>> | Record<string, Component>;
 
   /**
+   * 页面元数据树，用于补充 viewUrl 的默认标题、图标、打开参数和层级。
+   */
+  viewMeta?: TabViewMeta[];
+
+  /**
    * 自定义存储适配器，用于持久化 tabs 状态。
    */
   storageAdapter?: AbstractStorageAdapter;
@@ -111,14 +116,39 @@ export interface ITabsManagerOptions {
    * 弹窗显示层级。
    */
   detachedZIndex?: number;
+
+  /**
+   * 弹窗打开后是否默认全屏显示。默认启用。
+   */
+  detachedFullscreen?: boolean;
 }
 
 /** 页面模块与异步组件配置。 */
 export interface TabsManagerViewsOptions {
   /** 页面模块映射，key 为组件注册名，value 为组件或懒加载函数。 */
   modules: ITabsManagerOptions["modules"];
+  /** 页面元数据树，用于补充 viewUrl 的默认标题、图标、打开参数和层级。 */
+  meta?: TabViewMeta[];
   /** 异步组件默认配置，会合并到 `defineAsyncComponent`。 */
   source?: ITabsManagerOptions["source"];
+}
+
+/** 页面元数据。它不是菜单，也不是路由，只用于补充 modules 扫描到的 viewUrl。 */
+export interface TabViewMeta {
+  /** 页面唯一标识。 */
+  id?: string | number;
+  /** 页面标题，会作为 tab 默认标题。 */
+  title?: string;
+  /** 页面图标，会作为 tab 默认图标。 */
+  icon?: string;
+  /** 页面地址，对应 modules 的 key 或 iframe/link viewUrl。 */
+  viewUrl?: string;
+  /** 默认 openTab 参数，可直接使用 `_viewName`、`_viewNoCache` 等现有参数。 */
+  props?: IOpenTabOptions;
+  /** 业务扩展元数据，不参与 openTab 参数合并。 */
+  meta?: Record<string, unknown>;
+  /** 子页面元数据，用于描述页面层级。 */
+  children?: TabViewMeta[];
 }
 
 /** 持久化配置。 */
@@ -151,6 +181,8 @@ export interface TabsManagerRenderOptions {
 export interface TabsManagerDetachedOptions {
   /** 弹窗显示层级。默认 `1000`。 */
   zIndex?: number;
+  /** 弹窗打开后是否默认全屏显示。默认 `true`。 */
+  fullscreen?: boolean;
 }
 
 /** iframe 页面配置。 */

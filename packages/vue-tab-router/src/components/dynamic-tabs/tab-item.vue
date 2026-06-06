@@ -1,8 +1,9 @@
 <template>
   <div
     class="tabs-nav__item"
-    :class="{ 'is-active': isActive, 'is-closable': !tab._noClose }"
+    :class="{ 'is-active': isActive, 'is-closable': !tab._noClose, 'is-pinned': tab._pinned }"
     :draggable="draggable"
+    :title="tab._pinned ? '已置顶' : undefined"
     @click="emit('select', tab._id)"
     @contextmenu.prevent="e => emit('contextmenu', e, tab)"
     @dragstart="e => emit('dragstart', e, tab)"
@@ -11,6 +12,7 @@
     @dragend="emit('dragend')"
   >
     <div class="tabs-title">
+      <IconPin v-if="tab._pinned" class="tabs-title__pin" size="13" aria-hidden="true" />
       <template v-if="showIcon && (tab.viewIcon || defaultIcon)">
         <dynamic-icon width="16px" height="16px" :icon="tab.viewIcon || defaultIcon" />
       </template>
@@ -34,6 +36,7 @@ import { Tab } from "@/tab";
 import TruncatedText from "./truncated-text.vue";
 import DynamicIcon from "../dynamic-icon.vue";
 import IconClose from "../icons/icon-close.vue";
+import IconPin from "../icons/icon-pin.vue";
 
 defineProps<{
   tab: Tab;
@@ -64,6 +67,11 @@ const emit = defineEmits<{
   min-width: 0;
   max-width: 220px;
   width: 100%;
+}
+
+.tabs-title__pin {
+  flex-shrink: 0;
+  color: var(--tab-color-primary, #165dff);
 }
 
 .tabs-nav__item {
@@ -172,6 +180,15 @@ const emit = defineEmits<{
     &::after {
       background: radial-gradient(circle at 100% 0, transparent 0 8px, var(--tab-color-bg-active, #e8ebef) 8.5px);
     }
+  }
+
+  &.is-pinned {
+    color: var(--tab-color-text-primary, #1d2129);
+    box-shadow: inset 0 2px 0 var(--tab-color-primary, #165dff);
+  }
+
+  &.is-pinned:not(.is-active) {
+    background: var(--tab-color-bg-hover, #f5f6f8);
   }
 
   &:hover .tabs-nav__divider,

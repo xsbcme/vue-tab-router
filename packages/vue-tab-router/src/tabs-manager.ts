@@ -97,6 +97,10 @@ export class TabsManager {
     return this._options.detachedZIndex ?? 1000;
   }
 
+  get detachedFullscreen() {
+    return this._options.detachedFullscreen !== false;
+  }
+
   /**
    * 获取全部注册的标签页路径
    */
@@ -109,6 +113,14 @@ export class TabsManager {
    */
   get activeTabParentPaths() {
     return findParentPathsByPath(this.registerTabPaths, this.activeTab?.viewUrl);
+  }
+
+  public getViewMeta(viewUrl: string | undefined) {
+    return this.sharedContext.getViewMeta(viewUrl);
+  }
+
+  public getViewMetaPath(viewUrl: string | undefined) {
+    return this.sharedContext.getViewMetaPath(viewUrl);
   }
 
   public createScopedManager(options: Partial<ITabsManagerOptions> = {}) {
@@ -215,6 +227,13 @@ export class TabsManager {
       return;
     }
     this._tabs.push(tab);
+  }
+
+  private sortPinnedTabs() {
+    const firstTabs = this._tabs.filter(tab => tab._isFirst);
+    const pinnedTabs = this._tabs.filter(tab => !tab._isFirst && tab._pinned);
+    const normalTabs = this._tabs.filter(tab => !tab._isFirst && !tab._pinned);
+    this._tabs = [...firstTabs, ...pinnedTabs, ...normalTabs];
   }
 
   private setTabNoAllowClose(noAllow: boolean = true, tabId?: string) {
@@ -433,6 +452,7 @@ export class TabsManager {
 
       // viewProps 采用浅合并，保证未覆盖字段仍然保留。
       const mergedViewProps = { ...findTab.viewProps, ...viewProps };
+      const previousPinned = findTab._pinned;
 
       Object.assign<Tab, Partial<Tab>>(findTab, {
         viewName: _viewName ?? findTab.viewName,
@@ -444,6 +464,10 @@ export class TabsManager {
         _pinned: findTab._isFirst ? findTab._pinned : (_viewPinned ?? findTab._pinned),
         _noDrag: findTab._isFirst ? true : (_viewNoDrag ?? findTab._noDrag),
       });
+
+      if (previousPinned !== findTab._pinned) {
+        this.sortPinnedTabs();
+      }
 
       this.persistTabs();
       return this._hooks.call("tab:updated", clone(findTab));
@@ -465,6 +489,13 @@ export class TabsManager {
   public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions): Promise<string | Window | null>;
   public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions) {
     return nextTick(async () => {
+      const viewMeta = this.getViewMeta(viewUrl);
+      const normalizedOptions = {
+        ...(viewMeta?.props || {}),
+        _viewName: viewMeta?.props?._viewName ?? viewMeta?.title,
+        _viewIcon: viewMeta?.props?._viewIcon ?? viewMeta?.icon,
+        ...jsonToObject(tabOptions || {}, {}),
+      } as IOpenTabOptions;
       const {
         _viewOutside,
         _viewOutsideProps,
@@ -475,7 +506,7 @@ export class TabsManager {
         _viewPinned,
         _viewNoDrag,
         ...viewProps
-      } = jsonToObject(tabOptions || {}, {}) as IOpenTabOptions;
+      } = normalizedOptions;
 
       // 链接型地址（http/https 或 TabViewUrl.createRelative 创建的相对地址）
       if (this.isUrl(viewUrl)) {
