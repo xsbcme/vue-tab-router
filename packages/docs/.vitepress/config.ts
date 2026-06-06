@@ -1,12 +1,21 @@
 import { defineConfig } from "vitepress";
 
+const normalizeBase = (base = "/") => {
+  if (base === "./") return base;
+  const prefixed = base.startsWith("/") ? base : `/${base}`;
+  return prefixed.endsWith("/") ? prefixed : `${prefixed}/`;
+};
+
+const siteBase = normalizeBase(process.env.VITEPRESS_BASE);
+
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  base: siteBase,
   lang: "zh-CN",
   title: "VueTabRouter",
   titleTemplate: "多标签页路由插件",
   description: "一个专注于 Vue 3 的多标签页路由插件文档站点",
-  head: [["link", { rel: "icon", href: "/images/logo.png" }]],
+  head: [["link", { rel: "icon", href: `${siteBase}images/logo.png` }]],
   lastUpdated: true,
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
