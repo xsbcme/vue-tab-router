@@ -1,4 +1,4 @@
-import { App, AsyncComponentLoader, Component, defineAsyncComponent, nextTick, createVNode, defineComponent, toRaw } from "vue";
+import { App, AsyncComponentLoader, Component, defineAsyncComponent, nextTick, createVNode, defineComponent, toRaw, reactive } from "vue";
 import type { IframePostMessageOptions } from "./iframe-message";
 import { Tab } from "./tab";
 import {
@@ -14,7 +14,7 @@ import {
   TabGuardName,
   TabLeaveGuard,
 } from "./types";
-import { jsonToObject, createRandomString, clone, findParentPathsByPath, TabViewUrl } from "./utils";
+import { jsonToObject, createRandomString, clone, findParentPathsByPath, stableStringify, TabViewUrl } from "./utils";
 import { STORAGE_TABS_KEY } from "./constant";
 import { useEventManager } from "./use-event-manager";
 import { AbstractStorageAdapter } from "./abstract-storage-adapter";
@@ -107,12 +107,13 @@ export class TabsManager {
     if (this._pluginsLoaded || !this._app) return;
     this._pluginsLoaded = true;
     const plugins = this._options?.plugins ?? [];
+    const tabsManager = reactive(this) as unknown as TabsManager;
     plugins.forEach(plugin => {
       const disposers: TabsManagerPluginCleanup[] = [];
       const setup = typeof plugin === "function" ? plugin : plugin.setup;
       const cleanup = setup({
         app: this._app!,
-        tabsManager: this,
+        tabsManager,
         hooks: this._hooks,
         onDispose: disposer => disposers.push(disposer),
       });
@@ -189,7 +190,7 @@ export class TabsManager {
   private getTabByViewUrlAndProps(viewUrl: string, props: Record<string, unknown> | undefined) {
     const filterTabsByComponent = this._tabs.filter(tab => tab.viewUrl === viewUrl);
     return filterTabsByComponent.find(tab => {
-      return JSON.stringify(tab.viewProps) === JSON.stringify(props);
+      return stableStringify(tab.viewProps) === stableStringify(props);
     });
   }
 
@@ -743,6 +744,7 @@ export class TabsManager {
     const mountApp = app.mount;
     app.mount = (...args) => {
       this.registerModules();
+      this.setupPlugins();
       // todo 这里应该将标签页列表遍历一遍提取参数缓存进内存中
       return mountApp(...args);
     };
@@ -751,7 +753,6 @@ export class TabsManager {
       this.destroy();
       return unmountApp(...args);
     };
-    this.setupPlugins();
     app.config.globalProperties.$tabsManager = this;
   }
 }

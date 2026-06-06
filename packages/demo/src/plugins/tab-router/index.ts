@@ -1,5 +1,6 @@
 import { ref, createVNode } from "vue";
-import { createTabsManager, StorageAdapter } from "@xsbcme/vue-tab-router";
+import { createTabsManager, createTabUrlSyncPlugin, StorageAdapter } from "@xsbcme/vue-tab-router";
+import router from "@/plugins/vue-router";
 
 export const storageAdapter = new StorageAdapter(sessionStorage);
 export const hookLogs = ref<string[]>([]);
@@ -11,43 +12,58 @@ const pushLog = (logs: typeof hookLogs, message: string) => {
 };
 
 const tabsManager = createTabsManager({
-  modules: import.meta.glob("@/views/**/page-index.vue", { eager: false }),
-  storageAdapter,
-  noActiveComponent: createVNode(
-    "div",
-    {
-      style: { height: "100%" },
-    },
-    () => "欢迎使用标签页路由"
-  ),
-  iframeMessageOrigins: ["self"],
-  onIframeLoad: ({ iframe, tab }) => {
-    pushLog(iframeLogs, `load ${tab.viewName || tab.viewUrl}`);
-    iframe.style.backgroundColor = tab.viewProps?.iframeDemo ? "#f7f8fa" : "#fff";
-    try {
-      if (tab.viewProps?.iframeDemo && iframe.contentDocument) {
-        const style = iframe.contentDocument.createElement("style");
-        style.textContent = `
-          body { outline: 4px solid rgba(22, 93, 255, 0.18); outline-offset: -4px; }
-          h2::after { content: ' - injected style'; color: #165dff; font-size: 14px; }
-        `;
-        iframe.contentDocument.head.appendChild(style);
-      }
-    } catch {
-      pushLog(iframeLogs, `无法访问 iframe 内部文档 ${tab.viewUrl}`);
-    }
+  views: {
+    modules: import.meta.glob("@/views/**/page-index.vue", { eager: false }),
   },
-  onIframeMessage: message => {
-    pushLog(iframeLogs, `message ${JSON.stringify(message.data)}`);
-    const data = message.data;
-    if (!data || typeof data !== "object") return;
-    const payload = data as Record<string, unknown>;
-    if (payload.type === "iframe:refresh-current") {
-      tabsManager.refreshTab(message.tabId);
-      message.reply({ type: "host:refreshed" });
-    }
+  storage: {
+    adapter: storageAdapter,
+  },
+  render: {
+    noActiveComponent: createVNode(
+      "div",
+      {
+        style: { height: "100%" },
+      },
+      () => "欢迎使用标签页路由"
+    ),
+  },
+  iframe: {
+    messageOrigins: ["self"],
+    onLoad: ({ iframe, tab }) => {
+      pushLog(iframeLogs, `load ${tab.viewName || tab.viewUrl}`);
+      iframe.style.backgroundColor = tab.viewProps?.iframeDemo ? "#f7f8fa" : "#fff";
+      try {
+        if (tab.viewProps?.iframeDemo && iframe.contentDocument) {
+          const style = iframe.contentDocument.createElement("style");
+          style.textContent = `
+            body { outline: 4px solid rgba(22, 93, 255, 0.18); outline-offset: -4px; }
+            h2::after { content: ' - injected style'; color: #165dff; font-size: 14px; }
+          `;
+          iframe.contentDocument.head.appendChild(style);
+        }
+      } catch {
+        pushLog(iframeLogs, `无法访问 iframe 内部文档 ${tab.viewUrl}`);
+      }
+    },
+    onMessage: message => {
+      pushLog(iframeLogs, `message ${JSON.stringify(message.data)}`);
+      const data = message.data;
+      if (!data || typeof data !== "object") return;
+      const payload = data as Record<string, unknown>;
+      if (payload.type === "iframe:refresh-current") {
+        tabsManager.refreshTab(message.tabId);
+        message.reply({ type: "host:refreshed" });
+      }
+    },
   },
   plugins: [
+    createTabUrlSyncPlugin(router, {
+      routePath: "/dashboard",
+      allowExternal: false,
+      onError: error => {
+        pushLog(hookLogs, `url-sync ${error instanceof Error ? error.message : String(error)}`);
+      },
+    }),
     ({ hooks, tabsManager }) => {
       hooks.on("tab:before-open", tab => {
         pushLog(hookLogs, `before-open ${tab.viewName || tab.viewUrl}`);
@@ -88,17 +104,19 @@ const tabsManager = createTabsManager({
       };
     },
   ],
-  onBeforeTabOpen: async (to, from) => {
-    pushLog(hookLogs, `global before-open ${to.viewName || to.viewUrl} from ${from?.viewName || from?.viewUrl || "-"}`);
-  },
-  onBeforeTabEnter: async (to, from) => {
-    pushLog(hookLogs, `global before-enter ${to.viewName || to.viewUrl} from ${from?.viewName || from?.viewUrl || "-"}`);
-  },
-  onBeforeTabLeave: async (to, from) => {
-    pushLog(hookLogs, `global before-leave ${from?.viewName || from?.viewUrl || "-"} to ${to.viewName || to.viewUrl}`);
-  },
-  onBeforeTabClose: async (tab, source) => {
-    pushLog(hookLogs, `global before-close ${tab.viewName || tab.viewUrl} source ${source?.viewName || source?.viewUrl || "-"}`);
+  guards: {
+    beforeOpen: async (to, from) => {
+      pushLog(hookLogs, `global before-open ${to.viewName || to.viewUrl} from ${from?.viewName || from?.viewUrl || "-"}`);
+    },
+    beforeEnter: async (to, from) => {
+      pushLog(hookLogs, `global before-enter ${to.viewName || to.viewUrl} from ${from?.viewName || from?.viewUrl || "-"}`);
+    },
+    beforeLeave: async (to, from) => {
+      pushLog(hookLogs, `global before-leave ${from?.viewName || from?.viewUrl || "-"} to ${to.viewName || to.viewUrl}`);
+    },
+    beforeClose: async (tab, source) => {
+      pushLog(hookLogs, `global before-close ${tab.viewName || tab.viewUrl} source ${source?.viewName || source?.viewUrl || "-"}`);
+    },
   },
 });
 

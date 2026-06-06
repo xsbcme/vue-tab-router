@@ -43,24 +43,24 @@ darkTheme;
 
 创建并初始化单例管理器。
 
-关键配置（`ITabsManagerOptions`）：
+关键配置（`TabsManagerOptions`）：
 
-- `modules`: 页面模块映射（同步组件或懒加载函数）
-- `storageAdapter`: 自定义持久化适配器
+- `views.modules`: 页面模块映射（同步组件或懒加载函数）
+- `views.source`: 透传给 `defineAsyncComponent` 的默认配置
+- `storage.adapter`: 自定义持久化适配器
 - `plugins`: 扩展插件列表
-- `source`: 透传给 `defineAsyncComponent` 的默认配置
-- `transitionProps`: 页面切换过渡配置
-- `keepAliveProps`: 缓存配置（如 `max`）
-- `noActiveComponent`: 无激活页时渲染组件
-- `noExistComponent`: 目标页面不存在时渲染组件
-- `onIframeLoad`: iframe 加载完成回调，可访问 iframe 元素
-- `iframeMessageOrigins`: 允许接收 iframe 消息的来源，默认只允许同源
-- `onIframeMessage`: iframe 发送 `postMessage` 时触发
-- `onBeforeTabOpen`: 全局打开前守卫
-- `onBeforeTabEnter`: 全局激活前守卫
-- `onBeforeTabLeave`: 全局离开前守卫
-- `onBeforeTabClose`: 全局关闭前守卫
-- `viewNameMaxLength`: 内置标签组件标题最大显示长度
+- `render.transition`: 页面切换过渡配置
+- `render.keepAlive`: 缓存配置（如 `max`）
+- `render.noActiveComponent`: 无激活页时渲染组件
+- `render.noExistComponent`: 目标页面不存在时渲染组件
+- `render.viewNameMaxLength`: 内置标签组件标题最大显示长度
+- `iframe.onLoad`: iframe 加载完成回调，可访问 iframe 元素
+- `iframe.messageOrigins`: 允许接收 iframe 消息的来源，默认只允许同源
+- `iframe.onMessage`: iframe 发送 `postMessage` 时触发
+- `guards.beforeOpen`: 全局打开前守卫
+- `guards.beforeEnter`: 全局激活前守卫
+- `guards.beforeLeave`: 全局离开前守卫
+- `guards.beforeClose`: 全局关闭前守卫
 
 ## `useTabsManager()`
 
@@ -164,13 +164,17 @@ iframe 默认会缓存，切换标签后保留内部 DOM 与页面状态。传 `
 
 ```ts
 const tabsManager = createTabsManager({
-  modules,
-  iframeMessageOrigins: ["self", "https://example.com"],
-  onIframeMessage(message) {
-    if (message.data?.type === "refresh-current") {
-      tabsManager.refreshTab(message.tabId);
-      message.reply({ type: "refreshed" });
-    }
+  views: {
+    modules,
+  },
+  iframe: {
+    messageOrigins: ["self", "https://example.com"],
+    onMessage(message) {
+      if (message.data?.type === "refresh-current") {
+        tabsManager.refreshTab(message.tabId);
+        message.reply({ type: "refreshed" });
+      }
+    },
   },
   plugins: [
     ({ hooks, tabsManager }) => {
@@ -202,19 +206,23 @@ iframe 加载完成后可通过 `onIframeLoad` 操作 iframe 元素；同源 ifr
 
 ```ts
 createTabsManager({
-  modules,
-  onIframeLoad({ iframe, tab }) {
-    iframe.style.backgroundColor = "#fff";
+  views: {
+    modules,
+  },
+  iframe: {
+    onLoad({ iframe, tab }) {
+      iframe.style.backgroundColor = "#fff";
 
-    try {
-      if (tab.viewProps?.hideHeader && iframe.contentDocument) {
-        const style = iframe.contentDocument.createElement("style");
-        style.textContent = ".layout-header { display: none; }";
-        iframe.contentDocument.head.appendChild(style);
+      try {
+        if (tab.viewProps?.hideHeader && iframe.contentDocument) {
+          const style = iframe.contentDocument.createElement("style");
+          style.textContent = ".layout-header { display: none; }";
+          iframe.contentDocument.head.appendChild(style);
+        }
+      } catch {
+        // 跨域 iframe 不能访问内部 document。
       }
-    } catch {
-      // 跨域 iframe 不能访问内部 document。
-    }
+    },
   },
 });
 ```
@@ -253,11 +261,13 @@ window.parent.postMessage({ type: "refresh-current" }, window.location.origin);
 
 ## 扩展插件
 
-通过 `createTabsManager({ plugins })` 挂载插件。插件可以是函数，也可以是带 `setup` 的对象。
+通过 `createTabsManager({ views, plugins })` 挂载插件。插件可以是函数，也可以是带 `setup` 的对象。
 
 ```ts
 const tabsManager = createTabsManager({
-  modules,
+  views: {
+    modules,
+  },
   plugins: [
     ({ hooks }) => {
       hooks.on("tab:opened", tab => {

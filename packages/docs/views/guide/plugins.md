@@ -6,7 +6,9 @@
 
 ```ts
 const tabsManager = createTabsManager({
-  modules,
+  views: {
+    modules,
+  },
   plugins: [
     ({ hooks }) => {
       hooks.on("tab:opened", tab => {

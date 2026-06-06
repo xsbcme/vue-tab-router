@@ -1,7 +1,7 @@
 import { computed, MaybeRefOrGetter, toValue, type ComputedRef } from "vue";
 import type { Tab } from "./tab";
 import type { IOpenTabOptions } from "./types";
-import { jsonToObject } from "./utils";
+import { jsonToObject, stableStringify } from "./utils";
 import { useTabsManager } from "./use-tabs-manager";
 
 export type TabMenuProps = Record<string, unknown> | string | null | undefined;
@@ -91,20 +91,6 @@ function readMenuProps(source: Record<string, unknown>, keys: string[]): TabMenu
       return value as Record<string, unknown> | string;
     }
   }
-}
-
-function stableStringify(value: unknown): string {
-  if (Array.isArray(value)) {
-    return `[${value.map(item => stableStringify(item)).join(",")}]`;
-  }
-  if (value && typeof value === "object") {
-    const record = value as Record<string, unknown>;
-    const entries = Object.keys(record)
-      .sort()
-      .map(key => `${JSON.stringify(key)}:${stableStringify(record[key])}`);
-    return `{${entries.join(",")}}`;
-  }
-  return JSON.stringify(value);
 }
 
 export function normalizeTabMenuProps(props: TabMenuProps, options: TabMenuKeyOptions = {}) {

@@ -69,18 +69,22 @@ onBeforeTabClose(async () => {
 
 ```ts
 const tabsManager = createTabsManager({
-  modules,
-  onBeforeTabOpen: async (toTab, fromTab) => {
-    console.log("open", fromTab?.viewUrl, "=>", toTab.viewUrl);
+  views: {
+    modules,
   },
-  onBeforeTabEnter: async (toTab, fromTab) => {
-    console.log("enter", fromTab?.viewUrl, "=>", toTab.viewUrl);
-  },
-  onBeforeTabLeave: async (toTab, fromTab) => {
-    console.log("leave", fromTab?.viewUrl, "=>", toTab.viewUrl);
-  },
-  onBeforeTabClose: async (closingTab, sourceTab) => {
-    console.log("close", closingTab.viewUrl, "source:", sourceTab?.viewUrl);
+  guards: {
+    beforeOpen: async (toTab, fromTab) => {
+      console.log("open", fromTab?.viewUrl, "=>", toTab.viewUrl);
+    },
+    beforeEnter: async (toTab, fromTab) => {
+      console.log("enter", fromTab?.viewUrl, "=>", toTab.viewUrl);
+    },
+    beforeLeave: async (toTab, fromTab) => {
+      console.log("leave", fromTab?.viewUrl, "=>", toTab.viewUrl);
+    },
+    beforeClose: async (closingTab, sourceTab) => {
+      console.log("close", closingTab.viewUrl, "source:", sourceTab?.viewUrl);
+    },
   },
 });
 ```

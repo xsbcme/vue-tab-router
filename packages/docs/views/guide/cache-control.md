@@ -47,9 +47,13 @@ await tabsManager.refreshTabAll();
 
 ```ts
 const tabsManager = createTabsManager({
-  modules,
-  keepAliveProps: {
-    max: 20,
+  views: {
+    modules,
+  },
+  render: {
+    keepAlive: {
+      max: 20,
+    },
   },
 });
 ```

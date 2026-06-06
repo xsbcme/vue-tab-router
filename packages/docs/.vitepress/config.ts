@@ -89,6 +89,7 @@ export default defineConfig({
               text: "与 VueRouter 结合使用",
               link: "/views/guide/vue-router-integration",
             },
+            { text: "地址栏同步与浏览器历史", link: "/views/guide/url-sync" },
             { text: "实现文档（源码版）", link: "/views/guide/implementation" },
           ],
         },

@@ -48,13 +48,19 @@ import { createTabsManager } from "@xsbcme/vue-tab-router";
 const modules = import.meta.glob("./views/**/page-index.vue");
 
 const tabsManager = createTabsManager({
-  modules,
-  viewNameMaxLength: 20,
-  onBeforeTabOpen: async (openingTab, sourceTab) => {
-    console.log("open", sourceTab?.viewUrl, "=>", openingTab.viewUrl);
+  views: {
+    modules,
   },
-  onBeforeTabEnter: async (toTab, fromTab) => {
-    console.log("enter", fromTab?.viewUrl, "=>", toTab.viewUrl);
+  render: {
+    viewNameMaxLength: 20,
+  },
+  guards: {
+    beforeOpen: async (openingTab, sourceTab) => {
+      console.log("open", sourceTab?.viewUrl, "=>", openingTab.viewUrl);
+    },
+    beforeEnter: async (toTab, fromTab) => {
+      console.log("enter", fromTab?.viewUrl, "=>", toTab.viewUrl);
+    },
   },
 });
 
@@ -127,21 +133,22 @@ tabsManager.openTab("/views/user/page-index.vue", { userId: 1001 });
 
 关键配置：
 
-- `modules`: 页面模块映射（同步或异步组件）
-- `storageAdapter`: 自定义存储适配器
-- `source`: 异步组件 `defineAsyncComponent` 参数
-- `keepAliveProps`: keep-alive 配置（如 `max`）
-- `transitionProps`: 过渡动画配置
-- `noActiveComponent`: 没有激活页时显示的组件
-- `noExistComponent`: 页面不存在时显示的组件
-- `onIframeLoad`: iframe 加载完成回调，可访问 iframe 元素
-- `iframeMessageOrigins`: 允许接收 iframe 消息的来源，默认只允许同源
-- `onIframeMessage`: iframe 发送 `postMessage` 时触发
-- `onBeforeTabOpen`: 全局打开前守卫
-- `onBeforeTabEnter`: 全局进入前守卫
-- `onBeforeTabLeave`: 全局离开前守卫
-- `onBeforeTabClose`: 全局关闭前守卫
-- `viewNameMaxLength`: 标题最大展示长度（配合内置 tabs 组件）
+- `views.modules`: 页面模块映射（同步或异步组件）
+- `views.source`: 异步组件 `defineAsyncComponent` 参数
+- `storage.adapter`: 自定义存储适配器
+- `plugins`: 扩展插件列表
+- `render.keepAlive`: keep-alive 配置（如 `max`）
+- `render.transition`: 过渡动画配置
+- `render.noActiveComponent`: 没有激活页时显示的组件
+- `render.noExistComponent`: 页面不存在时显示的组件
+- `render.viewNameMaxLength`: 标题最大展示长度（配合内置 tabs 组件）
+- `iframe.onLoad`: iframe 加载完成回调，可访问 iframe 元素
+- `iframe.messageOrigins`: 允许接收 iframe 消息的来源，默认只允许同源
+- `iframe.onMessage`: iframe 发送 `postMessage` 时触发
+- `guards.beforeOpen`: 全局打开前守卫
+- `guards.beforeEnter`: 全局进入前守卫
+- `guards.beforeLeave`: 全局离开前守卫
+- `guards.beforeClose`: 全局关闭前守卫
 
 ## `useTabsManager()`
 
@@ -269,19 +276,23 @@ iframe 加载完成后可通过 `onIframeLoad` 操作 iframe 元素；同源 ifr
 
 ```ts
 createTabsManager({
-  modules,
-  onIframeLoad({ iframe, tab }) {
-    iframe.style.backgroundColor = "#fff";
+  views: {
+    modules,
+  },
+  iframe: {
+    onLoad({ iframe, tab }) {
+      iframe.style.backgroundColor = "#fff";
 
-    try {
-      if (tab.viewProps?.hideHeader && iframe.contentDocument) {
-        const style = iframe.contentDocument.createElement("style");
-        style.textContent = ".layout-header { display: none; }";
-        iframe.contentDocument.head.appendChild(style);
+      try {
+        if (tab.viewProps?.hideHeader && iframe.contentDocument) {
+          const style = iframe.contentDocument.createElement("style");
+          style.textContent = ".layout-header { display: none; }";
+          iframe.contentDocument.head.appendChild(style);
+        }
+      } catch {
+        // 跨域 iframe 不能访问内部 document。
       }
-    } catch {
-      // 跨域 iframe 不能访问内部 document。
-    }
+    },
   },
 });
 ```
@@ -294,13 +305,17 @@ iframe 页面可以通过 `window.parent.postMessage` 与宿主通信，宿主�
 
 ```ts
 const tabsManager = createTabsManager({
-  modules,
-  iframeMessageOrigins: ["self", "https://example.com"],
-  onIframeMessage(message) {
-    if (message.data?.type === "refresh-current") {
-      tabsManager.refreshTab(message.tabId);
-      message.reply({ type: "refreshed" });
-    }
+  views: {
+    modules,
+  },
+  iframe: {
+    messageOrigins: ["self", "https://example.com"],
+    onMessage(message) {
+      if (message.data?.type === "refresh-current") {
+        tabsManager.refreshTab(message.tabId);
+        message.reply({ type: "refreshed" });
+      }
+    },
   },
   plugins: [
     ({ hooks, tabsManager }) => {
@@ -459,8 +474,12 @@ class LocalStorageAdapter extends AbstractStorageAdapter {
 }
 
 const tabsManager = createTabsManager({
-  modules: import.meta.glob("./views/**/page-index.vue"),
-  storageAdapter: new LocalStorageAdapter(),
+  views: {
+    modules: import.meta.glob("./views/**/page-index.vue"),
+  },
+  storage: {
+    adapter: new LocalStorageAdapter(),
+  },
 });
 ```
 
@@ -474,7 +493,9 @@ const tabsManager = createTabsManager({
 import { createTabsManager } from "@xsbcme/vue-tab-router";
 
 const tabsManager = createTabsManager({
-  modules: import.meta.glob("./views/**/page-index.vue"),
+  views: {
+    modules: import.meta.glob("./views/**/page-index.vue"),
+  },
   plugins: [
     ({ hooks, tabsManager }) => {
       console.log("tabs plugin loaded", tabsManager.tabs.length);

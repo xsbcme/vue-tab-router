@@ -20,8 +20,12 @@ import { createTabsManager } from "@xsbcme/vue-tab-router";
 const modules = import.meta.glob("@/views/**/page-index.vue");
 
 const tabsManager = createTabsManager({
-  modules,
-  viewNameMaxLength: 20,
+  views: {
+    modules,
+  },
+  render: {
+    viewNameMaxLength: 20,
+  },
 });
 
 export default tabsManager;

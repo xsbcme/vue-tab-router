@@ -6,15 +6,43 @@ import {
   DefineEvents,
   IDefineTabOptions,
   ITabsManagerOptions,
+  TabsManagerOptions,
   TabCloseGuard,
   TabEnterGuard,
   TabLeaveGuard,
 } from "./types";
 import { useEventManager } from "./use-event-manager";
 
+function normalizeTabsManagerOptions(options: TabsManagerOptions): ITabsManagerOptions {
+  const views = options.views;
+  const storage = options.storage;
+  const render = options.render;
+  const iframe = options.iframe;
+  const guards = options.guards;
+
+  return {
+    modules: views.modules,
+    source: views.source,
+    storageAdapter: storage?.adapter,
+    plugins: options.plugins,
+    transitionProps: render?.transition,
+    keepAliveProps: render?.keepAlive,
+    noActiveComponent: render?.noActiveComponent,
+    noExistComponent: render?.noExistComponent,
+    viewNameMaxLength: render?.viewNameMaxLength,
+    iframeMessageOrigins: iframe?.messageOrigins,
+    onIframeLoad: iframe?.onLoad,
+    onIframeMessage: iframe?.onMessage,
+    onBeforeTabOpen: guards?.beforeOpen,
+    onBeforeTabEnter: guards?.beforeEnter,
+    onBeforeTabLeave: guards?.beforeLeave,
+    onBeforeTabClose: guards?.beforeClose,
+  };
+}
+
 /** 创建并初始化 TabsManager 单例。 */
-export function createTabsManager(options: ITabsManagerOptions) {
-  return TabsManager.getInstance()._initOptions(options);
+export function createTabsManager(options: TabsManagerOptions) {
+  return TabsManager.getInstance()._initOptions(normalizeTabsManagerOptions(options));
 }
 
 /** 获取响应式 TabsManager 实例。 */

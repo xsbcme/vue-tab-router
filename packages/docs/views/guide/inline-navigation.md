@@ -29,10 +29,14 @@ await tabsManager.openTab(TabViewUrl.createRelative("/micro-app/index.html"), {
 
 ```ts
 const tabsManager = createTabsManager({
-  modules,
-  onIframeLoad({ event, iframe, tab }) {
-    console.log("iframe loaded =>", tab.viewUrl, event);
-    iframe.style.backgroundColor = "#fff";
+  views: {
+    modules,
+  },
+  iframe: {
+    onLoad({ event, iframe, tab }) {
+      console.log("iframe loaded =>", tab.viewUrl, event);
+      iframe.style.backgroundColor = "#fff";
+    },
   },
 });
 ```

@@ -47,13 +47,17 @@ Demo 的 `Iframe 通信与样式` 页面提供了“缓存 iframe / 不缓存 if
 
 ```ts
 const tabsManager = createTabsManager({
-  modules,
-  iframeMessageOrigins: ["self"],
-  onIframeMessage(message) {
-    if (message.data?.type === "iframe:refresh-current") {
-      tabsManager.refreshTab(message.tabId);
-      message.reply({ type: "host:refreshed" });
-    }
+  views: {
+    modules,
+  },
+  iframe: {
+    messageOrigins: ["self"],
+    onMessage(message) {
+      if (message.data?.type === "iframe:refresh-current") {
+        tabsManager.refreshTab(message.tabId);
+        message.reply({ type: "host:refreshed" });
+      }
+    },
   },
 });
 ```
@@ -94,19 +98,23 @@ window.parent.postMessage({ type: "iframe:ping" }, window.location.origin);
 
 ```ts
 createTabsManager({
-  modules,
-  onIframeLoad({ iframe, tab }) {
-    iframe.style.backgroundColor = "#fff";
+  views: {
+    modules,
+  },
+  iframe: {
+    onLoad({ iframe, tab }) {
+      iframe.style.backgroundColor = "#fff";
 
-    try {
-      if (tab.viewProps?.iframeDemo && iframe.contentDocument) {
-        const style = iframe.contentDocument.createElement("style");
-        style.textContent = "body { outline: 4px solid rgba(22, 93, 255, .18); }";
-        iframe.contentDocument.head.appendChild(style);
+      try {
+        if (tab.viewProps?.iframeDemo && iframe.contentDocument) {
+          const style = iframe.contentDocument.createElement("style");
+          style.textContent = "body { outline: 4px solid rgba(22, 93, 255, .18); }";
+          iframe.contentDocument.head.appendChild(style);
+        }
+      } catch {
+        // 跨域 iframe 不能访问内部 document。
       }
-    } catch {
-      // 跨域 iframe 不能访问内部 document。
-    }
+    },
   },
 });
 ```

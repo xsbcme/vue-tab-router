@@ -5,7 +5,7 @@ import { Tab } from "./tab";
 import type { TabsManagerPlugin } from "./tabs-manager-plugin";
 
 /**
- * TabsManager 初始化配置。
+ * TabsManager 内部归一化配置。
  */
 export interface ITabsManagerOptions {
   /**
@@ -91,6 +91,74 @@ export interface ITabsManagerOptions {
    * 标签名称最大显示长度（主要用于内置 Tabs 组件）。
    */
   viewNameMaxLength?: number;
+}
+
+/** 页面模块与异步组件配置。 */
+export interface TabsManagerViewsOptions {
+  /** 页面模块映射，key 为组件注册名，value 为组件或懒加载函数。 */
+  modules: ITabsManagerOptions["modules"];
+  /** 异步组件默认配置，会合并到 `defineAsyncComponent`。 */
+  source?: ITabsManagerOptions["source"];
+}
+
+/** 持久化配置。 */
+export interface TabsManagerStorageOptions {
+  /** 自定义存储适配器，用于持久化 tabs 状态。 */
+  adapter?: AbstractStorageAdapter;
+}
+
+/** 容器渲染、缓存与内置标签栏显示配置。 */
+export interface TabsManagerRenderOptions {
+  /** 标签页切换的过渡配置。 */
+  transition?: TransitionProps;
+  /** keep-alive 配置。 */
+  keepAlive?: ITabsManagerOptions["keepAliveProps"];
+  /** 无激活标签页时展示的占位组件。 */
+  noActiveComponent?: Component;
+  /** 目标组件不存在时展示的占位组件。 */
+  noExistComponent?: Component;
+  /** 标签名称最大显示长度（主要用于内置 Tabs 组件）。 */
+  viewNameMaxLength?: number;
+}
+
+/** iframe 页面配置。 */
+export interface TabsManagerIframeOptions {
+  /** iframe 加载完成回调。可通过 `iframe` 访问 DOM；跨域 iframe 只能操作元素本身，不能访问内部 document。 */
+  onLoad?: (context: IframeLoadEvent) => void;
+  /** 允许接收 iframe 消息的来源。默认只允许当前页面同源。 */
+  messageOrigins?: IframeMessageOriginValidator;
+  /** iframe 通过 postMessage 发送消息时触发。 */
+  onMessage?: (message: IframeMessageEvent) => void;
+}
+
+/** 全局 tab 守卫配置。 */
+export interface TabsManagerGuardsOptions {
+  /** 全局：打开标签页前守卫。 */
+  beforeOpen?: TabOpenGuard;
+  /** 全局：激活标签页前守卫。 */
+  beforeEnter?: TabEnterGuard;
+  /** 全局：离开当前标签页前守卫。 */
+  beforeLeave?: TabLeaveGuard;
+  /** 全局：关闭标签页前守卫。 */
+  beforeClose?: TabCloseGuard;
+}
+
+/**
+ * TabsManager 初始化配置。
+ */
+export interface TabsManagerOptions {
+  /** 页面模块与异步组件配置。 */
+  views: TabsManagerViewsOptions;
+  /** 持久化配置。 */
+  storage?: TabsManagerStorageOptions;
+  /** 扩展插件。插件会在 `app.use(tabsManager)` 时安装。 */
+  plugins?: TabsManagerPlugin[];
+  /** 容器渲染、缓存与内置标签栏显示配置。 */
+  render?: TabsManagerRenderOptions;
+  /** iframe 页面配置。 */
+  iframe?: TabsManagerIframeOptions;
+  /** 全局 tab 守卫配置。 */
+  guards?: TabsManagerGuardsOptions;
 }
 
 /**

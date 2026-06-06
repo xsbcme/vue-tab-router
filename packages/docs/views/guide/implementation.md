@@ -205,7 +205,9 @@ iframe 缓存独立于 Vue `KeepAlive`：可缓存 iframe 会被放入持久 ifr
 
 ```ts
 const tabsManager = createTabsManager({
-  modules,
+  views: {
+    modules,
+  },
   plugins: [
     ({ hooks }) => {
       hooks.on("tab:opened", tab => {
@@ -266,13 +268,19 @@ import { createTabsManager } from "@xsbcme/vue-tab-router";
 const modules = import.meta.glob("./views/**/page-index.vue");
 
 const tabsManager = createTabsManager({
-  modules,
-  viewNameMaxLength: 20,
-  onBeforeTabOpen: async toTab => {
-    console.log("open =>", toTab.viewUrl);
+  views: {
+    modules,
   },
-  onBeforeTabEnter: async (toTab, fromTab) => {
-    console.log("enter =>", fromTab?.viewUrl, "->", toTab.viewUrl);
+  render: {
+    viewNameMaxLength: 20,
+  },
+  guards: {
+    beforeOpen: async toTab => {
+      console.log("open =>", toTab.viewUrl);
+    },
+    beforeEnter: async (toTab, fromTab) => {
+      console.log("enter =>", fromTab?.viewUrl, "->", toTab.viewUrl);
+    },
   },
 });
 

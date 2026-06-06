@@ -5,5 +5,6 @@ export * from "./iframe-message";
 export * from "./abstract-storage-adapter";
 export * from "./storage-adapter";
 export * from "./tabs-manager-plugin";
+export * from "./tab-url-sync-plugin";
 export * from "./types";
 export { TabViewUrl, type TabViewUrlRelative } from "./utils";
