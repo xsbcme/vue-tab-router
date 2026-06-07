@@ -154,6 +154,26 @@ describe("createTabUrlSyncPlugin", () => {
     await expect.poll(() => targetManager.activeTab?.viewName).toBe("统计报表");
   });
 
+  it("syncs http iframe tabs with props when external urls are allowed", async () => {
+    const router = createRouterStub();
+    const { tabsManager } = createSyncedTabsManager(router, { allowExternal: true });
+
+    await tabsManager.openTab("https://www.baidu.com/", {
+      _viewName: "内部链接带参",
+      a: 123,
+    });
+
+    const queryValue = router.currentRoute.value.query?.tab;
+    expect(queryValue).toEqual(expect.any(String));
+
+    const targetRouter = createRouterStub({ path: "/dashboard", query: { tab: queryValue as string } });
+    const { tabsManager: targetManager } = createSyncedTabsManager(targetRouter, { allowExternal: true });
+
+    await expect.poll(() => targetManager.activeTab?.viewUrl).toBe("https://www.baidu.com/");
+    expect(targetManager.activeTab?.viewName).toBe("内部链接带参");
+    expect(targetManager.activeTab?.viewProps).toEqual({ a: 123 });
+  });
+
   it("removes invalid serialized values from custom query keys", async () => {
     const router = createRouterStub({ path: "/dashboard", query: { activeTab: "not-valid-base64url", tab: "keep" } });
     createSyncedTabsManager(router, { queryKey: "activeTab" });
@@ -224,5 +244,57 @@ describe("createTabUrlSyncPlugin", () => {
     await tabsManager.openTab(TabViewUrl.createRelative("/reports"), { _viewName: "统计报表" });
 
     expect(document.title).toBe("统计报表 - Demo");
+  });
+
+  it("syncs same-origin iframe navigation back to the route query", async () => {
+    const router = createRouterStub();
+    const { tabsManager } = createSyncedTabsManager(router);
+
+    await tabsManager.openTab(TabViewUrl.createRelative("/iframe/start.html"), { _viewName: "内联页面" });
+    const initialQueryValue = router.currentRoute.value.query?.tab;
+
+    await tabsManager.hooks.call("iframe:load", {
+      event: new Event("load"),
+      iframe: {
+        contentWindow: {
+          location: {
+            href: "http://localhost/iframe/detail.html?id=2#section",
+          },
+        },
+      } as unknown as HTMLIFrameElement,
+      tab: tabsManager.activeTab!,
+    });
+
+    const queryValue = router.currentRoute.value.query?.tab;
+    expect(queryValue).toEqual(expect.any(String));
+    expect(queryValue).not.toBe(initialQueryValue);
+    expect(tabsManager.activeTab?.viewUrl).toBe(TabViewUrl.createRelative("/iframe/detail.html?id=2#section"));
+
+    const targetRouter = createRouterStub({ path: "/dashboard", query: { tab: queryValue as string } });
+    const { tabsManager: targetManager } = createSyncedTabsManager(targetRouter);
+    await expect.poll(() => targetManager.activeTab?.viewUrl).toBe(
+      TabViewUrl.createRelative("/iframe/detail.html?id=2#section")
+    );
+  });
+
+  it("does not fail when iframe navigation cannot be inspected", async () => {
+    const router = createRouterStub();
+    const { tabsManager } = createSyncedTabsManager(router);
+
+    await tabsManager.openTab(TabViewUrl.createRelative("/iframe/start.html"), { _viewName: "内联页面" });
+    const initialQueryValue = router.currentRoute.value.query?.tab;
+
+    await tabsManager.hooks.call("iframe:load", {
+      event: new Event("load"),
+      iframe: {
+        get contentWindow() {
+          throw new Error("cross-origin");
+        },
+      } as unknown as HTMLIFrameElement,
+      tab: tabsManager.activeTab!,
+    });
+
+    expect(router.currentRoute.value.query?.tab).toBe(initialQueryValue);
+    expect(tabsManager.activeTab?.viewUrl).toBe(TabViewUrl.createRelative("/iframe/start.html"));
   });
 });

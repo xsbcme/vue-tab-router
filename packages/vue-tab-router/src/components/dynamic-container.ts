@@ -131,7 +131,9 @@ export default defineComponent({
                 allowedOrigins: managerOptions?.iframeMessageOrigins,
                 messageTab: clone(currentTab),
                 onLoad: (e: Event, iframe: HTMLIFrameElement) => {
-                  onIframeLoad && onIframeLoad({ event: e, iframe, tab: clone(currentTab) });
+                  const payload = { event: e, iframe, tab: clone(currentTab) };
+                  onIframeLoad && onIframeLoad(payload);
+                  tabsManager.hooks.call("iframe:load", payload);
                 },
                 onMessage: (e: MessageEvent) => emitIframeMessage(e, currentTab),
               });
@@ -218,7 +220,9 @@ export default defineComponent({
                 messageTab: clone(currentTab),
                 onLoad: (e: Event, iframe: HTMLIFrameElement) => {
                   const latestTab = tabsManager.getTabById(currentTab._id) || currentTab;
-                  onIframeLoad && onIframeLoad({ event: e, iframe, tab: clone(latestTab) });
+                  const payload = { event: e, iframe, tab: clone(latestTab) };
+                  onIframeLoad && onIframeLoad(payload);
+                  tabsManager.hooks.call("iframe:load", payload);
                 },
                 onMessage: (e: MessageEvent) => emitIframeMessage(e, currentTab),
               }),

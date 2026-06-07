@@ -46,6 +46,8 @@ export interface CreateTabUrlSyncPluginOptions {
   allowExternal?: boolean;
   /** 是否允许从 URL 打开 TabViewUrl.createRelative 创建的 iframe 页面。 */
   allowRelative?: boolean;
+  /** 是否同步同源 iframe 内部链接导航。默认开启。 */
+  syncIframeNavigation?: boolean;
   /** 写入 URL 前自定义序列化。 */
   serialize?: (state: TabUrlState) => string;
   /** 从 URL 读取后自定义反序列化。 */
@@ -155,6 +157,34 @@ function clearQueryValue(query: RouteQuery, key: string) {
   return nextQuery;
 }
 
+function readIframeLocationHref(iframe: HTMLIFrameElement) {
+  try {
+    return iframe.contentWindow?.location.href;
+  } catch (error) {
+    return undefined;
+  }
+}
+
+function resolveIframeNavigationViewUrl(tab: Partial<Tab>, iframe: HTMLIFrameElement) {
+  if (!TabViewUrl.isIframe(tab.viewUrl)) return undefined;
+
+  const href = readIframeLocationHref(iframe);
+  if (!href || href === "about:blank") return undefined;
+
+  if (TabViewUrl.isRelative(tab.viewUrl)) {
+    try {
+      const currentUrl = new URL(href, window.location.href);
+      if (!["http:", "https:"].includes(currentUrl.protocol)) return undefined;
+      return TabViewUrl.createRelative(`${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
+    } catch (error) {
+      return undefined;
+    }
+  }
+
+  if (TabViewUrl.isHttp(tab.viewUrl)) return href;
+  return undefined;
+}
+
 export function createTabUrlSyncPlugin(
   router: TabUrlSyncRouter,
   options: CreateTabUrlSyncPluginOptions = {}
@@ -190,6 +220,23 @@ export function createTabUrlSyncPlugin(
 
       const formattedTitle = options.formatDocumentTitle?.(tab, route);
       document.title = formattedTitle || tab?.viewName || tab?.viewUrl || initialDocumentTitle;
+    };
+
+    const syncIframeNavigation = async (tab: Partial<Tab>, iframe: HTMLIFrameElement) => {
+      if (options.syncIframeNavigation === false || applyingRoute) return;
+      if (!tab._id || tab._id !== tabsManager.activeTab?._id) return;
+
+      const viewUrl = resolveIframeNavigationViewUrl(tab, iframe);
+      if (!viewUrl || viewUrl === tab.viewUrl) return;
+
+      const nextState = normalizeState({ ...tab, viewUrl });
+      if (!nextState || !isAllowedState(nextState, getCurrentRoute(router), options)) return;
+
+      try {
+        await tabsManager.updateTabOptions({ _viewUrl: viewUrl }, tab._id);
+      } catch (error) {
+        reportError(error);
+      }
     };
 
     const writeStateToRoute = async (
@@ -288,6 +335,7 @@ export function createTabUrlSyncPlugin(
       if (applyingRoute) return;
       return writeStateToRoute(undefined, "replace");
     });
+    const removeIframeLoad = hooks.on("iframe:load", ({ tab, iframe }) => syncIframeNavigation(tab, iframe));
 
     return () => {
       removeRouteListener?.();
@@ -296,6 +344,7 @@ export function createTabUrlSyncPlugin(
       removeUpdated();
       removeClosed();
       removeCleared();
+      removeIframeLoad();
     };
   };
 }

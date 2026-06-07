@@ -42,6 +42,7 @@ const tabsManager = createTabsManager({
 | `formatDocumentTitle` | 无 | 自定义浏览器标题格式。 |
 | `allowExternal` | `false` | 是否允许 URL 打开 `http` / `https` 外部 iframe 页面。 |
 | `allowRelative` | `true` | 是否允许 URL 打开 `TabViewUrl.createRelative` 创建的相对 iframe 页面。 |
+| `syncIframeNavigation` | `true` | 是否同步同源 iframe 内部链接导航后的当前地址。 |
 | `validate` | 无 | 从 URL 打开 tab 前的自定义校验。 |
 | `serialize` / `deserialize` | base64url JSON | 自定义 URL 状态序列化方式。 |
 | `onError` | `console.error` | 同步失败、反序列化失败、目标页面未注册等错误回调。 |
@@ -126,6 +127,8 @@ createTabUrlSyncPlugin(router, {
 ```
 
 默认不允许从 URL 打开 `http` / `https` 外部 iframe。相对 iframe 地址默认允许；如需禁用，可设置 `allowRelative: false`。
+
+如果需要把内嵌打开的 `http` / `https` iframe 也写入地址栏并支持刷新恢复，需要显式开启 `allowExternal: true`。
 
 ## 自定义参数名
 

@@ -127,6 +127,7 @@ createTabUrlSyncPlugin(router, {
 | `formatDocumentTitle` | 无 | 自定义浏览器标题。 |
 | `allowExternal` | `false` | 是否允许 URL 打开 http/https 外部 iframe 页面。 |
 | `allowRelative` | `true` | 是否允许 URL 打开相对 iframe 页面。 |
+| `syncIframeNavigation` | `true` | 是否同步同源 iframe 内部链接导航后的当前地址。 |
 | `serialize` | base64url JSON | 写入 URL 前自定义序列化。 |
 | `deserialize` | base64url JSON | 从 URL 读取后自定义反序列化。 |
 | `validate` | 无 | 从 URL 打开 tab 前校验。 |

@@ -1,5 +1,5 @@
 import type { App } from "vue";
-import type { IframeMessageEvent } from "./iframe-message";
+import type { IframeLoadEvent, IframeMessageEvent } from "./iframe-message";
 import type { Tab } from "./tab";
 import type { TabsManager } from "./tabs-manager";
 import { TabGuardRejectError } from "./tab-guard";
@@ -34,6 +34,8 @@ export interface TabsManagerHookMap {
   "tab:detached-error": [error: unknown];
   /** iframe 通过 postMessage 向宿主发送消息时触发。 */
   "iframe:message": [message: IframeMessageEvent];
+  /** iframe 加载完成时触发。 */
+  "iframe:load": [context: IframeLoadEvent];
   /** 全部 tab 状态被清空后触发。 */
   "tabs:cleared": [];
 }

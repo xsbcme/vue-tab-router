@@ -119,7 +119,7 @@ const tabsManager = createTabsManager({
       syncInitialActiveTab: true,
       syncDocumentTitle: true,
       formatDocumentTitle: tab => (tab?.viewName ? `${tab.viewName} - Vue Tab Router Demo` : "Vue Tab Router Demo"),
-      allowExternal: false,
+      allowExternal: true,
       onError: error => {
         pushLog(hookLogs, `url-sync ${error instanceof Error ? error.message : String(error)}`);
       },
