@@ -1,6 +1,7 @@
 {
   "name": "@xsbcme/vue-tab-router",
   "version": "1.0.0-beta.37",
+  "description": "Vue 3 多标签页路由插件，适用于后台管理系统、工作台和多文档编辑场景。",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -15,6 +16,15 @@
   "files": [
     "dist"
   ],
+  "homepage": "https://doc.vtr.xsbcme.cn",
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitee.com/xsbcme/vue-tab-router.git",
+    "directory": "packages/vue-tab-router"
+  },
+  "bugs": {
+    "url": "https://gitee.com/xsbcme/vue-tab-router/issues"
+  },
   "scripts": {
     "build": "vite build",
     "build:watch": "vite build --watch",
@@ -22,7 +32,16 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run --typecheck.enabled --typecheck.tsconfig tsconfig.test.json"
   },
-  "keywords": [],
+  "keywords": [
+    "vue",
+    "vue3",
+    "tabs",
+    "router",
+    "keep-alive",
+    "iframe",
+    "multi-tab",
+    "admin"
+  ],
   "author": "xsbcme",
   "devDependencies": {
     "@types/node": "catalog:",
@@ -38,6 +57,6 @@
     "vue": "catalog:"
   },
   "peerDependencies": {
-    "vue": "^3.4.21"
+    "vue": "^3.0.0"
   }
 }

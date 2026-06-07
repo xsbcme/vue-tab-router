@@ -7,6 +7,7 @@ const normalizeBase = (base = "/") => {
 };
 
 const siteBase = normalizeBase(process.env.VITEPRESS_BASE);
+const demoUrl = process.env.DOCS_DEMO_URL ?? process.env.VITEPRESS_DEMO_URL;
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -15,7 +16,7 @@ export default defineConfig({
   title: "VueTabRouter",
   titleTemplate: "多标签页路由插件",
   description: "一个专注于 Vue 3 的多标签页路由插件文档站点",
-  head: [["link", { rel: "icon", href: `${siteBase}images/logo.png` }]],
+  head: [["link", { rel: "icon", type: "image/png", href: `${siteBase}logo.png` }]],
   lastUpdated: true,
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
@@ -57,6 +58,7 @@ export default defineConfig({
       { text: "指南", link: "/views/guide/" },
       { text: "API", link: "/views/api/" },
       { text: "Demo", link: "/views/demo/" },
+      ...(demoUrl ? [{ text: "在线 Demo", link: demoUrl }] : []),
       { text: "更新日志", link: "/views/log/" },
     ],
 

@@ -1,6 +1,6 @@
 # VueTabRouter
 
-一个专注于 Vue 的多标签页路由插件，适用于后台管理系统、工作台、多文档编辑等场景。
+一个专注于 Vue 3 的多标签页路由插件，适用于后台管理系统、工作台、多文档编辑等场景。
 
 - 支持组件页面和 iframe 页面
 - 支持单页多开 / 单例复用
@@ -31,7 +31,6 @@ yarn add @xsbcme/vue-tab-router
 
 - Vue 3.x
 - TypeScript（推荐）
-- Vue 3.x
 
 ---
 
@@ -115,7 +114,8 @@ tabsManager.openTab("/views/user/page-index.vue", { userId: 1001 });
 每个 tab 都包含：
 
 - 页面信息：`viewUrl`、`viewName`、`viewIcon`、`viewProps`
-- 行为标记：`_single`、`_noCache`、`_noClose`、`_noDrag`、`_pinned`、`_isFirst`
+- 打开参数：`_viewName`、`_viewIcon`、`_viewSingle`、`_viewNoCache`、`_viewPinned`、`_viewNoDrag`
+- 运行状态：`_single`、`_noCache`、`_noClose`、`_noDrag`、`_pinned`、`_isFirst`
 - 状态标记：`_isActive`、`_isRefresh`
 - 链路关系：`_sourceId`（来源页签 id）
 
@@ -131,7 +131,7 @@ tabsManager.openTab("/views/user/page-index.vue", { userId: 1001 });
 
 ## API（组合式函数）
 
-## `createTabsManager(options)`
+### `createTabsManager(options)`
 
 创建并初始化 tabs 管理器。
 
@@ -154,11 +154,11 @@ tabsManager.openTab("/views/user/page-index.vue", { userId: 1001 });
 - `guards.beforeLeave`: 全局离开前守卫
 - `guards.beforeClose`: 全局关闭前守卫
 
-## `useTabsManager()`
+### `useTabsManager()`
 
 获取响应式 `TabsManager` 实例。
 
-## `useTabMenu(options?)`
+### `useTabMenu(options?)`
 
 用于把业务菜单与标签页激活状态联动起来，适合 Arco、Element Plus 等需要 `selectedKeys` / `activeKey` 的菜单组件。
 
@@ -182,11 +182,11 @@ const tabMenu = useTabMenu({
 
 默认识别菜单字段：`url` / `uri` / `viewUrl`、`name` / `title`、`icon`、`props` / `viewProps`、`children`。如果业务字段不同，可以通过 `getViewUrl`、`getViewName`、`getViewIcon`、`getViewProps`、`getChildren` 自定义。
 
-## `useTabId()`
+### `useTabId()`
 
 在页面组件内获取当前 tabId。
 
-## `defineTabOptions(options)`
+### `defineTabOptions(options)`
 
 在页面内部声明当前 tab 元信息：
 
@@ -194,20 +194,22 @@ const tabMenu = useTabMenu({
 - `viewIcon`
 - `viewSingle`
 - `viewNoCache`
+- `viewPinned`
+- `viewNoDrag`
 
-## `defineTabEvents(events)`
+### `defineTabEvents(events)`
 
 定义当前页可接收的事件，供“子页签 -> 父页签”通信使用。
 
-## `onBeforeTabLeave(guard)`
+### `onBeforeTabLeave(guard)`
 
 注册页面级离开守卫。拒绝 Promise 可阻止切换。
 
-## `onBeforeTabClose(guard)`
+### `onBeforeTabClose(guard)`
 
 注册页面级关闭守卫。拒绝 Promise 可阻止关闭。
 
-## `onBeforeTabEnter(guard)`
+### `onBeforeTabEnter(guard)`
 
 注册页面级进入守卫。当此 tab 被激活时触发，拒绝 Promise 可阻止激活。
 
@@ -244,7 +246,7 @@ const tabMenu = useTabMenu({
 
 ## 页面打开模式
 
-## 1）组件页面
+### 1）组件页面
 
 ```ts
 tabsManager.openTab("/views/order/page-index.vue", {
@@ -256,7 +258,7 @@ tabsManager.openTab("/views/order/page-index.vue", {
 });
 ```
 
-## 2）iframe 内嵌页面
+### 2）iframe 内嵌页面
 
 当 `viewUrl` 为 `http/https`，或使用 `TabViewUrl.createRelative()` 创建相对地址时，会使用 iframe 渲染。
 
@@ -276,7 +278,7 @@ tabsManager.openTab(TabViewUrl.createRelative("/micro-app/index.html"), {
 });
 ```
 
-iframe 加载完成后可通过 `onIframeLoad` 操作 iframe 元素；同源 iframe 还可以访问内部文档：
+iframe 加载完成后可通过 `iframe.onLoad` 操作 iframe 元素；同源 iframe 还可以访问内部文档：
 
 ```ts
 createTabsManager({
@@ -305,7 +307,7 @@ createTabsManager({
 
 ### iframe 通信
 
-iframe 页面可以通过 `window.parent.postMessage` 与宿主通信，宿主可以在 `onIframeMessage` 或插件 hook 中处理消息，并通过 `reply`、`postActiveIframeMessage` 或 `postIframeMessage` 回发。
+iframe 页面可以通过 `window.parent.postMessage` 与宿主通信，宿主可以在 `iframe.onMessage` 或插件 hook 中处理消息，并通过 `reply`、`postActiveIframeMessage` 或 `postIframeMessage` 回发。
 
 ```ts
 const tabsManager = createTabsManager({
@@ -360,9 +362,9 @@ window.parent.postMessage(
 );
 ```
 
-默认只接收同源消息。跨域 iframe 需要显式配置 `iframeMessageOrigins`，不建议在生产环境使用 `"*"`。
+默认只接收同源消息。跨域 iframe 需要显式配置 `iframe.messageOrigins`，不建议在生产环境使用 `"*"`。
 
-## 3）新窗口打开外链
+### 3）新窗口打开外链
 
 ```ts
 tabsManager.openTab("https://example.com", {
@@ -452,7 +454,7 @@ tabsManager.closeTabsByOther(tabId, {
 
 ## 存储适配器
 
-默认是 `sessionStorage`。你可以通过 `storageAdapter` 自定义持久化策略。
+默认使用 `sessionStorage`。你可以通过 `storage.adapter` 自定义持久化策略。
 
 ```ts
 import { AbstractStorageAdapter, createTabsManager } from "@xsbcme/vue-tab-router";
@@ -534,6 +536,8 @@ const tabsManager = createTabsManager({
 
 ---
 
-## 案例项目
+## 文档与示例
 
-- Workspace: `packages/demo`
+- 文档站：https://doc.vtr.xsbcme.cn
+- 在线 Demo：https://demo.vtr.xsbcme.cn
+- 示例源码：https://gitee.com/xsbcme/vue-tab-router/tree/master/packages/demo

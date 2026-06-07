@@ -25,6 +25,42 @@ pnpm --filter @xsbcme/docs preview
 
 构建产物位于 `.vitepress/dist`，VitePress 缓存位于 `.vitepress/cache` 和 `.vitepress/.temp`。这些目录属于本地产物，不应提交。
 
+## 部署域名
+
+文档站部署到独立域名根路径时，不需要配置 `VITEPRESS_BASE`，默认 `/` 即可。需要从文档站跳转到独立 Demo 站点时，通过环境变量注入在线 Demo 地址，避免换域名时改源码：
+
+PowerShell：
+
+```powershell
+$env:DOCS_DEMO_URL = "https://demo.vtr.xsbcme.cn"; pnpm --filter @xsbcme/docs build
+```
+
+Linux / 宝塔终端：
+
+```bash
+DOCS_DEMO_URL=https://demo.vtr.xsbcme.cn pnpm --filter @xsbcme/docs build
+```
+
+如果未来文档站部署到子路径，再设置 `VITEPRESS_BASE`：
+
+PowerShell：
+
+```powershell
+$env:VITEPRESS_BASE = "/vue-tab-router/"; $env:DOCS_DEMO_URL = "https://demo.vtr.xsbcme.cn"; pnpm --filter @xsbcme/docs build
+```
+
+Linux / 宝塔终端：
+
+```bash
+VITEPRESS_BASE=/vue-tab-router/ DOCS_DEMO_URL=https://demo.vtr.xsbcme.cn pnpm --filter @xsbcme/docs build
+```
+
+Demo 站点独立部署时执行：
+
+```bash
+pnpm --filter @xsbcme/demo build
+```
+
 ## 目录结构
 
 ```txt

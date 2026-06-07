@@ -42,19 +42,19 @@ const tabsManager = useTabsManager();
 const cachedIframeTabId = ref<string>();
 
 const openHttpInline = () => {
-  tabsManager.openTab("http://www.baidu.com/", { _viewName: "内部链接" });
+  tabsManager.openTab("https://www.baidu.com/", { _viewName: "内部链接" });
 };
 
 const openHttpInlineWithParams = () => {
-  tabsManager.openTab("http://www.baidu.com/", { _viewName: "内部链接带参", a: 123 });
+  tabsManager.openTab("https://www.baidu.com/", { _viewName: "内部链接带参", a: 123 });
 };
 
 const openHttpOutside = () => {
-  tabsManager.openTab("http://www.baidu.com/", { _viewOutside: true });
+  tabsManager.openTab("https://www.baidu.com/", { _viewOutside: true });
 };
 
 const openHttpOutsideWithParams = () => {
-  tabsManager.openTab("http://www.baidu.com/", { _viewOutside: true, a: 123 });
+  tabsManager.openTab("https://www.baidu.com/", { _viewOutside: true, a: 123 });
 };
 
 const openRelativeInline = () => {
