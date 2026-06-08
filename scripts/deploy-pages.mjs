@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const distDir = resolve(rootDir, "packages/docs/.vitepress/dist");
+const distDir = resolve(rootDir, "dist/pages");
 
 const getArgValue = name => {
   const inlineArg = process.argv.find(arg => arg.startsWith(`${name}=`));
@@ -25,13 +25,13 @@ Options:
   --remote <name>     Git remote name. Default: origin
   --branch <name>     Pages branch name. Default: gh-pages
   --message <text>    Commit message. Default: deploy pages
-  --skip-build        Publish existing packages/docs/.vitepress/dist
+  --skip-build        Publish existing dist/pages
   --help              Show this help message
 
 Examples:
   pnpm deploy:pages
   pnpm deploy:pages -- --base /vue-tab-router/
-  pnpm deploy:pages -- --remote github --branch gh-pages
+  pnpm deploy:pages -- --remote origin --branch gh-pages
 `);
 };
 
@@ -96,18 +96,13 @@ if (hasArg("--help")) {
   process.exit(0);
 }
 
-const base =
-  getArgValue("--base") ??
-  process.env.PAGES_BASE ??
-  process.env.GITEE_PAGES_BASE ??
-  process.env.VITEPRESS_BASE ??
-  "/vue-tab-router/";
+const base = getArgValue("--base") ?? process.env.PAGES_BASE ?? process.env.VITEPRESS_BASE ?? "/vue-tab-router/";
 const remote = getArgValue("--remote") ?? "origin";
 const branch = getArgValue("--branch") ?? "gh-pages";
 const message = getArgValue("--message") ?? "deploy pages";
 
 if (!hasArg("--skip-build")) {
-  await run(process.execPath, ["scripts/build-gitee.mjs", "--base", base]);
+  await run(process.execPath, ["scripts/build-pages.mjs", "--base", base]);
 }
 
 await readFile(resolve(distDir, "index.html"));

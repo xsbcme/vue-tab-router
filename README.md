@@ -178,6 +178,24 @@ pnpm publish:run
 - 若使用 Granular Access Token 替代 2FA，需勾选「Allow bypassing 2FA for publishing」
 - 确认 `.npmrc` 中 registry 指向 `https://registry.npmjs.org/`（若使用镜像需临时改回）
 
+## 部署文档与 Demo
+
+项目采用 GitHub Pages 合并部署：根目录只保留入口页，VitePress 文档放到 `doc/`，Demo 放到 `demo/`。
+
+访问路径：
+
+- 入口页：`https://xsbcme.github.io/vue-tab-router/`
+- 文档首页：`https://xsbcme.github.io/vue-tab-router/doc/`
+- 在线 Demo：`https://xsbcme.github.io/vue-tab-router/demo/`
+
+本地构建 Pages 产物：
+
+```bash
+pnpm build:pages -- --base /vue-tab-router/
+```
+
+构建产物位于 `dist/pages`。推送到 `main` 或 `master` 后，GitHub Actions 会自动构建并发布该目录。首次启用时，需要在 GitHub 仓库 `Settings -> Pages` 中将部署来源设置为 `GitHub Actions`。
+
 ## 链接
 
 - **NPM 包**：[@xsbcme/vue-tab-router](https://www.npmjs.com/package/@xsbcme/vue-tab-router)
