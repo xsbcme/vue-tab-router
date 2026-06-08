@@ -1,7 +1,29 @@
 import { AbstractStorageAdapter } from "./abstract-storage-adapter";
 
+type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+
+class MemoryStorage implements StorageLike {
+  private readonly data = new Map<string, string>();
+
+  getItem(key: string) {
+    return this.data.get(key) ?? null;
+  }
+
+  setItem(key: string, value: string) {
+    this.data.set(key, value);
+  }
+
+  removeItem(key: string) {
+    this.data.delete(key);
+  }
+}
+
+function getDefaultStorage(): StorageLike {
+  return typeof sessionStorage === "undefined" ? new MemoryStorage() : sessionStorage;
+}
+
 export class StorageAdapter extends AbstractStorageAdapter {
-  constructor(private readonly storage = sessionStorage) {
+  constructor(private readonly storage: StorageLike = getDefaultStorage()) {
     super();
   }
 

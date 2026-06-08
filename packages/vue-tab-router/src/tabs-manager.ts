@@ -35,6 +35,8 @@ export class TabsManager {
   private _pluginCleanups: TabsManagerPluginCleanup[] = [];
   private _pluginsLoaded = false;
   private _reactiveManager: TabsManager | null = null;
+  private _persistSuspendCount = 0;
+  private _persistPending = false;
   private _iframeMessenger?: (
     tabId: string,
     data: unknown,
@@ -85,7 +87,7 @@ export class TabsManager {
   /**
    * 当前激活的标签页
    */
-  get activeTab() {
+  get activeTab(): Tab | undefined {
     return this._tabs.find(item => item._isActive);
   }
 
@@ -111,8 +113,10 @@ export class TabsManager {
   /**
    * 获取当前激活的标签页的父路径
    */
-  get activeTabParentPaths() {
-    return findParentPathsByPath(this.registerTabPaths, this.activeTab?.viewUrl);
+  get activeTabParentPaths(): string[] {
+    const activeTab = this.activeTab;
+    if (!activeTab) return [];
+    return findParentPathsByPath(this.registerTabPaths, activeTab.viewUrl);
   }
 
   public getViewMeta(viewUrl: string | undefined) {
@@ -148,7 +152,24 @@ export class TabsManager {
   }
 
   private persistTabs() {
+    if (this._persistSuspendCount > 0) {
+      this._persistPending = true;
+      return;
+    }
     this.storage?.set(this._storageKey, toRaw(this._tabs));
+  }
+
+  private async deferPersist<T>(runner: () => Promise<T>) {
+    this._persistSuspendCount++;
+    try {
+      return await runner();
+    } finally {
+      this._persistSuspendCount--;
+      if (this._persistSuspendCount === 0 && this._persistPending) {
+        this._persistPending = false;
+        this.persistTabs();
+      }
+    }
   }
 
   private clearPersistedTabs() {
@@ -287,7 +308,7 @@ export class TabsManager {
   ) {
     switch (mode) {
       case "clear":
-        this.clear();
+        await this.clear();
         break;
 
       case "replace":
@@ -512,6 +533,7 @@ export class TabsManager {
       if (this.isUrl(viewUrl)) {
         const newViewUrl = TabViewUrl.resolveIframe(viewUrl);
         if (_viewOutside) {
+          if (typeof window === "undefined") return null;
           const { target, features } = _viewOutsideProps || {};
           return window.open(newViewUrl, target, features);
         }
@@ -664,14 +686,16 @@ export class TabsManager {
    */
   public closeTabByAll(options: CloseTabsOptions = {}): Promise<void> {
     return nextTick<void>(async () => {
-      const tabs = clone(this._tabs);
-      for (let index = 0; index < tabs.length; index++) {
-        try {
-          await this.closeTab(tabs[index]._id, options);
-        } catch (error) {
-          if (!options.continueOnRejected) return Promise.reject(error);
+      await this.deferPersist(async () => {
+        const tabs = clone(this._tabs);
+        for (let index = 0; index < tabs.length; index++) {
+          try {
+            await this.closeTab(tabs[index]._id, options);
+          } catch (error) {
+            if (!options.continueOnRejected) return Promise.reject(error);
+          }
         }
-      }
+      });
     });
   }
 
@@ -776,20 +800,22 @@ export class TabsManager {
    */
   public closeTabsByLeft(tabId?: string, options: CloseTabsOptions = {}): Promise<void> {
     return nextTick<void>(async () => {
-      const findTab = this.getTabById(tabId || this.activeTab?._id);
-      if (!findTab) {
-        return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
-      }
-      const tabs = clone(this._tabs);
-      const findTabIndex = this._tabs.indexOf(findTab);
-      await this.changeActiveTab(findTab._id);
-      for (let index = 0; index < findTabIndex; index++) {
-        try {
-          await this.closeTab(tabs[index]._id, options);
-        } catch (error) {
-          if (!options.continueOnRejected) return Promise.reject(error);
+      await this.deferPersist(async () => {
+        const findTab = this.getTabById(tabId || this.activeTab?._id);
+        if (!findTab) {
+          return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
         }
-      }
+        const tabs = clone(this._tabs);
+        const findTabIndex = this._tabs.indexOf(findTab);
+        await this.changeActiveTab(findTab._id);
+        for (let index = 0; index < findTabIndex; index++) {
+          try {
+            await this.closeTab(tabs[index]._id, options);
+          } catch (error) {
+            if (!options.continueOnRejected) return Promise.reject(error);
+          }
+        }
+      });
     });
   }
 
@@ -799,20 +825,22 @@ export class TabsManager {
    */
   public closeTabsByRight(tabId?: string, options: CloseTabsOptions = {}): Promise<void> {
     return nextTick<void>(async () => {
-      const findTab = this.getTabById(tabId || this.activeTab?._id);
-      if (!findTab) {
-        return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
-      }
-      const tabs = clone(this._tabs);
-      const findTabIndex = this._tabs.indexOf(findTab);
-      await this.changeActiveTab(findTab._id);
-      for (let index = findTabIndex + 1; index < tabs.length; index++) {
-        try {
-          await this.closeTab(tabs[index]._id, options);
-        } catch (error) {
-          if (!options.continueOnRejected) return Promise.reject(error);
+      await this.deferPersist(async () => {
+        const findTab = this.getTabById(tabId || this.activeTab?._id);
+        if (!findTab) {
+          return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
         }
-      }
+        const tabs = clone(this._tabs);
+        const findTabIndex = this._tabs.indexOf(findTab);
+        await this.changeActiveTab(findTab._id);
+        for (let index = findTabIndex + 1; index < tabs.length; index++) {
+          try {
+            await this.closeTab(tabs[index]._id, options);
+          } catch (error) {
+            if (!options.continueOnRejected) return Promise.reject(error);
+          }
+        }
+      });
     });
   }
 
@@ -822,34 +850,37 @@ export class TabsManager {
    */
   public closeTabsByOther(tabId?: string, options: CloseTabsOptions = {}): Promise<void> {
     return nextTick<void>(async () => {
-      const findTab = this.getTabById(tabId || this.activeTab?._id);
-      if (!findTab) {
-        return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
-      }
-      const tabs = clone(this._tabs);
-      const findTabIndex = this._tabs.indexOf(findTab);
-      await this.changeActiveTab(findTab._id);
-      for (let index = 0; index < tabs.length; index++) {
-        if (tabs[index]._id !== tabs[findTabIndex]._id) {
-          try {
-            await this.closeTab(tabs[index]._id, options);
-          } catch (error) {
-            if (!options.continueOnRejected) return Promise.reject(error);
+      await this.deferPersist(async () => {
+        const findTab = this.getTabById(tabId || this.activeTab?._id);
+        if (!findTab) {
+          return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
+        }
+        const tabs = clone(this._tabs);
+        const findTabIndex = this._tabs.indexOf(findTab);
+        await this.changeActiveTab(findTab._id);
+        for (let index = 0; index < tabs.length; index++) {
+          if (tabs[index]._id !== tabs[findTabIndex]._id) {
+            try {
+              await this.closeTab(tabs[index]._id, options);
+            } catch (error) {
+              if (!options.continueOnRejected) return Promise.reject(error);
+            }
           }
         }
-      }
+      });
     });
   }
 
   /**
    * 清空标签（退出系统时调用）
    */
-  public clear() {
+  public async clear() {
     this._tabs = [];
     this._refreshAllTabFlag = false;
+    this._persistPending = false;
     this.clearPersistedTabs();
     this.events.clear();
-    this._hooks.call("tabs:cleared");
+    await this._hooks.call("tabs:cleared");
   }
 
   private destroy() {

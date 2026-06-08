@@ -454,7 +454,7 @@ tabsManager.closeTabsByOther(tabId, {
 
 ## 存储适配器
 
-默认使用 `sessionStorage`。你可以通过 `storage.adapter` 自定义持久化策略。
+默认在浏览器中使用 `sessionStorage`。在 SSR 或 Node 环境中创建 `TabsManager` 时，内置适配器会退化为进程内内存存储；如果服务端不需要恢复标签状态，建议显式设置 `storage.enabled: false`，或通过 `storage.adapter` 提供自己的持久化策略。
 
 ```ts
 import { AbstractStorageAdapter, createTabsManager } from "@xsbcme/vue-tab-router";
@@ -485,6 +485,19 @@ const tabsManager = createTabsManager({
   },
   storage: {
     adapter: new LocalStorageAdapter(),
+  },
+});
+```
+
+服务端创建实例时可关闭持久化：
+
+```ts
+const tabsManager = createTabsManager({
+  views: {
+    modules: {},
+  },
+  storage: {
+    enabled: false,
   },
 });
 ```

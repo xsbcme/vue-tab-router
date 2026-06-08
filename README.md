@@ -28,7 +28,11 @@ import App from "./App.vue";
 import { createTabsManager } from "@xsbcme/vue-tab-router";
 
 const modules = import.meta.glob("./views/**/page-index.vue");
-const tabsManager = createTabsManager({ modules });
+const tabsManager = createTabsManager({
+  views: {
+    modules,
+  },
+});
 
 createApp(App).use(tabsManager).mount("#app");
 ```
@@ -55,6 +59,21 @@ import { useTabsManager } from "@xsbcme/vue-tab-router";
 
 const tabsManager = useTabsManager();
 tabsManager.openTab("/views/user/page-index.vue", { _viewName: "用户管理" });
+```
+
+### SSR / 非浏览器环境
+
+VueTabRouter 默认面向浏览器运行。包本身可以在 SSR 或 Node 环境导入；如果需要在服务端创建 `TabsManager`，建议关闭持久化，或传入不会访问 `window` / `document` / `sessionStorage` 的自定义 `storage.adapter`。
+
+```ts
+const tabsManager = createTabsManager({
+  views: {
+    modules,
+  },
+  storage: {
+    enabled: false,
+  },
+});
 ```
 
 ## 项目结构

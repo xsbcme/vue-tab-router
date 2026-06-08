@@ -42,21 +42,29 @@ export const TabViewUrl = {
   resolveIframe: resolveIframeTabViewUrl,
 };
 
-export function stableStringify(value: unknown): string {
+export function stableStringify(value: unknown, seen = new WeakSet<object>()): string {
   if (Array.isArray(value)) {
-    return `[${value.map(item => stableStringify(item)).join(",")}]`;
+    if (seen.has(value)) return '"[Circular]"';
+    seen.add(value);
+    const result = `[${value.map(item => stableStringify(item, seen)).join(",")}]`;
+    seen.delete(value);
+    return result;
   }
   if (value && typeof value === "object") {
+    if (seen.has(value)) return '"[Circular]"';
+    seen.add(value);
     const record = value as Record<string, unknown>;
     const entries = Object.keys(record)
       .sort()
-      .map(key => `${JSON.stringify(key)}:${stableStringify(record[key])}`);
-    return `{${entries.join(",")}}`;
+      .map(key => `${JSON.stringify(key)}:${stableStringify(record[key], seen)}`);
+    const result = `{${entries.join(",")}}`;
+    seen.delete(value);
+    return result;
   }
   return JSON.stringify(value);
 }
 
-export function findParentPathsByPath(paths: string[], path: string) {
+export function findParentPathsByPath(paths: string[], path: string | undefined) {
   if (!path) return [];
   const result: string[] = [];
   const targetPathNodes = path.split("/").filter(Boolean);

@@ -279,7 +279,8 @@ export function themeToCssVariables(theme: TabTheme): Record<string, string> {
  * 应用主题到指定元素（默认为 document.documentElement）
  */
 export function applyTheme(theme: TabTheme, element?: HTMLElement | null): void {
-  const target = element || document.documentElement;
+  const target = element || (typeof document === "undefined" ? undefined : document.documentElement);
+  if (!target) return;
   const variables = themeToCssVariables(theme);
 
   Object.entries(variables).forEach(([key, value]) => {

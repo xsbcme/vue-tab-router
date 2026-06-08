@@ -1,6 +1,27 @@
 import { describe, expect, it } from "vitest";
+import { AbstractStorageAdapter } from "../src/abstract-storage-adapter";
 import { createTabsManager } from "../src/use-tabs-manager";
-import { TabViewUrl } from "../src/utils";
+import { stableStringify, TabViewUrl } from "../src/utils";
+
+class CountingStorageAdapter extends AbstractStorageAdapter {
+  private readonly data = new Map<string, unknown>();
+  public setCount = 0;
+
+  get<T = unknown>(key: string, def?: T): T {
+    return (this.data.has(key) ? this.data.get(key) : def) as T;
+  }
+
+  set<T = unknown>(key: string, val: T): this {
+    this.setCount++;
+    this.data.set(key, val);
+    return this;
+  }
+
+  del(key: string): this {
+    this.data.delete(key);
+    return this;
+  }
+}
 
 function createTestTabsManager() {
   return createTabsManager({
@@ -53,6 +74,69 @@ describe("TabsManager pinned tabs", () => {
     expect(tabsManager.tabs.map(tab => tab.viewName)).toEqual(["首页", "置顶标签", "普通标签"]);
     expect(tabsManager.getTabById(pinnedTabId)?._pinned).toBe(false);
     expect(tabsManager.getTabById(normalTabId)?._pinned).toBeUndefined();
+  });
+});
+
+describe("TabsManager runtime safety", () => {
+  it("uses a safe default storage outside browser environments", async () => {
+    const tabsManager = createTabsManager({
+      views: {
+        modules: {},
+      },
+    });
+
+    await tabsManager.openTab(TabViewUrl.createRelative("/home"), { _viewName: "首页" });
+
+    expect(tabsManager.activeTab?.viewName).toBe("首页");
+  });
+
+  it("returns null for outside links when window is unavailable", async () => {
+    const tabsManager = createTestTabsManager();
+
+    await expect(tabsManager.openTab("https://example.com", { _viewOutside: true })).resolves.toBeNull();
+  });
+
+  it("stableStringify handles circular references", () => {
+    const value: Record<string, unknown> = { name: "tab" };
+    value.self = value;
+
+    expect(stableStringify(value)).toBe('{"name":"tab","self":"[Circular]"}');
+  });
+
+  it("defers storage writes during batch close operations", async () => {
+    const storageAdapter = new CountingStorageAdapter();
+    const tabsManager = createTabsManager({
+      views: {
+        modules: {},
+      },
+      storage: {
+        adapter: storageAdapter,
+      },
+    });
+
+    await tabsManager.openTab(TabViewUrl.createRelative("/one"), { _viewName: "一" });
+    await tabsManager.openTab(TabViewUrl.createRelative("/two"), { _viewName: "二" });
+    await tabsManager.openTab(TabViewUrl.createRelative("/three"), { _viewName: "三" });
+    storageAdapter.setCount = 0;
+
+    await tabsManager.closeTabByAll();
+
+    expect(tabsManager.tabs).toHaveLength(0);
+    expect(storageAdapter.setCount).toBe(1);
+  });
+
+  it("awaits tabs:cleared hooks", async () => {
+    const tabsManager = createTestTabsManager();
+    const calls: string[] = [];
+
+    tabsManager.hooks.on("tabs:cleared", async () => {
+      await Promise.resolve();
+      calls.push("cleared");
+    });
+
+    await tabsManager.clear();
+
+    expect(calls).toEqual(["cleared"]);
   });
 });
 
