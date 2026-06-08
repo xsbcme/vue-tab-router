@@ -8,7 +8,7 @@ const docsDist = resolve(rootDir, "packages/docs/.vitepress/dist");
 const pagesDist = resolve(rootDir, "dist/pages");
 const demoDist = resolve(rootDir, "packages/demo/dist");
 const docTarget = resolve(pagesDist, "doc");
-const demoTarget = resolve(docTarget, "demo");
+const demoTarget = resolve(pagesDist, "demo");
 
 const getArgValue = name => {
   const inlineArg = process.argv.find(arg => arg.startsWith(`${name}=`));
@@ -85,8 +85,8 @@ const writeHtmlRedirect = async (targetDir, targetUrl, title) => {
 
 const base = normalizeBase(getArgValue("--base") ?? process.env.PAGES_BASE ?? process.env.VITEPRESS_BASE);
 const docsBase = joinUrl(base, "doc");
-const demoBase = joinUrl(docsBase, "demo");
-const demoUrl = "/demo/";
+const demoBase = joinUrl(base, "demo");
+const demoUrl = `https://xsbcme.github.io${demoBase}`;
 
 console.log(`Building docs with VITEPRESS_BASE=${docsBase}`);
 await rm(docsDist, { recursive: true, force: true });
