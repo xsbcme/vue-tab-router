@@ -1,17 +1,16 @@
 # @xsbcme/vue-tab-router
 
+## 1.1.0-beta.0
+
+### Minor Changes
+
+- 整理 npm 包元数据并准备 1.1 beta 预发布版本线。
+
 ## 1.0.0-beta.39
 
 ### Patch Changes
 
 - 修复 npm 可信发布和 GitHub Pages 文档的包元数据。
-
-## 1.0.0-beta.38
-
-### Major Changes
-
-- ad76cce: Replace the custom KeepAlive implementation with Vue's built-in KeepAlive and tab-scoped wrapper components.
-  Redesign tab guard types and close APIs. Tab guards can now cancel navigation and close operations by returning `false`; close APIs now accept explicit options instead of the previous boolean force parameter.
 
 ## 1.0.0-beta.38
 
@@ -40,106 +39,3 @@
 - 补充 base64url URL 状态编解码、非法 query 清理、文档标题同步、面包屑点击、pin/no-drag、view meta 默认值等测试覆盖。
 - 完善 Demo 接入，示例覆盖 `views.meta`、URL 同步、文档标题同步、面包屑、插件 hooks、守卫、iframe 通信和项目实践场景。
 
-## 1.0.0-beta.37
-
-### Major Changes
-
-- chore
-
-## 1.0.0-beta.36
-
-### Major Changes
-
-- chore
-
-## 1.0.0-beta.35
-
-### Major Changes
-
-- chore
-- Replace the custom KeepAlive implementation with Vue's built-in KeepAlive and tab-scoped wrapper components.
-  Redesign tab guard types and close APIs. Tab guards can now cancel navigation and close operations by returning `false`; close APIs now accept explicit options instead of the previous boolean force parameter.
-- chore
-
-## 1.0.0-beta.34
-
-### Major Changes
-
-- chore
-
-### Patch Changes
-
-- chore
-
-## 1.0.0-beta.33
-
-### Patch Changes
-
-- chore
-
-## 1.0.0-beta.32
-
-### Patch Changes
-
-- chore
-
-## 1.0.0-beta.31
-
-### Patch Changes
-
-- chore
-
-## 1.0.0-beta.30
-
-### Patch Changes
-
-- chore
-
-## 1.0.0-beta.29
-
-### Patch Changes
-
-- chore
-- chore
-
-## 1.0.0-beta.28
-
-### Patch Changes
-
-- chore
-
-## 1.0.0-beta.27
-
-### Patch Changes
-
-- chore
-
-## 1.0.0-beta.26
-
-### Patch Changes
-
-- chore
-
-## 1.0.28-beta.0
-
-### Patch Changes
-
-- chore
-
-## 1.0.27
-
-### Patch Changes
-
-- chore
-
-## 1.0.26
-
-### Patch Changes
-
-- chore
-
-## 1.0.25
-
-### Patch Changes
-
-- chore

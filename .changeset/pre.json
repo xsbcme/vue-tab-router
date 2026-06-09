@@ -2,11 +2,12 @@
   "mode": "pre",
   "tag": "beta",
   "initialVersions": {
+    "@xsbcme/demo": "1.0.0",
     "@xsbcme/docs": "0.0.2",
-    "@xsbcme/vue-tab-router": "1.0.27",
-    "@xsbcme/demo": "1.0.0"
+    "@xsbcme/vue-tab-router": "1.0.29"
   },
   "changesets": [
+    "silly-kids-smash",
     "tired-dogs-turn"
   ]
 }
