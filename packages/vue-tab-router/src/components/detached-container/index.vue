@@ -1,14 +1,14 @@
 <template>
   <teleport to="body">
     <div
-      v-if="visible && tab"
+      v-if="visible && previewTab"
       class="detached-overlay"
       :class="{ 'is-fullscreen': isFullscreen }"
       :style="{ zIndex: tabsManager.detachedZIndex }"
     >
       <div class="detached-panel" role="dialog" aria-modal="true">
         <div class="detached-header">
-          <div class="detached-title">{{ tab.viewName || "未命名" }}</div>
+          <div class="detached-title">{{ previewTab.viewName || "未命名" }}</div>
           <div class="detached-actions">
             <button
               class="detached-action"
@@ -42,9 +42,9 @@
         <div class="detached-body">
           <PreviewContainerComponent
             ref="previewRef"
-            :view-url="tab.viewUrl"
-            :view-name="tab.viewName || '未命名'"
-            :view-props="tab.viewProps || {}"
+            :view-url="previewTab.viewUrl"
+            :view-name="previewTab.viewName || '未命名'"
+            :view-props="previewTab.viewProps || {}"
             @error="error => emit('error', error)"
           />
         </div>
@@ -75,6 +75,9 @@ const emit = defineEmits<{
 const tabsManager = useTabsManager();
 const isFullscreen = ref(tabsManager.detachedFullscreen);
 const fullscreenTitle = computed(() => (isFullscreen.value ? "退出全屏显示" : "全屏显示"));
+const previewTab = computed<(Partial<Tab> & { viewUrl: string }) | undefined>(() =>
+  props.tab?.viewUrl ? { ...props.tab, viewUrl: props.tab.viewUrl } : undefined
+);
 const previewRef = ref<InstanceType<typeof PreviewContainerComponent>>();
 
 const toggleFullscreen = () => {

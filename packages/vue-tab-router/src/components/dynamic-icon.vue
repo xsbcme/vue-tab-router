@@ -61,7 +61,7 @@ async function renderIcon() {
   }
 
   try {
-    const component = findVueComponent(instance, icon);
+    const component = instance ? findVueComponent(instance, icon) : null;
     if (isRenderableComponent(component)) {
       const htmlContent = renderComponentToHtml(component);
       const html = htmlContent.includes("<svg") ? await processSvgString(htmlContent) : htmlContent;

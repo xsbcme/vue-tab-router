@@ -14,6 +14,13 @@ export default defineConfig({
     dts({
       insertTypesEntry: true,
       include: ["src"],
+      skipDiagnostics: false,
+      logDiagnostics: true,
+      afterDiagnostic(diagnostics) {
+        if (diagnostics.length > 0) {
+          throw new Error(`Declaration type check failed with ${diagnostics.length} diagnostics.`);
+        }
+      },
     }),
     cssInjectedByJs(),
     externalizeDeps(),

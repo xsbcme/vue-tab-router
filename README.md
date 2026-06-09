@@ -108,7 +108,9 @@ vue-tab-router/
 | `pnpm dev:demo`    | 启动本地 demo             |
 | `pnpm build:demo`  | 构建本地 demo             |
 | `pnpm type-check`  | 运行类型检查              |
-| `pnpm publish:run` | 构建后使用 changeset 发布 |
+| `pnpm release:change` | 编写发布变更日志       |
+| `pnpm release:beta` | 准备 beta 版本与文档日志 |
+| `pnpm release:latest` | 准备正式版本与文档日志 |
 
 ### 文档
 
@@ -122,61 +124,52 @@ pnpm dev
 
 ## 发布包
 
-### 前置条件
+发布由 changesets 生成插件包版本和包内日志，再同步到文档日志页。npm 发布通过 GitHub Actions 手动触发，不在仓库中保存 npm token。
 
-1. **npm 账号**：在 [npmjs.com](https://www.npmjs.com) 注册并登录
-2. **2FA 双重认证**：npm 要求发布时必须启用 2FA（账号设置 → Two-Factor Authentication）
-3. **登录**：在终端执行 `npm login`，输入用户名、密码和邮箱
+changesets 只用于 `@xsbcme/vue-tab-router` 插件包。docs、demo、Pages、构建脚本等外层改动可以随版本提交，但不要写入 changeset 发布日志；`pnpm changeset:check` 会阻止非插件包日志进入发布流程。
 
-### 方式一：使用 Changeset（推荐）
-
-适用于有版本说明、需要变更日志的正式发布：
+### 发布 beta
 
 ```bash
-# 1. 构建
-pnpm build
-
-# 2. 创建变更集（按提示选择要发布的包和版本类型）
-pnpm changeset
-
-# 3. 应用版本变更
-pnpm changeset version
-
-# 4. 发布到 npm
-pnpm changeset publish
+pnpm release:change
+pnpm release:beta
+git add .
+git commit -m "chore: prepare beta release"
+git push
 ```
 
-或直接使用组合命令：
+推送后到 GitHub Actions 运行 `Release NPM`，选择 `beta`。
+
+beta 版本处于 changesets pre mode 时，npm dist-tag 会由 `.changeset/pre.json` 自动使用 `beta`，发布脚本不会额外传 `--tag beta`。
+
+### 发布正式版
 
 ```bash
-pnpm publish:run
+pnpm release:change
+pnpm release:latest
+git add .
+git commit -m "chore: prepare stable release"
+git push
 ```
 
-### 方式二：直接发布
+推送后到 GitHub Actions 运行 `Release NPM`，选择 `latest`。
 
-若已手动修改版本号，可跳过 changeset：
+### 发布命令
 
-```bash
-cd packages/vue-tab-router
-pnpm build
-pnpm publish --registry="https://registry.npmjs.org/" --access public
-```
+| 命令 | 说明 |
+| ---- | ---- |
+| `pnpm release:change` | 编写 changeset 变更说明 |
+| `pnpm release:beta` | 进入 beta 通道、生成版本、同步文档日志 |
+| `pnpm release:latest` | 退出预发布通道、生成正式版本、同步文档日志 |
+| `pnpm release:check` | 检查 changeset 范围、文档日志、类型和测试 |
 
-### 发布 Beta 版本
+`pnpm changeset:check`、`pnpm changelog:sync` 和 `pnpm changelog:check` 是底层命令，通常不需要直接使用；发布准备脚本会自动检查日志范围并同步文档日志。
 
-```bash
-pnpm publish:pre-beta
-pnpm publish:bump
-pnpm publish:run
-```
+### GitHub 配置
 
-会进入 beta 通道，发布形如 `1.0.0-beta.0` 的版本。
-
-### 注意事项
-
-- 作用域包 `@xsbcme/vue-tab-router` 需 `--access public` 才能发布为公开包
-- 若使用 Granular Access Token 替代 2FA，需勾选「Allow bypassing 2FA for publishing」
-- 确认 `.npmrc` 中 registry 指向 `https://registry.npmjs.org/`（若使用镜像需临时改回）
+- 在 `npm-beta` 和 `npm-latest` environment secrets 中配置 `NPM_TOKEN`。
+- 建议给 `npm-latest` 配置 required reviewers。
+- workflow 会校验版本号和发布标签，`1.0.0-beta.x` 只能发布到 `beta`，正式版本只能发布到 `latest`。
 
 ## 部署文档与 Demo
 

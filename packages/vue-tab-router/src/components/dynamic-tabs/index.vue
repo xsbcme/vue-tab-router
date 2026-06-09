@@ -88,6 +88,7 @@ const props = withDefaults(
   }>(),
   {
     type: "text",
+    showIcon: true,
     hideFirst: false,
   }
 );

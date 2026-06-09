@@ -1,0 +1,77 @@
+name: Release NPM
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: npm dist-tag to publish
+        required: true
+        default: beta
+        type: choice
+        options:
+          - beta
+          - latest
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: npm-${{ inputs.tag }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.10.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org/
+
+      - name: Update npm CLI
+        run: npm install -g npm@latest
+
+      - name: Use npm official registry
+        run: |
+          npm config set registry https://registry.npmjs.org/ --location=project
+          npm config set @xsbcme:registry https://registry.npmjs.org/ --location=project
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm changelog:check
+
+      - name: Validate release channel
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./packages/vue-tab-router/package.json').version")
+          TAG="${{ inputs.tag }}"
+
+          if [[ "$TAG" == "beta" && "$VERSION" != *"-beta."* ]]; then
+            echo "Cannot publish stable version $VERSION with beta tag."
+            exit 1
+          fi
+
+          if [[ "$TAG" == "latest" && "$VERSION" == *"-"* ]]; then
+            echo "Cannot publish prerelease version $VERSION with latest tag."
+            exit 1
+          fi
+
+      - run: pnpm type-check
+
+      - run: pnpm test
+
+      - name: Publish package
+        run: pnpm release:publish ${{ inputs.tag }}
+        env:
+          NPM_CONFIG_PROVENANCE: true
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

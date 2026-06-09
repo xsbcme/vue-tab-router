@@ -13,12 +13,15 @@
     "dev:demo": "pnpm --filter @xsbcme/demo dev",
     "build:demo": "pnpm --filter @xsbcme/demo build",
     "build:pages": "node scripts/build-pages.mjs",
+    "changelog:sync": "node scripts/sync-changelog.mjs",
+    "changelog:check": "node scripts/sync-changelog.mjs --check",
+    "changeset:check": "node scripts/check-release-changesets.mjs",
     "deploy:pages": "node scripts/deploy-pages.mjs",
-    "publish:pre-beta": "changeset pre enter beta",
-    "publish:change": "changeset",
-    "publish:bump": "changeset version",
-    "publish:pre-exit": "changeset pre exit",
-    "publish:run": "turbo run build && changeset publish"
+    "release:change": "changeset",
+    "release:beta": "node scripts/prepare-release.mjs beta",
+    "release:latest": "node scripts/prepare-release.mjs latest",
+    "release:check": "pnpm changeset:check && pnpm changelog:check && pnpm type-check && pnpm test",
+    "release:publish": "node scripts/publish-release.mjs"
   },
   "author": "xsbcme",
   "devDependencies": {

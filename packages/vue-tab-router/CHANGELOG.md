@@ -4,6 +4,13 @@
 
 ### Major Changes
 
+- ad76cce: Replace the custom KeepAlive implementation with Vue's built-in KeepAlive and tab-scoped wrapper components.
+  Redesign tab guard types and close APIs. Tab guards can now cancel navigation and close operations by returning `false`; close APIs now accept explicit options instead of the previous boolean force parameter.
+
+## 1.0.0-beta.38
+
+### Major Changes
+
 - 统一页面打开入口，推荐全部通过 `openTab(viewUrl, options)` 打开组件页、iframe 页、外链页和相对链接页。
 - 新增 `TabViewUrl` 命名空间，用 `TabViewUrl.createRelative()` 创建相对 iframe 地址，避免暴露内部 magic string。
 - 重构初始化配置为分组结构，新增 `views`、`render`、`storage`、`iframe`、`guards`、`detached` 等配置域。

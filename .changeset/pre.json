@@ -3,7 +3,10 @@
   "tag": "beta",
   "initialVersions": {
     "@xsbcme/docs": "0.0.2",
-    "@xsbcme/vue-tab-router": "1.0.27"
+    "@xsbcme/vue-tab-router": "1.0.27",
+    "@xsbcme/demo": "1.0.0"
   },
-  "changesets": []
+  "changesets": [
+    "fix-vue-peer-dependencies"
+  ]
 }
