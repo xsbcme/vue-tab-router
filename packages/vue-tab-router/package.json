@@ -19,11 +19,11 @@
   "homepage": "https://doc.vtr.xsbcme.cn",
   "repository": {
     "type": "git",
-    "url": "git+https://gitee.com/xsbcme/vue-tab-router.git",
+    "url": "git+https://github.com/xsbcme/vue-tab-router.git",
     "directory": "packages/vue-tab-router"
   },
   "bugs": {
-    "url": "https://gitee.com/xsbcme/vue-tab-router/issues"
+    "url": "https://github.com/xsbcme/vue-tab-router/issues"
   },
   "scripts": {
     "build": "vue-tsc --noEmit && vite build",
