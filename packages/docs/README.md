@@ -85,4 +85,4 @@ packages/docs
 
 ## 更新日志
 
-`CHANGELOG.md` 仅用于记录文档站自身变更。插件发布历史请维护 `packages/vue-tab-router/CHANGELOG.md`。
+插件发布历史以 `packages/vue-tab-router/CHANGELOG.md` 为准，并通过 `pnpm changelog:sync` 同步到 `views/log/index.md`。

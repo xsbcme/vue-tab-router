@@ -16,33 +16,107 @@ const normalizeContent = value => value.replace(/\r\n/g, "\n").trimEnd() + "\n";
 
 const stripPackageHeading = changelog => changelog.replace(/^# .+\n+/, "").trim();
 
+const sectionTitleMap = new Map([
+  ["Major Changes", "重要变更"],
+  ["Minor Changes", "新增能力"],
+  ["Patch Changes", "修复与优化"],
+]);
+
+const internalChangePatterns = [
+  /包元数据/,
+  /预发布版本线/,
+  /npm 可信发布/,
+  /GitHub Pages 文档的包元数据/,
+  /测试覆盖/,
+  /Demo 接入/,
+  /示例覆盖/,
+];
+
+const isInternalChange = line => internalChangePatterns.some(pattern => pattern.test(line));
+
+const normalizeChangeForDocs = line => {
+  const prereleaseVersionMatch = line.match(/^- 整理 npm 包元数据并准备 (.+) 预发布版本线。$/);
+  if (prereleaseVersionMatch) return `- 开始 ${prereleaseVersionMatch[1]} 预发布版本线，为后续功能更新做准备。`;
+  if (isInternalChange(line)) return "";
+  return line;
+};
+
+const getSectionTitle = (section, items) => {
+  if (items.every(item => /^- 开始 .+ 预发布版本线，/.test(item))) return "版本说明";
+  return section.title;
+};
+
+const createVersionBlock = (versionTitle, sections) => {
+  const sectionBlocks = sections
+    .map(section => {
+      const items = section.items.map(normalizeChangeForDocs).filter(Boolean);
+      if (items.length === 0) return "";
+      return [`### ${getSectionTitle(section, items)}`, "", ...items].join("\n");
+    })
+    .filter(Boolean);
+
+  if (sectionBlocks.length === 0) return "";
+  return [`## ${versionTitle}`, ...sectionBlocks].join("\n\n");
+};
+
+const formatForDocs = changelog => {
+  const blocks = [];
+  let currentVersion = "";
+  let currentSections = [];
+  let currentSection = null;
+
+  const pushSection = () => {
+    if (currentSection) currentSections.push(currentSection);
+    currentSection = null;
+  };
+
+  const pushVersion = () => {
+    pushSection();
+    if (currentVersion) {
+      const block = createVersionBlock(currentVersion, currentSections);
+      if (block) blocks.push(block);
+    }
+    currentSections = [];
+  };
+
+  for (const line of stripPackageHeading(changelog).split("\n")) {
+    const versionMatch = line.match(/^## (.+)$/);
+    if (versionMatch) {
+      pushVersion();
+      currentVersion = versionMatch[1];
+      continue;
+    }
+
+    const sectionMatch = line.match(/^### (.+)$/);
+    if (sectionMatch) {
+      pushSection();
+      currentSection = {
+        title: sectionTitleMap.get(sectionMatch[1]) ?? sectionMatch[1],
+        items: [],
+      };
+      continue;
+    }
+
+    if (currentSection && line.startsWith("- ")) currentSection.items.push(line);
+  }
+
+  pushVersion();
+  return blocks.join("\n\n");
+};
+
 const createGeneratedSection = changelog => `${startMarker}
-## 包内完整更新日志
-
-以下内容从 \`packages/vue-tab-router/CHANGELOG.md\` 自动同步。发布前请先运行 \`pnpm changelog:sync\`。
-
-${stripPackageHeading(changelog)}
+${formatForDocs(changelog)}
 ${endMarker}`;
 
-const replaceGeneratedSection = (target, generatedSection) => {
-  const startIndex = target.indexOf(startMarker);
-  const endIndex = target.indexOf(endMarker);
+const createDocsPage = changelog => `# 更新日志
 
-  if (startIndex >= 0 && endIndex >= 0 && endIndex > startIndex) {
-    return `${target.slice(0, startIndex).trimEnd()}\n\n${generatedSection}\n${target.slice(endIndex + endMarker.length).trimStart()}`.trimEnd() + "\n";
-  }
+本文记录 \`@xsbcme/vue-tab-router\` 的重要变更，帮助你了解新能力、行为变化和升级影响。
 
-  const legacyHistoryPattern = /\n## 历史版本\n\n更早版本记录可参考包内 `packages\/vue-tab-router\/CHANGELOG\.md`。\s*$/;
-  if (legacyHistoryPattern.test(target)) {
-    return target.replace(legacyHistoryPattern, `\n\n${generatedSection}\n`);
-  }
-
-  return `${target.trimEnd()}\n\n${generatedSection}\n`;
-};
+${createGeneratedSection(changelog)}`;
 
 const sourceChangelog = normalizeContent(await readFile(sourcePath, "utf8"));
 const targetChangelog = normalizeContent(await readFile(targetPath, "utf8"));
-const nextTargetChangelog = replaceGeneratedSection(targetChangelog, createGeneratedSection(sourceChangelog));
+const nextTargetChangelog = createDocsPage(sourceChangelog);
 
 if (checkOnly) {
   logStep("检查包内更新日志是否已经同步到文档站日志页。该步骤不会修改文件。");
@@ -60,5 +134,5 @@ if (checkOnly) {
 logStep("开始同步更新日志。");
 logStep("来源：packages/vue-tab-router/CHANGELOG.md");
 logStep("目标：packages/docs/views/log/index.md");
-await writeFile(targetPath, nextTargetChangelog);
+await writeFile(targetPath, normalizeContent(nextTargetChangelog));
 logStep("同步完成：请检查并提交文档日志页的变化。");
