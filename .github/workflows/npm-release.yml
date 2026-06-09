@@ -26,7 +26,7 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
-    environment: npm-${{ inputs.tag }}
+    environment: ${{ inputs.tag }}
 
     steps:
       - uses: actions/checkout@v4
@@ -77,4 +77,3 @@ jobs:
         run: pnpm release:publish ${{ inputs.tag }}
         env:
           NPM_CONFIG_PROVENANCE: true
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
