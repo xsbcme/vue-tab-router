@@ -77,6 +77,64 @@ describe("TabsManager pinned tabs", () => {
   });
 });
 
+describe("TabsManager tab moving", () => {
+  it("moves normal tabs inside the normal group and keeps the active tab active", async () => {
+    const tabsManager = createTestTabsManager();
+    await tabsManager.openFirstTab(TabViewUrl.createRelative("/home"), { _viewName: "首页" });
+    const firstTabId = await tabsManager.openTab(TabViewUrl.createRelative("/one"), { _viewName: "一" });
+    const secondTabId = await tabsManager.openTab(TabViewUrl.createRelative("/two"), { _viewName: "二" });
+    const thirdTabId = await tabsManager.openTab(TabViewUrl.createRelative("/three"), { _viewName: "三" });
+
+    await tabsManager.changeActiveTab(secondTabId);
+
+    await expect(tabsManager.moveTab(thirdTabId, firstTabId, "before")).resolves.toBe(true);
+
+    expect(tabsManager.tabs.map(tab => tab.viewName)).toEqual(["首页", "三", "一", "二"]);
+    expect(tabsManager.activeTab?._id).toBe(secondTabId);
+  });
+
+  it("moves pinned tabs only inside the pinned group", async () => {
+    const tabsManager = createTestTabsManager();
+    await tabsManager.openFirstTab(TabViewUrl.createRelative("/home"), { _viewName: "首页" });
+    const pinnedOneId = await tabsManager.openTab(TabViewUrl.createRelative("/pinned-one"), {
+      _viewName: "置顶一",
+      _viewPinned: true,
+    });
+    const pinnedTwoId = await tabsManager.openTab(TabViewUrl.createRelative("/pinned-two"), {
+      _viewName: "置顶二",
+      _viewPinned: true,
+    });
+    const normalId = await tabsManager.openTab(TabViewUrl.createRelative("/normal"), { _viewName: "普通" });
+
+    await expect(tabsManager.moveTab(pinnedTwoId, pinnedOneId, "before")).resolves.toBe(true);
+    await expect(tabsManager.moveTab(pinnedOneId, normalId, "after")).resolves.toBe(false);
+    await expect(tabsManager.moveTab(normalId, pinnedOneId, "before")).resolves.toBe(false);
+
+    expect(tabsManager.tabs.map(tab => tab.viewName)).toEqual(["首页", "置顶二", "置顶一", "普通"]);
+  });
+
+  it("rejects first tabs, no-drag tabs, and no-op adjacent moves", async () => {
+    const tabsManager = createTestTabsManager();
+    const homeTabId = await tabsManager.openFirstTab(TabViewUrl.createRelative("/home"), { _viewName: "首页" });
+    const firstTabId = await tabsManager.openTab(TabViewUrl.createRelative("/one"), { _viewName: "一" });
+    const secondTabId = await tabsManager.openTab(TabViewUrl.createRelative("/two"), { _viewName: "二" });
+    const noDragTabId = await tabsManager.openTab(TabViewUrl.createRelative("/locked"), {
+      _viewName: "禁拖",
+      _viewNoDrag: true,
+    });
+
+    expect(tabsManager.canMoveTab(firstTabId, secondTabId, "before")).toBe(false);
+    expect(tabsManager.canMoveTab(secondTabId, firstTabId, "after")).toBe(false);
+
+    await expect(tabsManager.moveTab(homeTabId, firstTabId, "after")).resolves.toBe(false);
+    await expect(tabsManager.moveTab(firstTabId, homeTabId, "before")).resolves.toBe(false);
+    await expect(tabsManager.moveTab(noDragTabId, firstTabId, "before")).resolves.toBe(false);
+    await expect(tabsManager.moveTab(firstTabId, noDragTabId, "before")).resolves.toBe(false);
+
+    expect(tabsManager.tabs.map(tab => tab.viewName)).toEqual(["首页", "一", "二", "禁拖"]);
+  });
+});
+
 describe("TabsManager runtime safety", () => {
   it("uses a safe default storage outside browser environments", async () => {
     const tabsManager = createTabsManager({

@@ -33,11 +33,13 @@
 | 字段 | 说明 |
 | --- | --- |
 | `type` | 标签栏样式类型。 |
-| `showIcon` | 是否显示图标。 |
+| `showIcon` | 是否显示图标；未传时使用 `render.showIcon`，默认 `true`。 |
 | `defaultIcon` | 没有图标时的默认图标。 |
 | `hideFirst` | 是否隐藏首页标签。 |
 
-内置标签栏支持激活、关闭、右键菜单、刷新、弹窗显示、置顶和拖拽排序。拖拽能力可通过 `render.draggable` 全局控制，也可通过 `_viewNoDrag` 控制单个 tab。
+内置标签栏支持激活、关闭、右键菜单、刷新、弹窗显示、置顶和拖拽排序。图标显示可通过 `render.showIcon` 全局控制，也可通过组件 `showIcon` prop 局部覆盖；拖拽能力可通过 `render.draggable` 全局控制，也可通过 `_viewNoDrag` 控制单个 tab。
+
+拖拽排序规则：首页标签不可拖动，`_viewNoDrag` 标签不可拖动，置顶标签只能在置顶组内排序，普通标签只能在普通组内排序；激活状态不限制排序，移动后激活状态会跟随原 tab 保留。
 
 ## DynamicBreadcrumbComponent
 

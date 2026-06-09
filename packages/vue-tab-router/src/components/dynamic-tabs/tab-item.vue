@@ -8,6 +8,7 @@
     @contextmenu.prevent="e => emit('contextmenu', e, tab)"
     @dragstart="e => emit('dragstart', e, tab)"
     @dragover="e => emit('dragover', e, tab)"
+    @dragleave="e => emit('dragleave', e, tab)"
     @drop="e => emit('drop', e, tab)"
     @dragend="emit('dragend')"
   >
@@ -53,6 +54,7 @@ const emit = defineEmits<{
   (e: "contextmenu", event: MouseEvent, tab: Tab): void;
   (e: "dragstart", event: DragEvent, tab: Tab): void;
   (e: "dragover", event: DragEvent, tab: Tab): void;
+  (e: "dragleave", event: DragEvent, tab: Tab): void;
   (e: "drop", event: DragEvent, tab: Tab): void;
   (e: "dragend"): void;
 }>();
@@ -143,8 +145,12 @@ const emit = defineEmits<{
     opacity: 0.5;
   }
 
-  &.is-drop-target {
-    box-shadow: inset 0 -2px 0 var(--tab-color-primary, #165dff);
+  &.is-drop-before {
+    box-shadow: inset 2px 0 0 var(--tab-color-primary, #165dff);
+  }
+
+  &.is-drop-after {
+    box-shadow: inset -2px 0 0 var(--tab-color-primary, #165dff);
   }
 
   &:hover::before,

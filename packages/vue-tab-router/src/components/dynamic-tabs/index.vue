@@ -18,10 +18,15 @@
             v-for="tab in displayTabs"
             :key="tab._id"
             :data-tab-id="tab._id"
-            :class="{ 'is-dragging': draggingTabId === tab._id, 'is-drop-target': dropTargetTabId === tab._id }"
+            :class="{
+              'is-dragging': draggingTabId === tab._id,
+              'is-drop-target': dropTargetTabId === tab._id,
+              'is-drop-before': dropTargetTabId === tab._id && dropPosition === 'before',
+              'is-drop-after': dropTargetTabId === tab._id && dropPosition === 'after',
+            }"
             :tab="tab"
             :is-active="tab._id === tabsManager.activeTab?._id"
-            :show-icon="showIcon"
+            :show-icon="resolvedShowIcon"
             :default-icon="defaultIcon"
             :max-name-length="tabsManager.options?.viewNameMaxLength"
             :draggable="isTabDraggable(tab)"
@@ -30,6 +35,7 @@
             @contextmenu="openContextMenu"
             @dragstart="handleDragStart"
             @dragover="handleDragOver"
+            @dragleave="handleDragLeave"
             @drop="handleDrop"
             @dragend="handleDragEnd"
           />
@@ -88,7 +94,6 @@ const props = withDefaults(
   }>(),
   {
     type: "text",
-    showIcon: true,
     hideFirst: false,
   }
 );
@@ -108,6 +113,7 @@ let scrollStateFrame = 0;
 const displayTabs = computed(() => (props.hideFirst ? tabsManager.tabs.filter(t => !t._isFirst) : tabsManager.tabs));
 const activeTabId = computed(() => tabsManager.activeTab?._id);
 const tabsDraggable = computed(() => tabsManager.options.tabsDraggable !== false);
+const resolvedShowIcon = computed(() => props.showIcon ?? tabsManager.options.tabsShowIcon !== false);
 
 const updateScrollState = () => {
   if (scrollStateFrame) return;
@@ -212,10 +218,16 @@ const handleCloseTab = (key: string) => {
 
 const isTabDraggable = (tab: Tab) => tabsDraggable.value && !tab._isFirst && !tab._noDrag;
 
-const canDropTab = (sourceTab: Tab | undefined, targetTab: Tab) => {
-  if (!sourceTab || sourceTab._id === targetTab._id) return false;
-  if (!isTabDraggable(sourceTab) || !isTabDraggable(targetTab)) return false;
-  return Boolean(sourceTab._pinned) === Boolean(targetTab._pinned);
+const getDropPosition = (event: DragEvent) => {
+  const targetElement = event.currentTarget instanceof HTMLElement ? event.currentTarget : undefined;
+  if (!targetElement) return dropPosition.value;
+  const rect = targetElement.getBoundingClientRect();
+  return event.clientX > rect.left + rect.width / 2 ? "after" : "before";
+};
+
+const canDropTab = (sourceTab: Tab | undefined, targetTab: Tab, position: "before" | "after") => {
+  if (!sourceTab || !isTabDraggable(sourceTab) || !isTabDraggable(targetTab)) return false;
+  return tabsManager.canMoveTab(sourceTab._id, targetTab._id, position);
 };
 
 const handleDragStart = (event: DragEvent, tab: Tab) => {
@@ -233,25 +245,39 @@ const handleDragStart = (event: DragEvent, tab: Tab) => {
 
 const handleDragOver = (event: DragEvent, targetTab: Tab) => {
   const sourceTab = tabsManager.getTabById(draggingTabId.value);
-  if (!canDropTab(sourceTab, targetTab)) return;
+  const nextDropPosition = getDropPosition(event);
+  if (!canDropTab(sourceTab, targetTab, nextDropPosition)) {
+    dropTargetTabId.value = undefined;
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = "none";
+    }
+    return;
+  }
+
   event.preventDefault();
   if (event.dataTransfer) {
     event.dataTransfer.dropEffect = "move";
   }
-  const targetElement = event.currentTarget instanceof HTMLElement ? event.currentTarget : undefined;
-  if (targetElement) {
-    const rect = targetElement.getBoundingClientRect();
-    dropPosition.value = event.clientX > rect.left + rect.width / 2 ? "after" : "before";
-  }
+  dropPosition.value = nextDropPosition;
   dropTargetTabId.value = targetTab._id;
+};
+
+const handleDragLeave = (event: DragEvent, targetTab: Tab) => {
+  const targetElement = event.currentTarget instanceof HTMLElement ? event.currentTarget : undefined;
+  const relatedTarget = event.relatedTarget instanceof Node ? event.relatedTarget : undefined;
+  if (targetElement && relatedTarget && targetElement.contains(relatedTarget)) return;
+  if (dropTargetTabId.value === targetTab._id) {
+    dropTargetTabId.value = undefined;
+  }
 };
 
 const handleDrop = async (event: DragEvent, targetTab: Tab) => {
   event.preventDefault();
   const sourceTabId = draggingTabId.value || event.dataTransfer?.getData("text/plain");
   const sourceTab = tabsManager.getTabById(sourceTabId);
-  if (sourceTab && canDropTab(sourceTab, targetTab)) {
-    await tabsManager.moveTab(sourceTab._id, targetTab._id, dropPosition.value);
+  const currentDropPosition = dropPosition.value;
+  if (sourceTab && canDropTab(sourceTab, targetTab, currentDropPosition)) {
+    await tabsManager.moveTab(sourceTab._id, targetTab._id, currentDropPosition);
   }
   handleDragEnd();
 };

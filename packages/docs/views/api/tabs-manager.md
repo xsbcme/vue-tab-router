@@ -45,6 +45,7 @@ const tabsManager = createTabsManager({
 | `noExistComponent` | 目标组件不存在时展示的占位组件。 |
 | `viewNameMaxLength` | 内置标签栏标题最大显示长度。 |
 | `draggable` | 是否启用内置标签栏拖拽排序，默认 `true`。 |
+| `showIcon` | 是否在内置标签栏显示图标，默认 `true`。 |
 
 ### options.detached
 

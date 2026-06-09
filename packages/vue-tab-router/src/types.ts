@@ -113,6 +113,11 @@ export interface ITabsManagerOptions {
   tabsDraggable?: boolean;
 
   /**
+   * 是否在内置标签栏显示图标。默认显示。
+   */
+  tabsShowIcon?: boolean;
+
+  /**
    * 弹窗显示层级。
    */
   detachedZIndex?: number;
@@ -175,6 +180,8 @@ export interface TabsManagerRenderOptions {
   viewNameMaxLength?: number;
   /** 是否启用内置标签栏拖拽排序。默认 `true`。 */
   draggable?: boolean;
+  /** 是否在内置标签栏显示图标。默认 `true`。 */
+  showIcon?: boolean;
 }
 
 /** 弹窗显示配置。 */

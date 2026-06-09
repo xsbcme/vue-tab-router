@@ -760,21 +760,35 @@ export class TabsManager {
   /**
    * 移动标签页位置。首页和禁止拖拽标签不可移动；置顶标签只能在首页之后、普通标签之前排序。
    */
+  public canMoveTab(tabId: string | undefined, targetTabId: string | undefined, position: "before" | "after" = "before") {
+    return this.getMoveTabState(tabId, targetTabId, position) !== undefined;
+  }
+
+  private getMoveTabState(tabId: string | undefined, targetTabId: string | undefined, position: "before" | "after") {
+    if (!tabId || !targetTabId || tabId === targetTabId) return undefined;
+    const movingIndex = this._tabs.findIndex(tab => tab._id === tabId);
+    const targetIndex = this._tabs.findIndex(tab => tab._id === targetTabId);
+    if (movingIndex < 0 || targetIndex < 0) return undefined;
+
+    const movingTab = this._tabs[movingIndex];
+    const targetTab = this._tabs[targetIndex];
+    if (movingTab._isFirst || movingTab._noDrag || targetTab._isFirst || targetTab._noDrag) return undefined;
+    if (Boolean(movingTab._pinned) !== Boolean(targetTab._pinned)) return undefined;
+
+    const insertIndexBeforeRemoval = position === "after" ? targetIndex + 1 : targetIndex;
+    const insertIndex = movingIndex < insertIndexBeforeRemoval ? insertIndexBeforeRemoval - 1 : insertIndexBeforeRemoval;
+    if (insertIndex === movingIndex) return undefined;
+
+    return { movingIndex, insertIndex, movingTab };
+  }
+
   public moveTab(tabId: string, targetTabId: string, position: "before" | "after" = "before") {
     return nextTick(() => {
-      if (tabId === targetTabId) return false;
-      const movingIndex = this._tabs.findIndex(tab => tab._id === tabId);
-      const targetIndex = this._tabs.findIndex(tab => tab._id === targetTabId);
-      if (movingIndex < 0 || targetIndex < 0) return false;
+      const moveState = this.getMoveTabState(tabId, targetTabId, position);
+      if (!moveState) return false;
 
-      const movingTab = this._tabs[movingIndex];
-      const targetTab = this._tabs[targetIndex];
-      if (movingTab._isFirst || movingTab._noDrag || targetTab._isFirst || targetTab._noDrag) return false;
-      if (Boolean(movingTab._pinned) !== Boolean(targetTab._pinned)) return false;
-
+      const { movingIndex, insertIndex, movingTab } = moveState;
       this._tabs.splice(movingIndex, 1);
-      const nextTargetIndex = this._tabs.findIndex(tab => tab._id === targetTabId);
-      const insertIndex = position === "after" ? nextTargetIndex + 1 : nextTargetIndex;
       this._tabs.splice(insertIndex, 0, movingTab);
       this.persistTabs();
       return true;

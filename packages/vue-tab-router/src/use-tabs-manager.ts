@@ -35,6 +35,7 @@ function normalizeTabsManagerOptions(options: TabsManagerOptions): ITabsManagerO
     noExistComponent: render?.noExistComponent,
     viewNameMaxLength: render?.viewNameMaxLength,
     tabsDraggable: render?.draggable,
+    tabsShowIcon: render?.showIcon,
     iframeMessageOrigins: iframe?.messageOrigins,
     onIframeLoad: iframe?.onLoad,
     onIframeMessage: iframe?.onMessage,

@@ -21,11 +21,11 @@
 | 属性          | 类型                                                   | 默认值   | 说明                                       |
 | ------------- | ------------------------------------------------------ | -------- | ------------------------------------------ |
 | `type`        | `"text" \| "line" \| "card" \| "rounded" \| "capsule"` | `"text"` | 标签栏风格                                 |
-| `showIcon`    | `boolean`                                              | `false`  | 是否显示图标                               |
+| `showIcon`    | `boolean`                                              | `true`   | 是否显示图标；未传时使用 `render.showIcon` |
 | `defaultIcon` | `string`                                               | -        | 未设置 `viewIcon` 时显示的图标             |
 | `hideFirst`   | `boolean`                                              | `false`  | 隐藏 `_isFirst` 首页标签，预览容器内部使用 |
 
-`viewNameMaxLength` 在 `createTabsManager` 中配置，会影响内置标签栏标题截断。
+`viewNameMaxLength` 和 `showIcon` 可在 `createTabsManager({ render })` 中配置，会影响内置标签栏标题截断和图标显示；组件 prop 会覆盖全局配置。
 
 ## 运行时主题
 
