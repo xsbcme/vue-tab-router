@@ -593,6 +593,6 @@ const tabsManager = createTabsManager({
 
 ## 文档与示例
 
-- 文档站：https://doc.vtr.xsbcme.cn
+- 文档站：https://xsbcme.github.io/vue-tab-router/
 - 在线 Demo：https://demo.vtr.xsbcme.cn
 - 示例源码：https://gitee.com/xsbcme/vue-tab-router/tree/master/packages/demo

@@ -69,6 +69,12 @@
 
 以下内容从 `packages/vue-tab-router/CHANGELOG.md` 自动同步。发布前请先运行 `pnpm changelog:sync`。
 
+## 1.0.0-beta.39
+
+### Patch Changes
+
+- 修复 npm 可信发布和 GitHub Pages 文档的包元数据。
+
 ## 1.0.0-beta.38
 
 ### Major Changes

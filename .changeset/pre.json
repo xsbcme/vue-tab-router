@@ -7,6 +7,6 @@
     "@xsbcme/demo": "1.0.0"
   },
   "changesets": [
-    "fix-vue-peer-dependencies"
+    "tired-dogs-turn"
   ]
 }

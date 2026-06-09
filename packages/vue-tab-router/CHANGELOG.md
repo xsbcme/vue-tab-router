@@ -1,5 +1,11 @@
 # @xsbcme/vue-tab-router
 
+## 1.0.0-beta.39
+
+### Patch Changes
+
+- 修复 npm 可信发布和 GitHub Pages 文档的包元数据。
+
 ## 1.0.0-beta.38
 
 ### Major Changes
