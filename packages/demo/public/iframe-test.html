@@ -47,6 +47,7 @@
         <button id="pageMessage">页面内免 tabId 发送</button>
         <button id="open">请求打开 tab</button>
         <button id="refresh">请求刷新当前 iframe tab</button>
+        <button id="close">请求关闭当前 iframe tab</button>
       </div>
       <p>加载标识：<strong id="loadId"></strong></p>
       <p>页面内计数：<strong id="countValue">0</strong></p>
@@ -80,6 +81,7 @@
           options: { _viewName: "Iframe 打开的目标页", fromIframe: true },
         });
       document.getElementById("refresh").onclick = () => send({ type: "iframe:refresh-current" });
+      document.getElementById("close").onclick = () => send({ type: "iframe:close-current" });
       window.addEventListener("message", event => {
         appendLog(`接收：${JSON.stringify(event.data)}`);
       });

@@ -14,6 +14,7 @@
 
           <a-space wrap>
             <a-button type="primary" @click="openOwnerDetachedDemo">打开目标并弹窗显示</a-button>
+            <a-button @click="openIframeDetachedDemo">打开 Iframe 并弹窗显示</a-button>
             <a-button @click="openOtherDemoTab">打开主工作台干扰页</a-button>
             <a-button status="warning" @click="closeOtherDemoTab">关闭主工作台干扰页</a-button>
           </a-space>
@@ -54,7 +55,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { Message } from "@arco-design/web-vue";
-import { useTabsManager } from "@xsbcme/vue-tab-router";
+import { TabViewUrl, useTabsManager } from "@xsbcme/vue-tab-router";
 
 const tabsManager = useTabsManager();
 const ownerTabId = ref<string>();
@@ -77,6 +78,17 @@ const openOwnerDetachedDemo = async () => {
   ownerTabId.value = tabId;
   await tabsManager.openDetachedTab(tabId);
   Message.success("已打开弹窗，在弹窗内部关闭目标页会同步关闭主标签和弹窗");
+};
+
+const openIframeDetachedDemo = async () => {
+  const tabId = await tabsManager.openTab(TabViewUrl.createRelative("/iframe-test.html"), {
+    _viewName: "弹窗关闭 Iframe 页",
+    iframeDemo: true,
+    seed: ++demoSeed,
+  });
+  ownerTabId.value = tabId;
+  await tabsManager.openDetachedTab(tabId);
+  Message.success("已打开 iframe 弹窗，在 iframe 内请求关闭会同步关闭主标签和弹窗");
 };
 
 const openOtherDemoTab = async () => {

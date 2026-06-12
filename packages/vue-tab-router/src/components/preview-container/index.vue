@@ -18,6 +18,7 @@ import { jsonToObject } from "../../utils";
 import { useTabsManager } from "../../use-tabs-manager";
 import { TABS_MANAGER_KEY } from "../../tabs-manager-context";
 import type { TabsManager } from "../../tabs-manager";
+import type { IframeMessageEvent } from "../../iframe-message";
 import DynamicContainerComponent from "../dynamic-container";
 import DynamicTabsComponent from "../dynamic-tabs/index.vue";
 
@@ -45,14 +46,66 @@ const emit = defineEmits<{
 }>();
 
 const parentTabsManager = useTabsManager();
-const previewManager = reactive(
+let previewManager: TabsManager;
+let openVersion = 0;
+let previewRootTabId: string | undefined;
+
+const getMessagePayload = (data: unknown) => (data && typeof data === "object" ? (data as Record<string, unknown>) : undefined);
+
+const requestSourceTabClose = async () => {
+  if (!props.sourceTabId) {
+    emit("close");
+    return true;
+  }
+
+  if (!parentTabsManager.getTabById(props.sourceTabId)) {
+    emit("close", props.sourceTabId);
+    return true;
+  }
+
+  await parentTabsManager.closeTab(props.sourceTabId);
+  return !parentTabsManager.getTabById(props.sourceTabId);
+};
+
+const handleIframeMessage = async (message: IframeMessageEvent) => {
+  const payload = getMessagePayload(message.data);
+  if (payload?.type === "iframe:close-current") {
+    try {
+      if (props.closeSourceTabOnRootClose && message.tabId === previewRootTabId) {
+        const closed = await requestSourceTabClose();
+        message.reply({ type: closed ? "host:close-requested" : "host:close-rejected" });
+        return;
+      }
+      await previewManager.closeTab(message.tabId);
+      message.reply({ type: "host:close-requested" });
+    } catch (error) {
+      emit("error", error);
+      message.reply({ type: "host:close-rejected" });
+    }
+    return;
+  }
+
+  if (payload?.type === "iframe:refresh-current") {
+    try {
+      await previewManager.refreshTab(message.tabId);
+      message.reply({ type: "host:refreshed" });
+    } catch (error) {
+      emit("error", error);
+      message.reply({ type: "host:refresh-rejected" });
+    }
+    return;
+  }
+
+  parentTabsManager.options.onIframeMessage?.(message);
+};
+
+previewManager = reactive(
   parentTabsManager.createScopedManager({
     storageEnabled: false,
+    onIframeMessage: handleIframeMessage,
   })
 ) as TabsManager;
 provide(TABS_MANAGER_KEY, previewManager);
-let openVersion = 0;
-let previewRootTabId: string | undefined;
 
 const parsedViewProps = computed<Record<string, unknown>>(
   () => jsonToObject(props.viewProps || {}, {}) as Record<string, unknown>
@@ -77,10 +130,9 @@ const openPreviewTab = async () => {
     if (version !== openVersion) return;
     previewRootTabId = tabId;
     if (props.closeSourceTabOnRootClose) {
-      previewManager._setNoCloseTabCloseHandler(tab => {
+      previewManager._setNoCloseTabCloseHandler(async tab => {
         if (tab._id !== previewRootTabId) return false;
-        emit("close", props.sourceTabId);
-        return true;
+        return await requestSourceTabClose();
       });
     } else {
       previewManager._setNoCloseTabCloseHandler(undefined);

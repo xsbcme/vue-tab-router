@@ -208,6 +208,10 @@ export class TabsManager {
     return this._reactiveManager || this;
   }
 
+  private getStateManager() {
+    return this._reactiveManager || this;
+  }
+
   /**
    * 按 tabId 获取标签页实例。
    */
@@ -307,6 +311,9 @@ export class TabsManager {
     tabOptions?: Omit<IOpenTabOptions, "_viewOutside" | "_viewOutsideProps">,
     mode: "clear" | "replace" | "move" = "replace"
   ) {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.openFirstTab(viewUrl, tabOptions, mode);
+
     switch (mode) {
       case "clear":
         await this.clear();
@@ -355,6 +362,9 @@ export class TabsManager {
   }
 
   public async openDetachedTab(tabId?: string) {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.openDetachedTab(tabId);
+
     const findTab = this.getTabById(tabId || this.activeTab?._id);
     if (!findTab) {
       return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
@@ -373,6 +383,9 @@ export class TabsManager {
   }
 
   public async closeDetachedTab() {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.closeDetachedTab();
+
     const detachedTab = this._detachedTab ? clone(this._detachedTab) : undefined;
     this._detachedTab = null;
     await this._hooks.call("tab:detached-closed", detachedTab);
@@ -437,6 +450,9 @@ export class TabsManager {
    * @param triggerHook 是否触发全局进入守卫。
    */
   public changeActiveTab(tabId: string, triggerHook: boolean = true) {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.changeActiveTab(tabId, triggerHook);
+
     return nextTick(async () => {
       if (tabId === this.activeTab?._id) return tabId;
       const findTab = this.getTabById(tabId);
@@ -469,6 +485,9 @@ export class TabsManager {
    * 更新 tab 配置。支持传对象或 JSON 字符串。
    */
   public updateTabOptions(options: IUpdateTabOptions | string, tabId?: string) {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.updateTabOptions(options, tabId);
+
     return nextTick(() => {
       const findTab = tabId ? this.getTabById(tabId) : this.activeTab;
       if (!findTab) return;
@@ -515,6 +534,9 @@ export class TabsManager {
   ): Promise<string>;
   public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions): Promise<string | Window | null>;
   public openTab<Url extends string>(viewUrl: Url, tabOptions?: IOpenTabOptions) {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.openTab(viewUrl, tabOptions);
+
     return nextTick(async () => {
       const viewMeta = this.getViewMeta(viewUrl);
       const normalizedOptions = {
@@ -631,6 +653,9 @@ export class TabsManager {
    * @param options 关闭选项。
    */
   public closeTab(tabId?: string, options: CloseTabOptions = {}) {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.closeTab(tabId, options);
+
     return nextTick<void>(async () => {
       const findTab = this.getTabById(tabId || this.activeTab?._id);
       if (!findTab) {
@@ -697,6 +722,9 @@ export class TabsManager {
    * 关闭全部标签页（不可关闭标签页除外）
    */
   public closeTabByAll(options: CloseTabsOptions = {}): Promise<void> {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.closeTabByAll(options);
+
     return nextTick<void>(async () => {
       await this.deferPersist(async () => {
         const tabs = clone(this._tabs);
@@ -715,6 +743,9 @@ export class TabsManager {
    * 刷新指定标签页（通过切换 `_isRefresh` 触发重建）。
    */
   public refreshTab(tabId?: string) {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.refreshTab(tabId);
+
     return nextTick(() => {
       const findTab = this.getTabById(tabId || this.activeTab?._id);
       if (!findTab) {
@@ -734,6 +765,9 @@ export class TabsManager {
    * 刷新所有标签页
    */
   public refreshTabAll() {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.refreshTabAll();
+
     return nextTick(() => {
       this._refreshAllTabFlag = true;
       return nextTick(() => {
@@ -746,6 +780,9 @@ export class TabsManager {
    * 向来源（父）标签页发送事件。
    */
   public emit(eventName: string, data?: unknown, tabId?: string) {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.emit(eventName, data, tabId);
+
     const findTab = this.getTabById(tabId || this.activeTab?._id);
     if (findTab && findTab._sourceId) {
       const eventManager = this.events;
@@ -759,6 +796,9 @@ export class TabsManager {
    * @param tabIndex2 标签页索引
    */
   public swapTabByIndex(tabIndex1: number, tabIndex2: number) {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.swapTabByIndex(tabIndex1, tabIndex2);
+
     return nextTick(() => {
       if (tabIndex1 >= 0 && tabIndex2 >= 0) {
         const temp = this._tabs[tabIndex1];
@@ -795,6 +835,9 @@ export class TabsManager {
   }
 
   public moveTab(tabId: string, targetTabId: string, position: "before" | "after" = "before") {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.moveTab(tabId, targetTabId, position);
+
     return nextTick(() => {
       const moveState = this.getMoveTabState(tabId, targetTabId, position);
       if (!moveState) return false;
@@ -813,6 +856,9 @@ export class TabsManager {
    * @param tabId2 标签页ID
    */
   public swapTabById(tabId1: string, tabId2: string) {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.swapTabById(tabId1, tabId2);
+
     return nextTick(() => {
       const findTab1Index = this._tabs.findIndex(tab => tab._id === tabId1);
       const findTab2Index = this._tabs.findIndex(tab => tab._id === tabId2);
@@ -825,6 +871,9 @@ export class TabsManager {
    * @param tabId 标签页ID，不填时默认为当前激活的标签页
    */
   public closeTabsByLeft(tabId?: string, options: CloseTabsOptions = {}): Promise<void> {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.closeTabsByLeft(tabId, options);
+
     return nextTick<void>(async () => {
       await this.deferPersist(async () => {
         const findTab = this.getTabById(tabId || this.activeTab?._id);
@@ -850,6 +899,9 @@ export class TabsManager {
    * @param tabId 标签页ID，不填时默认为当前激活的标签页
    */
   public closeTabsByRight(tabId?: string, options: CloseTabsOptions = {}): Promise<void> {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.closeTabsByRight(tabId, options);
+
     return nextTick<void>(async () => {
       await this.deferPersist(async () => {
         const findTab = this.getTabById(tabId || this.activeTab?._id);
@@ -875,6 +927,9 @@ export class TabsManager {
    * @param tabId 标签页ID，不填时默认为当前激活的标签页
    */
   public closeTabsByOther(tabId?: string, options: CloseTabsOptions = {}): Promise<void> {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.closeTabsByOther(tabId, options);
+
     return nextTick<void>(async () => {
       await this.deferPersist(async () => {
         const findTab = this.getTabById(tabId || this.activeTab?._id);
@@ -901,6 +956,9 @@ export class TabsManager {
    * 清空标签（退出系统时调用）
    */
   public async clear() {
+    const stateManager = this.getStateManager();
+    if (stateManager !== this) return stateManager.clear();
+
     this._tabs = [];
     this._refreshAllTabFlag = false;
     this._persistPending = false;

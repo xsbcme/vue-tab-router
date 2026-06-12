@@ -101,14 +101,18 @@ const tabsManager = createTabsManager({
         pushLog(iframeLogs, `无法访问 iframe 内部文档 ${tab.viewUrl}`);
       }
     },
-    onMessage: message => {
+    onMessage: async message => {
       pushLog(iframeLogs, `message ${JSON.stringify(message.data)}`);
       const data = message.data;
       if (!data || typeof data !== "object") return;
       const payload = data as Record<string, unknown>;
       if (payload.type === "iframe:refresh-current") {
-        tabsManager.refreshTab(message.tabId);
+        await tabsManager.refreshTab(message.tabId);
         message.reply({ type: "host:refreshed" });
+      }
+      if (payload.type === "iframe:close-current") {
+        await tabsManager.closeTab(message.tabId);
+        message.reply({ type: "host:close-requested" });
       }
     },
   },
