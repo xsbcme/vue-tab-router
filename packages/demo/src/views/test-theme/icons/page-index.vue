@@ -17,7 +17,17 @@
         <span>图片路径：</span><DynamicIconComponent icon="/favicon.ico" width="20px" height="20px" />
         <span>未知图标：</span><DynamicIconComponent icon="NotExistsIcon" width="20px" height="20px" />
       </a-space>
-      <DynamicTabsComponent type="card" show-icon default-icon="IconApps" />
+
+      <a-divider orientation="left">内置组件配置</a-divider>
+      <a-space direction="vertical" fill>
+        <a-space wrap>
+          <a-button @click="showDemoIcon = !showDemoIcon">切换标签图标</a-button>
+          <a-button @click="hideFirstTab = !hideFirstTab">切换隐藏首页</a-button>
+          <a-button @click="openLongTitleTab">打开长标题页</a-button>
+        </a-space>
+        <DynamicTabsComponent type="card" :show-icon="showDemoIcon" :hide-first="hideFirstTab" default-icon="IconApps" />
+        <DynamicBreadcrumbComponent separator=">" show-icon />
+      </a-space>
 
       <a-divider orientation="left">插件 Hooks</a-divider>
       <a-space wrap>
@@ -36,7 +46,9 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import {
+  DynamicBreadcrumbComponent,
   DynamicIconComponent,
   DynamicTabsComponent,
   applyTheme,
@@ -50,6 +62,8 @@ import { hookLogs } from "@/plugins/tab-router";
 
 const svgIcon = '<svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="#00b42a"/></svg>';
 const tabsManager = useTabsManager();
+const showDemoIcon = ref(true);
+const hideFirstTab = ref(false);
 
 defineTabOptions({
   viewName: "插件与主题",
@@ -60,6 +74,14 @@ const openTarget = () => {
   tabsManager.openTab("/src/views/test-router/router-target/page-index.vue", {
     _viewName: `Hook 目标页 ${Date.now()}`,
     hookSource: true,
+  });
+};
+
+const openLongTitleTab = () => {
+  tabsManager.openTab("/src/views/test-router/router-target/page-index.vue", {
+    _viewName: "这是一个用于验证标题最大显示长度的超长标签标题",
+    _viewIcon: "IconApps",
+    longTitleDemo: true,
   });
 };
 

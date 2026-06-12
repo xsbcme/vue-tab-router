@@ -35,9 +35,14 @@
       <a-divider orientation="left">首页与批量</a-divider>
       <a-space wrap>
         <a-button @click="openFirstTab">替换首页</a-button>
+        <a-button @click="openFirstTabByMove">移动首页到首位</a-button>
+        <a-button status="warning" @click="openFirstTabByClear">清空后打开首页</a-button>
         <a-button @click="tabsManager.activeFirstTab()">激活首页</a-button>
+        <a-button @click="openPinnedAndLockedTabs">添加置顶/禁拖标签</a-button>
         <a-button @click="openManyTabs">批量打开</a-button>
         <a-button @click="swapFirstTwoTabs">交换前两个</a-button>
+        <a-button @click="swapActiveWithPreviousById">按 ID 交换当前与左侧</a-button>
+        <a-button @click="moveActiveBeforeFirstMovable">移动当前到首个可移动标签前</a-button>
         <a-button status="warning" @click="tabsManager.closeTabsByLeft(undefined, { continueOnRejected: true })"
           >关闭左侧</a-button
         >
@@ -47,8 +52,12 @@
         <a-button status="warning" @click="tabsManager.closeTabsByOther(undefined, { continueOnRejected: true })"
           >关闭其他</a-button
         >
+        <a-button status="warning" @click="tabsManager.closeTabByAll({ continueOnRejected: true })">关闭全部</a-button>
         <a-button status="danger" @click="clearTabs">清空标签</a-button>
       </a-space>
+
+      <a-divider orientation="left">排序规则状态</a-divider>
+      <a-table :columns="tabStateColumns" :data="tabStateRows" :pagination="false" row-key="id" />
 
       <a-descriptions :column="1" bordered>
         <a-descriptions-item label="当前标签数">{{ tabsManager.tabs.length }}</a-descriptions-item>
@@ -64,10 +73,30 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { Message } from "@arco-design/web-vue";
 import { useTabsManager } from "@xsbcme/vue-tab-router";
 
 const tabsManager = useTabsManager();
+
+const tabStateColumns = [
+  { title: "顺序", dataIndex: "index", width: 80 },
+  { title: "标题", dataIndex: "name" },
+  { title: "置顶", dataIndex: "pinned", width: 80 },
+  { title: "禁拖", dataIndex: "noDrag", width: 80 },
+  { title: "可移到当前前", dataIndex: "canMoveBeforeActive", width: 130 },
+];
+
+const tabStateRows = computed(() =>
+  tabsManager.tabs.map((tab, index) => ({
+    id: tab._id,
+    index: index + 1,
+    name: tab.viewName || tab.viewUrl,
+    pinned: tab._pinned ? "是" : "否",
+    noDrag: tab._noDrag ? "是" : "否",
+    canMoveBeforeActive: tabsManager.canMoveTab(tab._id, tabsManager.activeTab?._id, "before") ? "是" : "否",
+  }))
+);
 
 const openSingle = (a: number) => {
   tabsManager.openTab("/src/views/test-router/router-target/page-index.vue", {
@@ -122,12 +151,34 @@ const openFirstTab = () => {
   tabsManager.openFirstTab("/src/views/home/page-index.vue", { _viewName: "首页" }, "replace");
 };
 
+const openFirstTabByMove = () => {
+  tabsManager.openFirstTab("/src/views/home/page-index.vue", { _viewName: "首页移动模式" }, "move");
+};
+
+const openFirstTabByClear = () => {
+  if (!window.confirm("确认清空后重新打开首页？")) return;
+  tabsManager.openFirstTab("/src/views/home/page-index.vue", { _viewName: "首页清空模式" }, "clear");
+};
+
 const openManyTabs = () => {
   Array.from({ length: 8 }).forEach((_, index) => {
     tabsManager.openTab("/src/views/test-router/router-target/page-index.vue", {
       _viewName: `批量标签 ${index + 1}`,
       batchIndex: index,
     });
+  });
+};
+
+const openPinnedAndLockedTabs = () => {
+  tabsManager.openTab("/src/views/test-router/router-target/page-index.vue", {
+    _viewName: "置顶可排序",
+    _viewPinned: true,
+    sortDemo: "pinned",
+  });
+  tabsManager.openTab("/src/views/test-router/router-target/page-index.vue", {
+    _viewName: "禁拖目标",
+    _viewNoDrag: true,
+    sortDemo: "locked",
   });
 };
 
@@ -140,6 +191,30 @@ const updateCurrentTitle = () => {
 const swapFirstTwoTabs = () => {
   if (tabsManager.tabs.length < 2) return;
   tabsManager.swapTabByIndex(0, 1);
+};
+
+const swapActiveWithPreviousById = () => {
+  const activeIndex = tabsManager.tabs.findIndex(tab => tab._id === tabsManager.activeTab?._id);
+  if (activeIndex <= 0) {
+    Message.info("当前标签左侧没有可交换目标");
+    return;
+  }
+  tabsManager.swapTabById(tabsManager.tabs[activeIndex]._id, tabsManager.tabs[activeIndex - 1]._id);
+};
+
+const moveActiveBeforeFirstMovable = async () => {
+  const activeTab = tabsManager.activeTab;
+  const targetTab = tabsManager.tabs.find(tab => tab._id !== activeTab?._id && tabsManager.canMoveTab(activeTab?._id, tab._id, "before"));
+  if (!activeTab || !targetTab) {
+    Message.info("没有符合规则的移动目标，可先批量打开或添加置顶/禁拖标签");
+    return;
+  }
+  const moved = await tabsManager.moveTab(activeTab._id, targetTab._id, "before");
+  if (moved) {
+    Message.success("移动成功");
+    return;
+  }
+  Message.warning("当前排序规则不允许移动");
 };
 
 const openMissingView = () => {

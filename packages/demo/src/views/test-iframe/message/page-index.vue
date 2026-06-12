@@ -19,11 +19,18 @@
       <a-space wrap>
         <a-button type="primary" @click="openCachedIframe">打开缓存 iframe</a-button>
         <a-button @click="openNoCacheIframe">打开不缓存 iframe</a-button>
+        <a-button @click="openIframeWithHash">打开带 hash iframe</a-button>
         <a-button @click="openComponentTab">打开组件页用于切换</a-button>
         <a-button @click="sendToActiveIframe">向当前 iframe 发送消息</a-button>
         <a-button @click="sendToCachedIframeById">按 tabId 发送消息</a-button>
         <a-button @click="openCachedIframe">打开 iframe 后在页面内测试免 tabId</a-button>
+        <a-button @click="copySyncedUrl">复制当前同步链接</a-button>
       </a-space>
+      <a-descriptions :column="1" bordered>
+        <a-descriptions-item label="缓存 iframe tabId">{{ cachedIframeTabId || "-" }}</a-descriptions-item>
+        <a-descriptions-item label="当前 iframe viewUrl">{{ activeIframeViewUrl }}</a-descriptions-item>
+        <a-descriptions-item label="activeTab query">{{ activeTabQuery || "-" }}</a-descriptions-item>
+      </a-descriptions>
       <a-list bordered :data="iframeLogs">
         <template #item="{ item }">
           <a-list-item>{{ item }}</a-list-item>
@@ -34,12 +41,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import { Message } from "@arco-design/web-vue";
+import { useRoute } from "vue-router";
 import { TabViewUrl, useTabsManager } from "@xsbcme/vue-tab-router";
 import { iframeLogs } from "@/plugins/tab-router";
 
 const tabsManager = useTabsManager();
+const route = useRoute();
 const cachedIframeTabId = ref<string>();
+
+const activeIframeViewUrl = computed(() => {
+  const viewUrl = tabsManager.activeTab?.viewUrl;
+  return viewUrl && TabViewUrl.isIframe(viewUrl) ? viewUrl : "-";
+});
+
+const activeTabQuery = computed(() => {
+  const value = route.query.activeTab;
+  return Array.isArray(value) ? value[0] : value;
+});
 
 const openHttpInline = () => {
   tabsManager.openTab("https://www.baidu.com/", { _viewName: "内部链接" });
@@ -88,7 +108,7 @@ const openRelativeOutsideWithParams = () => {
 };
 
 const openCachedIframe = async () => {
-  cachedIframeTabId.value = await tabsManager.openTab(TabViewUrl.createRelative("/iframe-test.html"), {
+  cachedIframeTabId.value = await tabsManager.openTab(TabViewUrl.createRelative("./iframe-test.html"), {
     _viewName: "缓存 Iframe 通信",
     cacheMode: "enabled",
     iframeDemo: true,
@@ -96,10 +116,17 @@ const openCachedIframe = async () => {
 };
 
 const openNoCacheIframe = () => {
-  tabsManager.openTab(TabViewUrl.createRelative("/iframe-test.html"), {
+  tabsManager.openTab(TabViewUrl.createRelative("./iframe-test.html"), {
     _viewName: "不缓存 Iframe 通信",
     _viewNoCache: true,
     cacheMode: "disabled",
+    iframeDemo: true,
+  });
+};
+
+const openIframeWithHash = () => {
+  tabsManager.openTab(TabViewUrl.createRelative("./iframe-test.html?from=host#sync-demo"), {
+    _viewName: "带 Hash Iframe 通信",
     iframeDemo: true,
   });
 };
@@ -123,5 +150,10 @@ const sendToCachedIframeById = () => {
     type: "host:tab-id-message",
     time: new Date().toLocaleTimeString(),
   });
+};
+
+const copySyncedUrl = async () => {
+  await navigator.clipboard.writeText(window.location.href);
+  Message.success("已复制当前同步链接");
 };
 </script>

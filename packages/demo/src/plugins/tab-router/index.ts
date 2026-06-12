@@ -1,5 +1,5 @@
 import { ref, createVNode } from "vue";
-import { createTabsManager, createTabUrlSyncPlugin, StorageAdapter } from "@xsbcme/vue-tab-router";
+import { createTabsManager, createTabUrlSyncPlugin, StorageAdapter, TabViewUrl } from "@xsbcme/vue-tab-router";
 import router from "@/plugins/vue-router";
 import { createDemoTabsManagerPlugin } from "./demo-plugin";
 
@@ -85,7 +85,7 @@ const tabsManager = createTabsManager({
           },
           {
             title: "iframe 经营看板",
-            viewUrl: "relative:/iframe-test.html",
+            viewUrl: TabViewUrl.createRelative("./iframe-test.html"),
           },
         ],
       },
@@ -118,6 +118,20 @@ const tabsManager = createTabsManager({
       },
       () => "欢迎使用标签页路由"
     ),
+    noExistComponent: createVNode(
+      "div",
+      {
+        style: {
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "var(--color-text-3)",
+        },
+      },
+      () => "视图未注册或已失效"
+    ),
+    viewNameMaxLength: 12,
   },
   detached: {
     zIndex: 900,
