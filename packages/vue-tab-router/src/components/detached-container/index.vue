@@ -45,6 +45,9 @@
             :view-url="previewTab.viewUrl"
             :view-name="previewTab.viewName || '未命名'"
             :view-props="previewTab.viewProps || {}"
+            :source-tab-id="previewTab._id"
+            close-source-tab-on-root-close
+            @close="handlePreviewClose"
             @error="error => emit('error', error)"
           />
         </div>
@@ -86,6 +89,14 @@ const toggleFullscreen = () => {
 
 const refreshPreview = () => {
   previewRef.value?.refresh();
+};
+
+const handlePreviewClose = (tabId?: string) => {
+  if (tabId && tabsManager.getTabById(tabId)) {
+    tabsManager.closeTab(tabId).catch(error => emit("error", error));
+    return;
+  }
+  emit("close");
 };
 
 watch(

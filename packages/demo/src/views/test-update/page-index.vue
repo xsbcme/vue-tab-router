@@ -2,7 +2,10 @@
   <a-card :style="{ height: '100%' }">
     <div>
       <div>当前页面参数：{{ props }}</div>
-      <div><button @click="handleUpdateParams">更新页面参数</button></div>
+      <a-space wrap>
+        <a-button @click="handleUpdateParams">更新页面参数</a-button>
+        <a-button status="danger" @click="handleClose">关闭当前标签页</a-button>
+      </a-space>
     </div>
   </a-card>
 </template>
@@ -19,6 +22,10 @@ const handleUpdateParams = () => {
   tabsManager.updateTabOptions({
     a: new Date().getTime().toString(),
   });
+};
+
+const handleClose = () => {
+  tabsManager.closeTab();
 };
 </script>
 <style lang="scss" scoped></style>

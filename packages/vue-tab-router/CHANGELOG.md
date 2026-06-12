@@ -1,5 +1,11 @@
 # @xsbcme/vue-tab-router
 
+## 1.1.0-beta.1
+
+### Patch Changes
+
+- 修复右键菜单“弹窗显示”中的关闭行为：弹窗内原页面调用关闭当前标签页时，会同步关闭主工作台中的来源标签和弹窗；弹窗内新打开的子标签关闭时仅影响弹窗内部标签，不会误关来源标签或弹窗。不可关闭标签仍会保持不可关闭，不会被弹窗内关闭操作绕过。
+
 ## 1.1.0-beta.0
 
 ### Minor Changes
@@ -38,4 +44,3 @@
 - 增强 iframe 消息通信和当前 iframe 消息发送能力，补齐 `postCurrentIframeMessage` 等便捷 API。
 - 补充 base64url URL 状态编解码、非法 query 清理、文档标题同步、面包屑点击、pin/no-drag、view meta 默认值等测试覆盖。
 - 完善 Demo 接入，示例覆盖 `views.meta`、URL 同步、文档标题同步、面包屑、插件 hooks、守卫、iframe 通信和项目实践场景。
-

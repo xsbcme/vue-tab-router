@@ -26,6 +26,8 @@ const props = withDefaults(
     viewUrl: string;
     viewProps?: Record<string, unknown> | string;
     viewName?: string;
+    sourceTabId?: string;
+    closeSourceTabOnRootClose?: boolean;
     tabsVisibleThreshold?: number;
     hideFirstTab?: boolean;
   }>(),
@@ -39,6 +41,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   error: [error: unknown];
+  close: [tabId?: string];
 }>();
 
 const parentTabsManager = useTabsManager();
@@ -49,6 +52,7 @@ const previewManager = reactive(
 ) as TabsManager;
 provide(TABS_MANAGER_KEY, previewManager);
 let openVersion = 0;
+let previewRootTabId: string | undefined;
 
 const parsedViewProps = computed<Record<string, unknown>>(
   () => jsonToObject(props.viewProps || {}, {}) as Record<string, unknown>
@@ -62,7 +66,7 @@ const openPreviewTab = async () => {
   if (!viewUrl) return;
 
   try {
-    await previewManager.openFirstTab(
+    const tabId = await previewManager.openFirstTab(
       viewUrl,
       {
         _viewName: props.viewName,
@@ -71,6 +75,16 @@ const openPreviewTab = async () => {
       "clear"
     );
     if (version !== openVersion) return;
+    previewRootTabId = tabId;
+    if (props.closeSourceTabOnRootClose) {
+      previewManager._setNoCloseTabCloseHandler(tab => {
+        if (tab._id !== previewRootTabId) return false;
+        emit("close", props.sourceTabId);
+        return true;
+      });
+    } else {
+      previewManager._setNoCloseTabCloseHandler(undefined);
+    }
   } catch (error) {
     if (version === openVersion) {
       emit("error", error);

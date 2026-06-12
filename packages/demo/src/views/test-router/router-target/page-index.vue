@@ -3,7 +3,10 @@
     <a-space direction="vertical" fill>
       <div>这里是路由目标页面</div>
       <div>页面接收参数：{{ props }}</div>
-      <a-button @click="openInnerTab">在当前容器内打开其它页面</a-button>
+      <a-space wrap>
+        <a-button @click="openInnerTab">在当前容器内打开其它页面</a-button>
+        <a-button status="danger" @click="closeCurrentTab">关闭当前标签页</a-button>
+      </a-space>
     </a-space>
   </a-card>
 </template>
@@ -22,6 +25,10 @@ const openInnerTab = () => {
     from: "router-target",
     time: Date.now(),
   });
+};
+
+const closeCurrentTab = () => {
+  tabsManager.closeTab();
 };
 </script>
 <style lang="scss" scoped></style>

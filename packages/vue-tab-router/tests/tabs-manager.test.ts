@@ -196,6 +196,21 @@ describe("TabsManager runtime safety", () => {
 
     expect(calls).toEqual(["cleared"]);
   });
+
+  it("closes detached view only when its owner tab is closed", async () => {
+    const tabsManager = createTestTabsManager();
+    const ownerTabId = await tabsManager.openTab(TabViewUrl.createRelative("/owner"), { _viewName: "宿主页" });
+    const otherTabId = await tabsManager.openTab(TabViewUrl.createRelative("/other"), { _viewName: "其他页" });
+
+    await tabsManager.openDetachedTab(ownerTabId);
+    expect(tabsManager.detachedTab?.viewName).toBe("宿主页");
+
+    await tabsManager.closeTab(otherTabId);
+    expect(tabsManager.detachedTab?.viewName).toBe("宿主页");
+
+    await tabsManager.closeTab(ownerTabId);
+    expect(tabsManager.detachedTab).toBeNull();
+  });
 });
 
 describe("TabsManager view meta", () => {

@@ -37,6 +37,7 @@ export class TabsManager {
   private _reactiveManager: TabsManager | null = null;
   private _persistSuspendCount = 0;
   private _persistPending = false;
+  private _noCloseTabCloseHandler?: (tab: Partial<Tab>) => boolean | Promise<boolean>;
   private _iframeMessenger?: (
     tabId: string,
     data: unknown,
@@ -349,12 +350,17 @@ export class TabsManager {
     this._iframeMessenger = messenger;
   }
 
+  public _setNoCloseTabCloseHandler(handler?: (tab: Partial<Tab>) => boolean | Promise<boolean>) {
+    this._noCloseTabCloseHandler = handler;
+  }
+
   public async openDetachedTab(tabId?: string) {
     const findTab = this.getTabById(tabId || this.activeTab?._id);
     if (!findTab) {
       return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
     }
     this._detachedTab = clone({
+      _id: findTab._id,
       viewUrl: findTab.viewUrl,
       viewName: findTab.viewName,
       viewIcon: findTab.viewIcon,
@@ -633,6 +639,9 @@ export class TabsManager {
       const findTabIndex = this._tabs.indexOf(findTab);
       if (findTabIndex >= 0) {
         if (!options.ignoreNoClose && findTab._noClose) {
+          if (await this._noCloseTabCloseHandler?.(clone(findTab))) {
+            return;
+          }
           return;
         }
 
@@ -676,6 +685,9 @@ export class TabsManager {
         }
 
         this.persistTabs();
+        if (this._detachedTab?._id === findTab._id) {
+          await this.closeDetachedTab();
+        }
         await this._hooks.call("tab:closed", clone(findTab), clone(fallbackTab));
       }
     });

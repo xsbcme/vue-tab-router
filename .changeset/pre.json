@@ -7,6 +7,7 @@
     "@xsbcme/vue-tab-router": "1.0.29"
   },
   "changesets": [
+    "gentle-tabs-close",
     "silly-kids-smash",
     "tired-dogs-turn"
   ]
