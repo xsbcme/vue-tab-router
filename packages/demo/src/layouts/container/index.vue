@@ -7,12 +7,16 @@
       <a-layout class="container-body" :style="{ overflow: 'hidden' }">
         <template v-if="menuStore.getMenus.length > 0">
           <a-layout-sider
-            v-model:collapsed="menuCollapsed"
-            :class="{ 'is-mobile-menu-open': isMobile && !menuCollapsed }"
+            :collapsed="siderCollapsed"
+            :class="{
+              'is-mobile-menu-open': isMobile && !menuCollapsed,
+              'is-mobile-menu-closed': isMobile && menuCollapsed,
+            }"
             collapsible
             :hide-trigger="true"
             :width="isMobile ? 240 : 260"
-            :collapsed-width="isMobile ? 0 : 48"
+            :collapsed-width="48"
+            @update:collapsed="handleSiderCollapsedChange"
           >
             <MenuComponent
               :menus="menuStore.getMenus"
@@ -47,7 +51,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useMenuStore } from "@/plugins/store";
 import { DynamicBreadcrumbComponent, useTabMenu, useTabsManager } from "@xsbcme/vue-tab-router";
 import { Menu } from "@/model/menu";
@@ -62,6 +66,7 @@ const tabsMangager = useTabsManager();
 const isMobileLayout = () => typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches;
 const isMobile = ref(isMobileLayout());
 const menuCollapsed = ref(isMobile.value);
+const siderCollapsed = computed(() => (isMobile.value ? false : menuCollapsed.value));
 const tabMenu = useTabMenu<Menu>({
   menus: () => menuStore.getMenus,
 });
@@ -82,6 +87,12 @@ onBeforeUnmount(() => {
 
 const toggleMenu = () => {
   menuCollapsed.value = !menuCollapsed.value;
+};
+
+const handleSiderCollapsedChange = (collapsed: boolean) => {
+  if (!isMobile.value) {
+    menuCollapsed.value = collapsed;
+  }
 };
 
 const handleSelectMenu = async (menuKey: string) => {
@@ -141,35 +152,51 @@ const handleSelectMenu = async (menuKey: string) => {
 
   @media (max-width: 768px) {
     :deep(.arco-layout-sider) {
+      --mobile-menu-width: min(240px, 78vw);
+
       position: absolute;
       top: 0;
       bottom: 0;
       left: 0;
       z-index: 30;
-      width: 240px !important;
-      max-width: 78vw !important;
+      width: var(--mobile-menu-width) !important;
+      min-width: var(--mobile-menu-width) !important;
+      max-width: var(--mobile-menu-width) !important;
       overflow: hidden;
       background: var(--color-bg-2);
       border-right: 1px solid var(--color-border-2);
       box-shadow: none;
       transform: translateX(0);
+      visibility: visible;
       transition:
         transform 0.24s ease,
         box-shadow 0.16s ease 0.08s,
-        border-color 0.24s ease;
+        border-color 0.24s ease,
+        visibility 0s linear 0s;
     }
 
     :deep(.arco-layout-sider.is-mobile-menu-open) {
       box-shadow: 4px 0 14px rgba(29, 33, 41, 0.08);
     }
 
-    :deep(.arco-layout-sider-collapsed) {
-      width: 240px !important;
-      min-width: 240px !important;
-      max-width: 78vw !important;
+    :deep(.arco-layout-sider.is-mobile-menu-closed) {
+      width: var(--mobile-menu-width) !important;
+      min-width: var(--mobile-menu-width) !important;
+      max-width: var(--mobile-menu-width) !important;
       border-right-color: transparent;
       box-shadow: none;
-      transform: translateX(-100%);
+      pointer-events: none;
+      transform: translateX(calc(-100% - 2px));
+      visibility: hidden;
+      transition:
+        transform 0.24s ease,
+        box-shadow 0.16s ease,
+        border-color 0.24s ease,
+        visibility 0s linear 0.24s;
+    }
+
+    :deep(.arco-layout-sider.is-mobile-menu-closed::after) {
+      background-color: transparent;
     }
 
     .container-menu-mask {

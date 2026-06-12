@@ -6,6 +6,9 @@
     <div class="third-item">
       <a-link href="https://github.com/xsbcme/vue-tab-router" target="_blank" icon>GitHub</a-link>
     </div>
+    <div class="third-item">
+      <a-link href="https://gitee.com/xsbcme/vue-tab-router" target="_blank" icon>Gitee</a-link>
+    </div>
   </div>
 </template>
 <script lang="ts" setup></script>
