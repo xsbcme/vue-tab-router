@@ -43,6 +43,19 @@ function mountDynamicContainer() {
 }
 
 describe("DynamicContainer iframe rendering", () => {
+  it("allows component views to scroll while keeping the iframe layer clipped", async () => {
+    const { app, host, tabsManager } = mountDynamicContainer();
+
+    await tabsManager.openTab(iframeViewUrl, { _viewName: "Iframe 测试" });
+    await flushTicks(2);
+
+    expect(host.querySelector<HTMLElement>(".dynamic-container__view-layer")?.style.overflow).toBe("auto");
+    expect(host.querySelector<HTMLElement>(".dynamic-container__iframe-layer")?.style.overflow).toBe("hidden");
+
+    app.unmount();
+    host.remove();
+  });
+
   it("rebuilds cached iframe tabs when the manager refreshes them", async () => {
     const { app, host, tabsManager } = mountDynamicContainer();
 

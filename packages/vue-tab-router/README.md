@@ -11,6 +11,12 @@
 
 ---
 
+## 文档与示例
+
+- 文档站：https://xsbcme.github.io/vue-tab-router/doc
+- 在线 Demo：https://xsbcme.github.io/vue-tab-router/demo
+- 示例源码：https://gitee.com/xsbcme/vue-tab-router/tree/master/packages/demo
+
 ## 应用优势
 
 VueTabRouter 解决的是 Vue 中后台项目里的多标签工作台问题。它不是普通 UI Tabs 组件，而是一套围绕页面生命周期设计的标签页路由管理方案，适合后台管理系统、业务工作台、多文档编辑、报表平台、iframe 集成和跨页面协作场景。
@@ -590,9 +596,3 @@ const tabsManager = createTabsManager({
 - `DynamicTabsComponent` 使用组件内置样式，可通过 CSS 变量定制主题
 
 ---
-
-## 文档与示例
-
-- 文档站：https://xsbcme.github.io/vue-tab-router/
-- 在线 Demo：https://demo.vtr.xsbcme.cn
-- 示例源码：https://gitee.com/xsbcme/vue-tab-router/tree/master/packages/demo

@@ -1,5 +1,11 @@
 # @xsbcme/vue-tab-router
 
+## 1.1.0-beta.3
+
+### Patch Changes
+
+- 修复组件页内容超过容器高度时无法滚动查看完整内容的问题。组件页内容层现在允许滚动，iframe 页面仍保持外层裁剪，避免链接页面显示溢出。
+
 ## 1.1.0-beta.2
 
 ### Patch Changes

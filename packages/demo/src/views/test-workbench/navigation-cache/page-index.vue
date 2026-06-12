@@ -26,6 +26,7 @@
         <a-button @click="openRefreshPage">打开刷新测试页</a-button>
         <a-button @click="openUpdatePage">打开更新测试页</a-button>
         <a-button @click="openClosePage">打开关闭测试页</a-button>
+        <a-button @click="openLongContentPage">打开长内容测试页</a-button>
         <a-button @click="tabsManager.refreshTab()">刷新当前</a-button>
         <a-button @click="tabsManager.refreshTabAll()">刷新全部</a-button>
         <a-button @click="updateCurrentTitle">更新当前标题</a-button>
@@ -111,6 +112,10 @@ const openUpdatePage = () => {
 
 const openClosePage = () => {
   tabsManager.openTab("/src/views/test-close/page-index.vue", { _viewName: "关闭测试" });
+};
+
+const openLongContentPage = () => {
+  tabsManager.openTab("/src/views/test-workbench/long-content/page-index.vue", { _viewName: "长内容滚动测试" });
 };
 
 const openFirstTab = () => {

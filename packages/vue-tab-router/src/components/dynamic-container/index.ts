@@ -100,7 +100,7 @@ export default defineComponent({
                 inset: 0,
                 width: "100%",
                 height: "100%",
-                overflow: "hidden",
+                overflow: "auto",
                 pointerEvents: iframeTabs.hasActiveCachedIframe.value ? "none" : "auto",
                 zIndex: iframeTabs.hasActiveCachedIframe.value ? 0 : 2,
               },
