@@ -3,6 +3,9 @@
     <div class="third-item">
       <a-link href="https://www.npmjs.com/package/@xsbcme/vue-tab-router" target="_blank" icon>Npm</a-link>
     </div>
+    <div class="third-item">
+      <a-link href="https://github.com/xsbcme/vue-tab-router" target="_blank" icon>GitHub</a-link>
+    </div>
   </div>
 </template>
 <script lang="ts" setup></script>
@@ -15,5 +18,20 @@
   justify-content: flex-end;
   gap: 16px;
   padding-right: 16px;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .third {
+    justify-content: flex-end;
+    gap: 8px;
+    padding-right: 0;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .third-item {
+    flex: 0 0 auto;
+  }
 }
 </style>

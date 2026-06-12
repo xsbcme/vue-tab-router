@@ -69,16 +69,18 @@ import AccountComponent from "./account.vue";
 
 @media (max-width: 600px) {
   .login {
-    padding: 16px;
+    padding: 12px;
 
     &-wrapper {
       width: 100%;
       flex-direction: column;
+      border-radius: 8px;
+      overflow: hidden;
     }
 
     &-banner {
       width: 100%;
-      min-height: 300px;
+      min-height: 180px;
     }
 
     &-form {

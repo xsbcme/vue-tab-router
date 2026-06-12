@@ -10,7 +10,7 @@
       <p>
         当前内容块用于撑高页面。打开这个页面后，应当可以在内容区域滚动到底部，而不是被容器外层隐藏。
       </p>
-      <a-descriptions :column="2" bordered>
+      <a-descriptions :column="{ xs: 1, sm: 1, md: 2 }" bordered>
         <a-descriptions-item label="序号">{{ item }}</a-descriptions-item>
         <a-descriptions-item label="时间">{{ now }}</a-descriptions-item>
         <a-descriptions-item label="说明">组件页面长内容滚动</a-descriptions-item>
@@ -37,5 +37,12 @@ const now = new Date().toLocaleTimeString();
   padding: 16px;
   min-height: 100%;
   background: #f7f8fa;
+}
+
+@media (max-width: 768px) {
+  .long-content-page {
+    gap: 10px;
+    padding: 8px;
+  }
 }
 </style>

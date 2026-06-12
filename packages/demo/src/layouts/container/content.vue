@@ -14,4 +14,10 @@ import { DynamicContainerComponent } from "@xsbcme/vue-tab-router";
   overflow: auto;
   position: relative;
 }
+
+@media (max-width: 768px) {
+  .content {
+    padding: 8px;
+  }
+}
 </style>

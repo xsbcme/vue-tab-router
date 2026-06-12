@@ -5,7 +5,7 @@
         <a-alert type="info">
           这个页面模拟列表到详情的常见后台流程，组合演示多开、单例复用、详情传参、关闭守卫和来源页签事件。
         </a-alert>
-        <a-descriptions :column="2" bordered>
+        <a-descriptions :column="{ xs: 1, sm: 1, md: 2 }" bordered>
           <a-descriptions-item label="当前 tabId">{{ tabId || "-" }}</a-descriptions-item>
           <a-descriptions-item label="列表批次">{{ listSeed }}</a-descriptions-item>
           <a-descriptions-item label="生成时间">{{ generatedAt }}</a-descriptions-item>
@@ -17,7 +17,7 @@
           <a-button @click="openFirstOrderPair">同一订单多例/单例对照</a-button>
           <a-button @click="tabsManager.refreshTab()">刷新订单中心</a-button>
         </a-space>
-        <a-table :columns="columns" :data="orders" :pagination="false" row-key="id">
+        <a-table :columns="columns" :data="orders" :pagination="false" row-key="id" :scroll="{ x: 1080 }">
           <template #status="{ record }">
             <a-tag :color="statusColor[record.status]">{{ record.status }}</a-tag>
           </template>
@@ -69,14 +69,14 @@ const statusColor: Record<OrderStatus, string> = {
 };
 
 const columns: TableColumnData[] = [
-  { title: "订单号", dataIndex: "id", width: 140 },
-  { title: "客户", dataIndex: "customer" },
-  { title: "商品", dataIndex: "product" },
-  { title: "金额", slotName: "amount", width: 120, align: "right" },
-  { title: "状态", slotName: "status", width: 110 },
-  { title: "负责人", dataIndex: "owner", width: 110 },
-  { title: "最近处理", slotName: "updated", width: 120 },
-  { title: "操作", slotName: "operate", width: 210, align: "center" },
+  { title: "订单号", dataIndex: "id", width: 140, minWidth: 140 },
+  { title: "客户", dataIndex: "customer", minWidth: 140 },
+  { title: "商品", dataIndex: "product", minWidth: 180 },
+  { title: "金额", slotName: "amount", width: 120, minWidth: 120, align: "right" },
+  { title: "状态", slotName: "status", width: 110, minWidth: 110 },
+  { title: "负责人", dataIndex: "owner", width: 110, minWidth: 110 },
+  { title: "最近处理", slotName: "updated", width: 120, minWidth: 120 },
+  { title: "操作", slotName: "operate", width: 210, minWidth: 210, align: "center" },
 ];
 
 const createOrders = (seed: number): OrderRecord[] => {
@@ -145,5 +145,11 @@ const openFirstOrderPair = () => {
 
 .operate-links {
   white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .practice-page {
+    padding: 8px;
+  }
 }
 </style>

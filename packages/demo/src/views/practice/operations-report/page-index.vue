@@ -5,7 +5,7 @@
         <a-alert type="info">
           这个实践页组合演示长内容滚动、iframe 报表、postMessage、弹窗显示和批量标签管理，刷新报表时指标和渠道数据会重新生成。
         </a-alert>
-        <a-descriptions :column="2" bordered>
+        <a-descriptions :column="{ xs: 1, sm: 1, md: 2 }" bordered>
           <a-descriptions-item label="当前 tabId">{{ tabId || "-" }}</a-descriptions-item>
           <a-descriptions-item label="报表版本">v{{ reportVersion }}</a-descriptions-item>
           <a-descriptions-item label="生成时间">{{ generatedAt }}</a-descriptions-item>
@@ -36,7 +36,7 @@
     </a-card>
 
     <a-row :gutter="16">
-      <a-col v-for="item in metrics" :key="item.label" :span="6">
+      <a-col v-for="item in metrics" :key="item.label" :xs="24" :sm="12" :md="6">
         <a-card :bordered="false">
           <a-statistic :title="item.label" :value="item.value" :suffix="item.suffix" show-group-separator />
         </a-card>
@@ -44,7 +44,7 @@
     </a-row>
 
     <a-card title="渠道复盘" :bordered="false">
-      <a-table :columns="columns" :data="rows" :pagination="false" row-key="channel">
+      <a-table :columns="columns" :data="rows" :pagination="false" row-key="channel" :scroll="{ x: 900 }">
         <template #trend="{ record }">
           <a-tag :color="record.trend >= 0 ? 'green' : 'red'">{{ record.trend >= 0 ? '+' : '' }}{{ record.trend }}%</a-tag>
         </template>
@@ -92,12 +92,12 @@ const metrics = computed(() => {
 });
 
 const columns: TableColumnData[] = [
-  { title: "渠道", dataIndex: "channel" },
-  { title: "访问", dataIndex: "visits", align: "right" },
-  { title: "线索", dataIndex: "leads", align: "right" },
-  { title: "订单", dataIndex: "orders", align: "right" },
-  { title: "趋势", slotName: "trend", width: 100, align: "center" },
-  { title: "复盘结论", dataIndex: "summary" },
+  { title: "渠道", dataIndex: "channel", minWidth: 140 },
+  { title: "访问", dataIndex: "visits", minWidth: 120, align: "right" },
+  { title: "线索", dataIndex: "leads", minWidth: 120, align: "right" },
+  { title: "订单", dataIndex: "orders", minWidth: 120, align: "right" },
+  { title: "趋势", slotName: "trend", width: 100, minWidth: 100, align: "center" },
+  { title: "复盘结论", dataIndex: "summary", minWidth: 300 },
 ];
 
 const createRows = (seed: number): ReportRow[] => {
@@ -160,5 +160,16 @@ const openLongReport = () => {
   margin: 0;
   line-height: 1.8;
   color: var(--color-text-2);
+}
+
+@media (max-width: 768px) {
+  .practice-page {
+    gap: 10px;
+    padding: 8px;
+  }
+
+  .practice-page :deep(.arco-select) {
+    width: 100% !important;
+  }
 }
 </style>

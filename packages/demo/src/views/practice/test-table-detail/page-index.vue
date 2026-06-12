@@ -5,7 +5,7 @@
         <a-alert type="info">
           这个页面演示最常见的列表到详情联动：筛选列表、打开多例详情、保存详情后回写列表，并观察缓存状态是否保留。
         </a-alert>
-        <a-descriptions :column="2" bordered>
+        <a-descriptions :column="{ xs: 1, sm: 1, md: 2 }" bordered>
           <a-descriptions-item label="当前 tabId">{{ tabId || "-" }}</a-descriptions-item>
           <a-descriptions-item label="列表批次">{{ listSeed }}</a-descriptions-item>
           <a-descriptions-item label="加载时间">{{ loadedAt }}</a-descriptions-item>
@@ -25,6 +25,7 @@
           :pagination="false"
           row-key="key"
           :row-selection="{ type: 'radio' }"
+          :scroll="{ x: 1120 }"
         >
           <template #level="{ record }">
             <a-tag :color="record.level === '重点' ? 'red' : record.level === '成长' ? 'orange' : 'green'">
@@ -72,14 +73,14 @@ const saveBackCount = ref(0);
 const lastSavedMessage = ref("");
 
 const columns: TableColumnData[] = [
-  { title: "客户编号", dataIndex: "key", width: 130 },
-  { title: "客户名称", dataIndex: "name" },
-  { title: "客户等级", slotName: "level", width: 110 },
-  { title: "负责人", dataIndex: "owner", width: 110 },
-  { title: "预计客单价", dataIndex: "salary", width: 120, align: "right" },
-  { title: "区域", dataIndex: "address" },
-  { title: "最近处理", slotName: "updated", width: 120 },
-  { title: "操作", slotName: "operate", width: 170, align: "center" },
+  { title: "客户编号", dataIndex: "key", width: 130, minWidth: 130 },
+  { title: "客户名称", dataIndex: "name", minWidth: 150 },
+  { title: "客户等级", slotName: "level", width: 110, minWidth: 110 },
+  { title: "负责人", dataIndex: "owner", width: 110, minWidth: 110 },
+  { title: "预计客单价", dataIndex: "salary", width: 120, minWidth: 120, align: "right" },
+  { title: "区域", dataIndex: "address", minWidth: 140 },
+  { title: "最近处理", slotName: "updated", width: 120, minWidth: 120 },
+  { title: "操作", slotName: "operate", width: 170, minWidth: 170, align: "center" },
 ];
 
 const createRows = (seed: number): CustomerRecord[] => {
@@ -160,5 +161,15 @@ const openSelectedDetail = () => {
 
 .operate-links {
   white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .practice-page {
+    padding: 8px;
+  }
+
+  .practice-page :deep(.arco-input-wrapper) {
+    width: 100% !important;
+  }
 }
 </style>

@@ -5,7 +5,7 @@
         <a-alert :type="dirty ? 'warning' : 'info'">
           {{ dirty ? "当前客户详情有未保存修改，关闭标签会触发确认。" : "编辑备注后保存，会通过来源页签事件回写列表。" }}
         </a-alert>
-        <a-descriptions :column="2" bordered>
+        <a-descriptions :column="{ xs: 1, sm: 1, md: 2 }" bordered>
           <a-descriptions-item label="当前 tabId">{{ tabId || "-" }}</a-descriptions-item>
           <a-descriptions-item label="加载批次">{{ loadSeed }}</a-descriptions-item>
           <a-descriptions-item label="加载时间">{{ loadedAt }}</a-descriptions-item>
@@ -104,5 +104,11 @@ const renameTab = () => {
   padding: 16px;
   min-height: 100%;
   background: #f7f8fa;
+}
+
+@media (max-width: 768px) {
+  .practice-page {
+    padding: 8px;
+  }
 }
 </style>

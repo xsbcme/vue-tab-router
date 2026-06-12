@@ -5,14 +5,14 @@
         <a-alert type="info">
           这个页面模拟业务人员每天固定打开的运营工作台，组合演示单例复用、置顶、刷新、更新标题和来源页签事件。
         </a-alert>
-        <a-descriptions :column="2" bordered>
+        <a-descriptions :column="{ xs: 1, sm: 1, md: 2 }" bordered>
           <a-descriptions-item label="当前 tabId">{{ tabId || "-" }}</a-descriptions-item>
           <a-descriptions-item label="加载批次">{{ loadSeed }}</a-descriptions-item>
           <a-descriptions-item label="加载时间">{{ loadedAt }}</a-descriptions-item>
           <a-descriptions-item label="页面内拉取次数">{{ fetchCount }}</a-descriptions-item>
         </a-descriptions>
         <a-row :gutter="16">
-          <a-col v-for="metric in metrics" :key="metric.label" :span="6">
+          <a-col v-for="metric in metrics" :key="metric.label" :xs="24" :sm="12" :md="6">
             <a-statistic :title="metric.label" :value="metric.value" :suffix="metric.suffix" show-group-separator />
           </a-col>
         </a-row>
@@ -259,5 +259,21 @@ const renameCurrent = () => {
   margin-top: 8px;
   line-height: 1.7;
   color: var(--color-text-2);
+}
+
+@media (max-width: 768px) {
+  .practice-page {
+    gap: 10px;
+    padding: 8px;
+  }
+
+  .event-item__header {
+    flex-wrap: wrap;
+  }
+
+  .event-item__time {
+    width: 100%;
+    margin-left: 0;
+  }
 }
 </style>

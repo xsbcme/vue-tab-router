@@ -5,7 +5,7 @@
         <a-alert type="info">
           项目实践把插件能力放进接近真实后台的流程里，重点观察刷新是否重建、缓存是否保留、详情是否回传、单例和多例是否符合预期。
         </a-alert>
-        <a-table :columns="columns" :data="scenarios" :pagination="false" row-key="key">
+        <a-table :columns="columns" :data="scenarios" :pagination="false" row-key="key" :scroll="{ x: 1280 }">
           <template #abilities="{ record }">
             <a-space wrap>
               <a-tag v-for="ability in record.abilities" :key="ability" color="arcoblue">{{ ability }}</a-tag>
@@ -25,7 +25,7 @@
 
     <a-card title="动态验证建议" :bordered="false">
       <a-row :gutter="16">
-        <a-col v-for="group in validationGroups" :key="group.title" :span="6">
+        <a-col v-for="group in validationGroups" :key="group.title" :xs="24" :sm="12" :md="6">
           <a-list :bordered="false" size="small">
             <template #header>{{ group.title }}</template>
             <a-list-item v-for="item in group.items" :key="item">{{ item }}</a-list-item>
@@ -53,11 +53,11 @@ interface ScenarioRecord {
 const tabsManager = useTabsManager();
 
 const columns: TableColumnData[] = [
-  { title: "实践入口", dataIndex: "name", width: 170 },
-  { title: "业务场景", dataIndex: "scene" },
-  { title: "插件能力", slotName: "abilities", width: 360 },
-  { title: "动态验证点", slotName: "coverage", width: 360 },
-  { title: "操作", slotName: "operate", width: 120, align: "center" },
+  { title: "实践入口", dataIndex: "name", width: 170, minWidth: 170 },
+  { title: "业务场景", dataIndex: "scene", minWidth: 300 },
+  { title: "插件能力", slotName: "abilities", width: 360, minWidth: 360 },
+  { title: "动态验证点", slotName: "coverage", width: 360, minWidth: 360 },
+  { title: "操作", slotName: "operate", width: 120, minWidth: 120, align: "center" },
 ];
 
 const scenarios: ScenarioRecord[] = [
@@ -122,5 +122,12 @@ const openScenario = (record: ScenarioRecord) => {
   padding: 16px;
   min-height: 100%;
   background: #f7f8fa;
+}
+
+@media (max-width: 768px) {
+  .practice-page {
+    gap: 10px;
+    padding: 8px;
+  }
 }
 </style>

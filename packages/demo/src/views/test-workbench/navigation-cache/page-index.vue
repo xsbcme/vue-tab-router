@@ -57,7 +57,7 @@
       </a-space>
 
       <a-divider orientation="left">排序规则状态</a-divider>
-      <a-table :columns="tabStateColumns" :data="tabStateRows" :pagination="false" row-key="id" />
+      <a-table :columns="tabStateColumns" :data="tabStateRows" :pagination="false" row-key="id" :scroll="{ x: 780 }" />
 
       <a-descriptions :column="1" bordered>
         <a-descriptions-item label="当前标签数">{{ tabsManager.tabs.length }}</a-descriptions-item>
@@ -80,11 +80,11 @@ import { useTabsManager } from "@xsbcme/vue-tab-router";
 const tabsManager = useTabsManager();
 
 const tabStateColumns = [
-  { title: "顺序", dataIndex: "index", width: 80 },
-  { title: "标题", dataIndex: "name" },
-  { title: "置顶", dataIndex: "pinned", width: 80 },
-  { title: "禁拖", dataIndex: "noDrag", width: 80 },
-  { title: "可移到当前前", dataIndex: "canMoveBeforeActive", width: 130 },
+  { title: "顺序", dataIndex: "index", width: 80, minWidth: 80 },
+  { title: "标题", dataIndex: "name", minWidth: 360 },
+  { title: "置顶", dataIndex: "pinned", width: 80, minWidth: 80 },
+  { title: "禁拖", dataIndex: "noDrag", width: 80, minWidth: 80 },
+  { title: "可移到当前前", dataIndex: "canMoveBeforeActive", width: 130, minWidth: 130 },
 ];
 
 const tabStateRows = computed(() =>

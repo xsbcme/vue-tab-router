@@ -43,7 +43,7 @@
 
       <a-divider orientation="left">菜单 key 规则覆盖</a-divider>
       <section class="coverage-section">
-        <a-table :columns="menuKeyColumns" :data="menuKeyRows" :pagination="false" row-key="name" />
+        <a-table :columns="menuKeyColumns" :data="menuKeyRows" :pagination="false" row-key="name" :scroll="{ x: 760 }" />
         <a-typography-paragraph> 归一化结果：{{ normalizedPropsText }} </a-typography-paragraph>
       </section>
 
@@ -172,8 +172,8 @@ const openCustomCustomerMenu = () => {
 };
 
 const menuKeyColumns = [
-  { title: "场景", dataIndex: "name" },
-  { title: "key", dataIndex: "key" },
+  { title: "场景", dataIndex: "name", minWidth: 180 },
+  { title: "key", dataIndex: "key", minWidth: 560 },
 ];
 
 const menuKeyRows = computed(() => [

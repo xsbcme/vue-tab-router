@@ -5,7 +5,7 @@
         <a-alert :type="dirty ? 'warning' : 'success'">
           {{ dirty ? "当前订单有未提交修改，关闭标签时会触发页面级关闭守卫。" : "当前订单没有未提交修改，可以直接关闭。" }}
         </a-alert>
-        <a-descriptions :column="2" bordered>
+        <a-descriptions :column="{ xs: 1, sm: 1, md: 2 }" bordered>
           <a-descriptions-item label="当前 tabId">{{ tabId || "-" }}</a-descriptions-item>
           <a-descriptions-item label="加载批次">{{ loadSeed }}</a-descriptions-item>
           <a-descriptions-item label="加载时间">{{ loadedAt }}</a-descriptions-item>
@@ -89,5 +89,11 @@ const renameTab = () => {
   padding: 16px;
   min-height: 100%;
   background: #f7f8fa;
+}
+
+@media (max-width: 768px) {
+  .practice-page {
+    padding: 8px;
+  }
 }
 </style>

@@ -2,11 +2,18 @@
   <div class="container">
     <a-layout :style="{ height: '100%' }">
       <a-layout-header>
-        <NavbarComponent />
+        <NavbarComponent :menu-collapsed="menuCollapsed" @toggle-menu="toggleMenu" />
       </a-layout-header>
-      <a-layout :style="{ overflow: 'hidden' }">
+      <a-layout class="container-body" :style="{ overflow: 'hidden' }">
         <template v-if="menuStore.getMenus.length > 0">
-          <a-layout-sider collapsible breakpoint="xl" :width="260">
+          <a-layout-sider
+            v-model:collapsed="menuCollapsed"
+            :class="{ 'is-mobile-menu-open': isMobile && !menuCollapsed }"
+            collapsible
+            :hide-trigger="true"
+            :width="isMobile ? 240 : 260"
+            :collapsed-width="isMobile ? 0 : 48"
+          >
             <MenuComponent
               :menus="menuStore.getMenus"
               :selected-keys="tabMenu.selectedKeys.value"
@@ -14,6 +21,12 @@
               @select-menu="handleSelectMenu"
             />
           </a-layout-sider>
+          <div
+            v-if="isMobile"
+            class="container-menu-mask"
+            :class="{ 'is-open': !menuCollapsed }"
+            @click="menuCollapsed = true"
+          />
         </template>
         <a-layout>
           <template v-if="tabsMangager.tabs.length > 0">
@@ -34,6 +47,7 @@
   </div>
 </template>
 <script lang="ts" setup>
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import { useMenuStore } from "@/plugins/store";
 import { DynamicBreadcrumbComponent, useTabMenu, useTabsManager } from "@xsbcme/vue-tab-router";
 import { Menu } from "@/model/menu";
@@ -45,9 +59,30 @@ import ContentComponent from "./content.vue";
 
 const menuStore = useMenuStore();
 const tabsMangager = useTabsManager();
+const isMobileLayout = () => typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches;
+const isMobile = ref(isMobileLayout());
+const menuCollapsed = ref(isMobile.value);
 const tabMenu = useTabMenu<Menu>({
   menus: () => menuStore.getMenus,
 });
+
+const syncMobileLayout = () => {
+  const nextMobile = isMobileLayout();
+  isMobile.value = nextMobile;
+  menuCollapsed.value = nextMobile;
+};
+
+onMounted(() => {
+  window.addEventListener("resize", syncMobileLayout);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", syncMobileLayout);
+});
+
+const toggleMenu = () => {
+  menuCollapsed.value = !menuCollapsed.value;
+};
 
 const handleSelectMenu = async (menuKey: string) => {
   tabMenu.handleMenuItemClick(menuKey).catch(err => {
@@ -55,6 +90,9 @@ const handleSelectMenu = async (menuKey: string) => {
       Message.error(err.message);
     }
   });
+  if (isMobileLayout()) {
+    menuCollapsed.value = true;
+  }
 };
 </script>
 <style lang="scss" scoped>
@@ -91,6 +129,72 @@ const handleSelectMenu = async (menuKey: string) => {
 
   .container-breadcrumb {
     border-bottom: 1px solid var(--color-border);
+  }
+
+  .container-body {
+    position: relative;
+  }
+
+  .container-menu-mask {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    :deep(.arco-layout-sider) {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 30;
+      width: 240px !important;
+      max-width: 78vw !important;
+      overflow: hidden;
+      background: var(--color-bg-2);
+      border-right: 1px solid var(--color-border-2);
+      box-shadow: none;
+      transform: translateX(0);
+      transition:
+        transform 0.24s ease,
+        box-shadow 0.16s ease 0.08s,
+        border-color 0.24s ease;
+    }
+
+    :deep(.arco-layout-sider.is-mobile-menu-open) {
+      box-shadow: 4px 0 14px rgba(29, 33, 41, 0.08);
+    }
+
+    :deep(.arco-layout-sider-collapsed) {
+      width: 240px !important;
+      min-width: 240px !important;
+      max-width: 78vw !important;
+      border-right-color: transparent;
+      box-shadow: none;
+      transform: translateX(-100%);
+    }
+
+    .container-menu-mask {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: min(240px, 78vw);
+      z-index: 25;
+      display: block;
+      background: rgba(29, 33, 41, 0.12);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.24s ease;
+
+      &.is-open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
+
+    .container-breadcrumb {
+      overflow-x: auto;
+      white-space: nowrap;
+    }
   }
 }
 </style>

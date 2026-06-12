@@ -5,7 +5,7 @@
         <a-avatar :size="32">
           <IconUser />
         </a-avatar>
-        <span>欢迎您，{{ userStore.getUsername || "未登录" }}</span>
+        <span class="user-name"><span class="user-greeting">欢迎您，</span>{{ userStore.getUsername || "未登录" }}</span>
         <IconDown />
       </div>
       <template #content>
@@ -51,6 +51,32 @@ const handleLogout = () => {
     gap: 8px;
     cursor: pointer;
     user-select: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .user {
+    &-info {
+      gap: 4px;
+    }
+
+    &-name {
+      display: inline-block;
+      max-width: 64px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &-greeting {
+      display: none;
+    }
+
+    :deep(.arco-avatar) {
+      width: 28px !important;
+      height: 28px !important;
+      font-size: 14px !important;
+    }
   }
 }
 </style>
