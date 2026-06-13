@@ -162,7 +162,7 @@ const generateReport = () => {
 };
 
 const openIframeReport = () => {
-  tabsManager.openTab(TabViewUrl.createRelative("./iframe-test.html"), {
+  tabsManager.openTab(TabViewUrl.createRelative("./iframe-tests/cache.html"), {
     _viewName: "iframe 经营看板",
     _viewSingle: true,
     iframeDemo: true,

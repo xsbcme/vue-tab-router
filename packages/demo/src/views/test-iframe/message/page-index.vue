@@ -15,21 +15,24 @@
         <a-button @click="openRelativeOutsideWithParams">外部相对链接带参</a-button>
       </a-space>
 
-      <a-divider orientation="left">Iframe 通信与缓存</a-divider>
+      <a-divider orientation="left">Iframe 通信、缓存与导航</a-divider>
       <a-space wrap>
         <a-button type="primary" @click="openCachedIframe">打开缓存 iframe</a-button>
         <a-button @click="openNoCacheIframe">打开不缓存 iframe</a-button>
+        <a-button @click="openMessageIframe">打开通信 iframe</a-button>
+        <a-button @click="openLinkIframe">打开链接 iframe</a-button>
         <a-button @click="openIframeWithHash">打开带 hash iframe</a-button>
         <a-button @click="openHashIframeOverview">打开 hash 加载验证</a-button>
         <a-button @click="openHashIframeDetail">切换 hash 片段</a-button>
         <a-button @click="openComponentTab">打开组件页用于切换</a-button>
         <a-button @click="sendToActiveIframe">向当前 iframe 发送消息</a-button>
         <a-button @click="sendToCachedIframeById">按 tabId 发送消息</a-button>
-        <a-button @click="openCachedIframe">打开 iframe 后在页面内测试免 tabId</a-button>
+        <a-button @click="openMessageIframe">打开 iframe 后在页面内测试免 tabId</a-button>
         <a-button @click="copySyncedUrl">复制当前同步链接</a-button>
       </a-space>
       <a-alert>
         hash 加载验证用于确认 iframe 初次打开会显示加载状态；同文档 hash 切换完成后不会停留在加载状态，并会继续记录 iframe load。
+        iframe 内可控超链接会通过 postMessage 请求宿主打开标签页，避免浏览器新标签页跳出工作台。
       </a-alert>
       <a-descriptions :column="1" bordered>
         <a-descriptions-item label="缓存 iframe tabId">{{ cachedIframeTabId || "-" }}</a-descriptions-item>
@@ -113,38 +116,52 @@ const openRelativeOutsideWithParams = () => {
 };
 
 const openCachedIframe = async () => {
-  cachedIframeTabId.value = await tabsManager.openTab(TabViewUrl.createRelative("./iframe-test.html"), {
-    _viewName: "缓存 Iframe 通信",
+  cachedIframeTabId.value = await tabsManager.openTab(TabViewUrl.createRelative("./iframe-tests/cache.html"), {
+    _viewName: "缓存 Iframe 测试",
     cacheMode: "enabled",
     iframeDemo: true,
   });
 };
 
 const openNoCacheIframe = () => {
-  tabsManager.openTab(TabViewUrl.createRelative("./iframe-test.html"), {
-    _viewName: "不缓存 Iframe 通信",
+  tabsManager.openTab(TabViewUrl.createRelative("./iframe-tests/cache.html"), {
+    _viewName: "不缓存 Iframe 测试",
     _viewNoCache: true,
     cacheMode: "disabled",
     iframeDemo: true,
   });
 };
 
+const openMessageIframe = () => {
+  tabsManager.openTab(TabViewUrl.createRelative("./iframe-tests/message.html"), {
+    _viewName: "Iframe 通信测试",
+    iframeDemo: true,
+  });
+};
+
+const openLinkIframe = () => {
+  tabsManager.openTab(TabViewUrl.createRelative("./iframe-tests/links.html"), {
+    _viewName: "Iframe 链接测试",
+    iframeDemo: true,
+  });
+};
+
 const openIframeWithHash = () => {
-  tabsManager.openTab(TabViewUrl.createRelative("./iframe-test.html?from=host#sync-demo"), {
-    _viewName: "带 Hash Iframe 通信",
+  tabsManager.openTab(TabViewUrl.createRelative("./iframe-tests/navigation.html?from=host#sync-demo"), {
+    _viewName: "带 Hash Iframe 导航",
     iframeDemo: true,
   });
 };
 
 const openHashIframeOverview = () => {
-  tabsManager.openTab(TabViewUrl.createRelative("./iframe-test.html?from=hash-load#overview"), {
+  tabsManager.openTab(TabViewUrl.createRelative("./iframe-tests/navigation.html?from=hash-load#overview"), {
     _viewName: "hash 加载验证",
     iframeDemo: true,
   });
 };
 
 const openHashIframeDetail = () => {
-  tabsManager.openTab(TabViewUrl.createRelative("./iframe-test.html?from=hash-load#detail"), {
+  tabsManager.openTab(TabViewUrl.createRelative("./iframe-tests/navigation.html?from=hash-load#detail"), {
     _viewName: "hash 加载详情",
     iframeDemo: true,
   });

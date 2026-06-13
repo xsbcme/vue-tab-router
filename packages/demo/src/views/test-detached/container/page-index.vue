@@ -83,7 +83,7 @@ const openOwnerDetachedDemo = async () => {
 };
 
 const openIframeDetachedDemo = async () => {
-  const tabId = await tabsManager.openTab(TabViewUrl.createRelative("./iframe-test.html"), {
+  const tabId = await tabsManager.openTab(TabViewUrl.createRelative("./iframe-tests/message.html"), {
     _viewName: "弹窗关闭 Iframe 页",
     iframeDemo: true,
     seed: ++demoSeed,

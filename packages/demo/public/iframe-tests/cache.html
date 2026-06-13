@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iframe 缓存测试页</title>
+    <style>
+      body { margin: 0; font-family: Arial, sans-serif; background: #f7f8fa; color: #1d2129; }
+      .page { padding: 24px; }
+      .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+      button { height: 32px; border: 1px solid #165dff; border-radius: 4px; color: #165dff; background: #fff; cursor: pointer; }
+      pre { min-height: 120px; padding: 12px; background: #fff; border: 1px solid #e5e6eb; border-radius: 4px; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h2>Iframe 缓存测试页</h2>
+      <div class="actions">
+        <button id="count">页面内计数 +1</button>
+      </div>
+      <p>加载标识：<strong id="loadId"></strong></p>
+      <p>页面内计数：<strong id="countValue">0</strong></p>
+      <pre id="log"></pre>
+    </div>
+    <script>
+      const logEl = document.getElementById("log");
+      const loadIdEl = document.getElementById("loadId");
+      const countValueEl = document.getElementById("countValue");
+      let count = 0;
+      const loadId = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+      loadIdEl.textContent = loadId;
+      const appendLog = message => {
+        logEl.textContent += `[${new Date().toLocaleTimeString()}] ${message}\n`;
+      };
+      document.getElementById("count").onclick = () => {
+        count += 1;
+        countValueEl.textContent = String(count);
+        appendLog(`计数：${count}`);
+      };
+      window.addEventListener("message", event => {
+        appendLog(`接收：${JSON.stringify(event.data)}`);
+      });
+      appendLog(`iframe ready ${loadId}`);
+    </script>
+  </body>
+</html>

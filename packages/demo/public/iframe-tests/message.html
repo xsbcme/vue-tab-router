@@ -5,37 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Iframe 通信测试页</title>
     <style>
-      body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #f7f8fa;
-        color: #1d2129;
-      }
-      .page {
-        padding: 24px;
-      }
-      .actions {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-bottom: 16px;
-      }
-      button {
-        height: 32px;
-        border: 1px solid #165dff;
-        border-radius: 4px;
-        color: #165dff;
-        background: #fff;
-        cursor: pointer;
-      }
-      pre {
-        min-height: 160px;
-        padding: 12px;
-        background: #fff;
-        border: 1px solid #e5e6eb;
-        border-radius: 4px;
-        white-space: pre-wrap;
-      }
+      body { margin: 0; font-family: Arial, sans-serif; background: #f7f8fa; color: #1d2129; }
+      .page { padding: 24px; }
+      .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+      button { height: 32px; border: 1px solid #165dff; border-radius: 4px; color: #165dff; background: #fff; cursor: pointer; }
+      pre { min-height: 160px; padding: 12px; background: #fff; border: 1px solid #e5e6eb; border-radius: 4px; white-space: pre-wrap; }
     </style>
   </head>
   <body>
@@ -43,22 +17,17 @@
       <h2>Iframe 通信测试页</h2>
       <div class="actions">
         <button id="ping">发送 ping</button>
-        <button id="count">页面内计数 +1</button>
         <button id="pageMessage">页面内免 tabId 发送</button>
-        <button id="navigate">内部导航加查询</button>
         <button id="open">请求打开 tab</button>
         <button id="refresh">请求刷新当前 iframe tab</button>
         <button id="close">请求关闭当前 iframe tab</button>
       </div>
       <p>加载标识：<strong id="loadId"></strong></p>
-      <p>页面内计数：<strong id="countValue">0</strong></p>
       <pre id="log"></pre>
     </div>
     <script>
       const logEl = document.getElementById("log");
       const loadIdEl = document.getElementById("loadId");
-      const countValueEl = document.getElementById("countValue");
-      let count = 0;
       const loadId = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
       loadIdEl.textContent = loadId;
       const appendLog = message => {
@@ -70,18 +39,6 @@
       };
       document.getElementById("ping").onclick = () => send({ type: "iframe:ping", payload: Date.now() });
       document.getElementById("pageMessage").onclick = () => send({ type: "page:message", time: Date.now() });
-      document.getElementById("navigate").onclick = () => {
-        const url = new URL(window.location.href);
-        url.searchParams.set("navigated", String(Date.now()));
-        url.hash = "iframe-navigation";
-        window.history.pushState({}, "", url);
-        appendLog(`内部导航：${url.pathname}${url.search}${url.hash}`);
-      };
-      document.getElementById("count").onclick = () => {
-        count += 1;
-        countValueEl.textContent = String(count);
-        appendLog(`计数：${count}`);
-      };
       document.getElementById("open").onclick = () =>
         send({
           type: "iframe:open-tab",

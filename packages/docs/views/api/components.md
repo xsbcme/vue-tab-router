@@ -178,6 +178,25 @@ iframe 页面发送消息：
 window.parent.postMessage({ type: "refresh-current" }, window.location.origin);
 ```
 
+iframe 内部的普通超链接属于 iframe 页面自身行为。若链接带有 `target="_blank"` 或页面调用 `window.open`，浏览器会按原生规则打开新标签页；跨域 iframe 也无法由宿主直接拦截内部点击。需要在宿主标签页系统中打开链接时，推荐由可控 iframe 页面拦截点击并发送消息给宿主，再由宿主调用 `tabsManager.openTab()`。
+
+```ts
+document.addEventListener("click", event => {
+  const link = event.target.closest("a[data-open-tab]");
+  if (!link) return;
+
+  event.preventDefault();
+  window.parent.postMessage(
+    {
+      type: "open-tab",
+      viewUrl: link.getAttribute("href"),
+      options: { _viewName: link.textContent?.trim() },
+    },
+    window.location.origin
+  );
+});
+```
+
 宿主发送消息：
 
 ```ts

@@ -97,7 +97,7 @@ interface CloseTabsOptions extends CloseTabOptions {
 ```ts
 import { TabViewUrl } from "@xsbcme/vue-tab-router";
 
-const relativeUrl = TabViewUrl.createRelative("./iframe-test.html");
+const relativeUrl = TabViewUrl.createRelative("./iframe-tests/message.html");
 ```
 
 常见用途：

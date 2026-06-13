@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iframe 链接打开测试页</title>
+    <style>
+      body { margin: 0; font-family: Arial, sans-serif; background: #f7f8fa; color: #1d2129; }
+      .page { padding: 24px; }
+      a { color: #165dff; }
+      pre { min-height: 120px; padding: 12px; background: #fff; border: 1px solid #e5e6eb; border-radius: 4px; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h2>Iframe 链接打开测试页</h2>
+      <p>
+        <a href="/src/views/test-router/router-target/page-index.vue" data-open-tab data-view-name="Iframe 链接打开的目标页">
+          在宿主标签页打开组件页
+        </a>
+      </p>
+      <p>
+        <a href="https://www.baidu.com/" target="_blank" rel="noopener noreferrer">
+          浏览器原生新标签打开外部链接
+        </a>
+      </p>
+      <pre id="log"></pre>
+    </div>
+    <script>
+      const logEl = document.getElementById("log");
+      const appendLog = message => {
+        logEl.textContent += `[${new Date().toLocaleTimeString()}] ${message}\n`;
+      };
+      const send = data => {
+        window.parent.postMessage(data, window.location.origin);
+        appendLog(`发送：${JSON.stringify(data)}`);
+      };
+      document.addEventListener("click", event => {
+        const link = event.target.closest("a[data-open-tab]");
+        if (!link) return;
+        event.preventDefault();
+        send({
+          type: "iframe:open-tab",
+          viewUrl: link.getAttribute("href"),
+          options: {
+            _viewName: link.dataset.viewName || link.textContent.trim(),
+            fromIframeLink: true,
+          },
+        });
+      });
+      window.addEventListener("message", event => {
+        appendLog(`接收：${JSON.stringify(event.data)}`);
+      });
+      appendLog("iframe link ready");
+    </script>
+  </body>
+</html>

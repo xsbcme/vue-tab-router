@@ -12,7 +12,7 @@ import { TabViewUrl } from "@xsbcme/vue-tab-router";
 
 const tabsManager = useTabsManager();
 
-tabsManager.openTab(TabViewUrl.createRelative("/iframe-test.html"), {
+tabsManager.openTab(TabViewUrl.createRelative("/iframe-tests/message.html"), {
   _viewName: "同源 Iframe",
   iframeDemo: true,
 });
@@ -25,7 +25,7 @@ tabsManager.openTab(TabViewUrl.createRelative("/iframe-test.html"), {
 iframe 缓存不是 Vue `KeepAlive`，而是由容器维护一个持久 iframe DOM 层。默认会缓存 iframe：切换到其他标签再回来时，iframe 内部状态会保留。
 
 ```ts
-tabsManager.openTab(TabViewUrl.createRelative("/iframe-test.html"), {
+tabsManager.openTab(TabViewUrl.createRelative("/iframe-tests/cache.html"), {
   _viewName: "缓存 Iframe",
 });
 ```
@@ -33,7 +33,7 @@ tabsManager.openTab(TabViewUrl.createRelative("/iframe-test.html"), {
 禁用缓存时，切换离开后会销毁 iframe，回来时重新加载：
 
 ```ts
-tabsManager.openTab(TabViewUrl.createRelative("/iframe-test.html"), {
+tabsManager.openTab(TabViewUrl.createRelative("/iframe-tests/cache.html"), {
   _viewName: "不缓存 Iframe",
   _viewNoCache: true,
 });

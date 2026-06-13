@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iframe 导航测试页</title>
+    <style>
+      body { margin: 0; font-family: Arial, sans-serif; background: #f7f8fa; color: #1d2129; }
+      .page { padding: 24px; }
+      .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+      button { height: 32px; border: 1px solid #165dff; border-radius: 4px; color: #165dff; background: #fff; cursor: pointer; }
+      pre { min-height: 160px; padding: 12px; background: #fff; border: 1px solid #e5e6eb; border-radius: 4px; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h2>Iframe 导航测试页</h2>
+      <div class="actions">
+        <button id="navigate">内部导航加查询</button>
+        <button id="hashOverview">切到 #overview</button>
+        <button id="hashDetail">切到 #detail</button>
+      </div>
+      <p>当前地址：<strong id="locationValue"></strong></p>
+      <pre id="log"></pre>
+    </div>
+    <script>
+      const logEl = document.getElementById("log");
+      const locationValueEl = document.getElementById("locationValue");
+      const appendLog = message => {
+        logEl.textContent += `[${new Date().toLocaleTimeString()}] ${message}\n`;
+      };
+      const updateLocation = () => {
+        locationValueEl.textContent = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      };
+      const navigate = hash => {
+        const url = new URL(window.location.href);
+        url.searchParams.set("navigated", String(Date.now()));
+        url.hash = hash;
+        window.history.pushState({}, "", url);
+        updateLocation();
+        appendLog(`内部导航：${url.pathname}${url.search}${url.hash}`);
+      };
+      document.getElementById("navigate").onclick = () => navigate("iframe-navigation");
+      document.getElementById("hashOverview").onclick = () => navigate("overview");
+      document.getElementById("hashDetail").onclick = () => navigate("detail");
+      window.addEventListener("hashchange", () => {
+        updateLocation();
+        appendLog(`hashchange：${window.location.hash}`);
+      });
+      window.addEventListener("popstate", () => {
+        updateLocation();
+        appendLog(`popstate：${window.location.href}`);
+      });
+      updateLocation();
+      appendLog("iframe navigation ready");
+    </script>
+  </body>
+</html>

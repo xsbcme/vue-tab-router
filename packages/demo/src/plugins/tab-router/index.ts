@@ -85,7 +85,7 @@ const tabsManager = createTabsManager({
           },
           {
             title: "iframe 经营看板",
-            viewUrl: TabViewUrl.createRelative("./iframe-test.html"),
+            viewUrl: TabViewUrl.createRelative("./iframe-tests/cache.html"),
           },
         ],
       },
