@@ -29,6 +29,12 @@ tabsManager.openTab("/src/views/order/page-index.vue", {
 });
 ```
 
+这里的 `/src/views/order/page-index.vue` 不是 Vue Router 的路由地址，而是 `views.modules` 页面注册表中的 key。Vite 项目通常通过 `import.meta.glob("@/views/**/page-index.vue")` 自动生成这份注册表；`openTab()` 使用同一个 key 来定位要渲染的页面入口。
+
+这也是推荐把 Vue Router 和 VueTabRouter 分层使用的原因：Vue Router 负责 `/login`、`/dashboard` 这类顶层路由；VueTabRouter 负责工作台内部的页面 key、缓存、守卫和标签状态。
+
+如果工作台页面来自多个业务模块或依赖包，不建议随手编写 `@moduleA/...` 这类未配置的 glob 路径。应先用当前项目真实存在的目录或 Vite 别名扫描页面入口，再在聚合 `modules` 时规范化 key。这样 Vue Router 的路由地址、文件系统路径和 VueTabRouter 的页面 key 才不会混在一起。
+
 ## 登录场景
 
 常见后台应用会在登录成功后打开首页 tab，再进入工作台路由：
@@ -73,6 +79,8 @@ router.beforeEach((to, _from, next) => {
 ## 常见约束建议
 
 - 菜单与 `modules` key 保持一致，避免“视图未注册”
+- 建议为页面入口建立统一文件约定，例如 `views/**/page-index.vue`
+- 多模块页面建议在注册 `modules` 时统一规范化 key，并让菜单、`views.meta`、`openTab()` 使用同一套 key
 - 顶层路由切换离开工作台时，可按需调用 `tabsManager.clear()`
 - 业务详情页建议携带稳定业务主键到 `viewProps`
 

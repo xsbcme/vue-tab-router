@@ -30,6 +30,32 @@ createTabsManager({
 await tabsManager.openTab("order-page");
 ```
 
+## import.meta.glob 可以直接写 @moduleA/src/views 吗？
+
+不一定。`import.meta.glob()` 的参数必须是当前 Vite 项目真实可解析的路径：
+
+- 相对路径，例如 `./modules/sales/views/**/page-index.vue`
+- 绝对路径，例如 `/src/views/**/page-index.vue`
+- 已在 `vite.config.ts` 中配置过的别名，例如 `@/views/**/page-index.vue`
+
+如果项目里没有配置 `@moduleA` 别名，`import.meta.glob("@moduleA/src/views/**/page-index.vue")` 就不是一个有效扫描路径。
+
+跨模块推荐做法是先按真实路径扫描，再规范化 key：
+
+```ts
+function normalizeViewKeys(modules: Record<string, unknown>, moduleName: string, baseDir: string) {
+  return Object.fromEntries(
+    Object.entries(modules).map(([key, value]) => [`@${moduleName}/${key.replace(baseDir, "")}`, value])
+  );
+}
+
+const salesViews = import.meta.glob("./modules/sales/views/**/page-index.vue");
+
+const modules = normalizeViewKeys(salesViews, "sales", "./modules/sales/");
+```
+
+依赖包页面也一样：先让 Vite 能解析到依赖包里的页面目录，再把扫描结果转换成项目约定的 key。建议开发时打印 `Object.keys(modules)`，确保菜单、`views.meta` 和 `openTab()` 使用的是同一套 key。
+
 ## 登录成功进入 dashboard 后没有 activeTab 参数？
 
 如果使用 `createTabUrlSyncPlugin`，默认会补齐当前激活 tab 的 URL 状态。常见失效原因有三个：

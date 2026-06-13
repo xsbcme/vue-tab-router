@@ -116,6 +116,10 @@ const tabsManager = createTabsManager({
 createApp(App).use(tabsManager).mount("#app");
 ```
 
+`modules` 是页面入口注册表。Vite 项目推荐使用 `import.meta.glob` 按约定扫描页面入口；`VueTabRouter` 本身不强依赖 Vite，非 Vite 项目也可以手写或生成同样结构的 `modules`。
+
+`page-index.vue` 是推荐的页面入口约定，用来区分“可以被工作台打开的页面”和“页面内部普通组件”。这样不会把所有 `.vue` 文件都注册成 tab 页面。
+
 ### 2）在布局中放置容器
 
 ```vue
@@ -139,10 +143,12 @@ import { useTabsManager } from "@xsbcme/vue-tab-router";
 const tabsManager = useTabsManager();
 
 // 打开组件页面
-tabsManager.openTab("/views/user/page-index.vue", { userId: 1001 });
+tabsManager.openTab("/src/views/user/page-index.vue", { userId: 1001 });
 ```
 
 > 说明：`openTab` 的 `viewUrl` 必须是你在 `modules` 中注册后的组件名键。
+
+使用路径作为 `viewUrl`，是为了复用文件系统天然唯一、可定位源码的特性，减少为每个页面额外命名的负担。多模块项目可以聚合多个页面注册表，并在聚合时把模块名前缀写入 key，避免同名页面冲突。`import.meta.glob()` 的扫描路径必须是当前项目真实存在的路径或已配置的 Vite 别名，完整说明见文档站的“页面模块与元数据”。
 
 ---
 
@@ -299,7 +305,7 @@ const tabMenu = useTabMenu({
 ### 1）组件页面
 
 ```ts
-tabsManager.openTab("/views/order/page-index.vue", {
+tabsManager.openTab("/src/views/order/page-index.vue", {
   _viewName: "订单列表",
   _viewIcon: "icon-order",
   _viewSingle: true, // 同一路径单例

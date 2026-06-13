@@ -34,6 +34,21 @@ const modules = import.meta.glob("@/views/**/page-index.vue");
 - `viewUrl` 不是浏览器地址，而是 `modules` 的 key
 - 例如模块 key 为 `'/src/views/user/page-index.vue'`
 - 那么应通过 `openTab('/src/views/user/page-index.vue')` 打开
+- `import.meta.glob()` 的参数必须是项目真实路径或已配置的 Vite 别名；跨模块页面建议在聚合 `modules` 时统一加模块名前缀
+
+例如同项目多业务模块可以按真实目录扫描，然后把 key 规范化为业务模块前缀：
+
+```ts
+const salesViews = import.meta.glob("./modules/sales/views/**/page-index.vue");
+const crmViews = import.meta.glob("./modules/crm/views/**/page-index.vue");
+
+const modules = {
+  ...normalizeViewKeys(salesViews, "sales", "./modules/sales/"),
+  ...normalizeViewKeys(crmViews, "crm", "./modules/crm/"),
+};
+```
+
+这样菜单、`views.meta` 和 `openTab()` 都可以使用类似 `@sales/views/user/page-index.vue` 的稳定 key。
 
 ## 何时使用内置标签组件
 

@@ -32,12 +32,12 @@ export { TabViewUrl, type TabViewUrlRelative } from "./utils";
 
 ## 分类索引
 
-| 分类 | 适合查什么 |
-| --- | --- |
-| [TabsManager](/views/api/tabs-manager) | 创建实例、打开/关闭/刷新/更新标签、弹窗显示、scoped manager。 |
-| [组合式 API](/views/api/composables) | `useTabsManager`、`useTabMenu`、页面内声明标题和守卫。 |
-| [内置组件](/views/api/components) | `DynamicContainerComponent`、`DynamicTabsComponent`、面包屑、预览容器等。 |
-| [插件与 hooks](/views/api/plugins) | 自定义插件、生命周期 hooks、URL 同步插件。 |
+| 分类                                     | 适合查什么                                                                         |
+| ---------------------------------------- | ---------------------------------------------------------------------------------- |
+| [TabsManager](/views/api/tabs-manager)   | 创建实例、打开/关闭/刷新/更新标签、弹窗显示、scoped manager。                      |
+| [组合式 API](/views/api/composables)     | `useTabsManager`、`useTabMenu`、页面内声明标题和守卫。                             |
+| [内置组件](/views/api/components)        | `DynamicContainerComponent`、`DynamicTabsComponent`、面包屑、预览容器等。          |
+| [插件与 hooks](/views/api/plugins)       | 自定义插件、生命周期 hooks、URL 同步插件。                                         |
 | [类型与工具](/views/api/types-and-utils) | `TabsManagerOptions`、`IOpenTabOptions`、`TabViewMeta`、`TabViewUrl`、存储适配器。 |
 
 ## 常用组合
@@ -83,6 +83,8 @@ createTabUrlSyncPlugin(router, {
 - `_view*` 字段是内置 tab 行为或展示参数。
 - 非 `_view*` 字段会进入 `tab.viewProps`，并作为页面组件 props。
 - `viewUrl` 是打开页面的唯一入口，可以是组件 key、http/https 链接，也可以是 `TabViewUrl.createRelative()` 生成的相对 iframe 地址。
+- 当 `viewUrl` 指向组件页面时，它必须匹配 `views.modules` 中的 key；该 key 可以来自 `import.meta.glob()`，也可以来自手写注册表或代码生成。
+- `import.meta.glob()` 的扫描路径必须是当前项目真实路径或已配置别名；多模块页面应在聚合 `modules` 时规范化 key，避免同名页面冲突。
 
 ## 下一步
 

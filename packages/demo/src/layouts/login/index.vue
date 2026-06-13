@@ -305,6 +305,19 @@ const features = [
     min-width: 0;
     padding: 28px 30px;
 
+    :deep(.arco-tabs) {
+      height: 100%;
+    }
+
+    :deep(.arco-tabs-content) {
+      height: calc(100% - 46px);
+    }
+
+    :deep(.arco-tabs-content-list),
+    :deep(.arco-tabs-pane) {
+      height: 100%;
+    }
+
     :deep(.arco-tabs-nav-tab) {
       justify-content: center;
     }

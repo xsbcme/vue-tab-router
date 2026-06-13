@@ -26,6 +26,7 @@ tmp/
 temp/
 .tmp/
 .temp/
+articles/
 *.tmp
 *.temp
 *.bak
