@@ -17,8 +17,45 @@
 - 组件页面来自 `views.modules`。
 - iframe 页面来自 http/https 或 `TabViewUrl.createRelative()`。
 - `_viewNoCache: true` 会让页面切换后重新创建。
-- 未注册页面会渲染 `render.noExistComponent`。
-- 没有激活 tab 时会渲染 `render.noActiveComponent`。
+- 未注册页面会渲染 `render.noExistComponent`，默认使用 `DefaultNotFoundComponent`。
+- 没有激活 tab 时会渲染 `render.noActiveComponent`，默认使用 `DefaultEmptyComponent`。
+- 异步组件加载中默认使用 `DefaultLoadingComponent`，加载失败默认使用 `DefaultErrorComponent`。
+- iframe 初次加载会显示加载组件；同文档 hash/history 导航会归一化触发 `iframe:load`，不会让加载状态悬挂。
+
+## 默认状态组件
+
+内置状态组件可直接导入，也可作为自定义组件的基础样式参考：
+
+```ts
+import {
+  DefaultEmptyComponent,
+  DefaultErrorComponent,
+  DefaultLoadingComponent,
+  DefaultNotFoundComponent,
+} from "@xsbcme/vue-tab-router";
+```
+
+| 组件 | 默认使用场景 | 覆盖配置 |
+| --- | --- | --- |
+| `DefaultLoadingComponent` | 异步组件加载、iframe 加载 | `render.loadingComponent`、`iframe.loadingComponent`、`views.source.loadingComponent` |
+| `DefaultErrorComponent` | 异步组件加载失败 | `render.errorComponent`、`views.source.errorComponent` |
+| `DefaultEmptyComponent` | 没有激活 tab | `render.noActiveComponent` |
+| `DefaultNotFoundComponent` | 已恢复 tab 但目标组件无法解析 | `render.noExistComponent` |
+
+```ts
+const tabsManager = createTabsManager({
+  views: { modules },
+  render: {
+    loadingComponent: AppLoading,
+    errorComponent: AppError,
+    noActiveComponent: AppEmpty,
+    noExistComponent: AppNotFound,
+  },
+  iframe: {
+    loadingComponent: IframeLoading,
+  },
+});
+```
 
 ## DynamicTabsComponent
 
@@ -118,6 +155,7 @@ iframe 由 `DynamicContainerComponent` 内部渲染。相关配置在 `createTab
 const tabsManager = createTabsManager({
   views: { modules },
   iframe: {
+    loadingComponent: IframeLoading,
     messageOrigins: ["self", "https://example.com"],
     onLoad({ iframe, tab }) {
       iframe.style.backgroundColor = "#fff";
@@ -131,6 +169,8 @@ const tabsManager = createTabsManager({
   },
 });
 ```
+
+`iframe.loadingComponent` 只负责加载中视觉。iframe 原生 `error` 事件无法可靠表达页面失败，跨域页面、服务端错误页和 SPA fallback 都可能误判；如果需要 iframe 失败态，建议通过超时策略或 iframe 内部 `postMessage` 上报业务失败。
 
 iframe 页面发送消息：
 

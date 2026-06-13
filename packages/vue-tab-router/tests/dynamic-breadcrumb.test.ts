@@ -2,7 +2,7 @@
 
 import { createApp, h, nextTick } from "vue";
 import { describe, expect, it, vi } from "vitest";
-import DynamicBreadcrumbComponent from "../src/components/dynamic-breadcrumb/index.vue";
+import DynamicBreadcrumbComponent from "../src/components/dynamic-breadcrumb.vue";
 import { createTabsManager } from "../src/use-tabs-manager";
 import { useTabsManager } from "../src/use-tabs-manager";
 import type { TabsManager } from "../src/tabs-manager";

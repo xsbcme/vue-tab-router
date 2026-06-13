@@ -1,10 +1,12 @@
-import { KeepAlive, Transition, computed, createVNode, defineComponent, provide } from "vue";
+import { KeepAlive, Transition, computed, createVNode, defineComponent, provide, ref } from "vue";
 import { INJECT_ACTIVE_TAB_KEY } from "@/constant";
 import { useTabsManager } from "@/use-tabs-manager";
 import type { ITabsManagerOptions } from "@/types";
+import { DefaultEmptyComponent } from "@/components/default-state";
 import { getTabCacheName, isIframeTab, shouldCacheComponentTab } from "./types";
 import { useComponentTabs } from "./use-component-tabs";
 import { useIframeTabs } from "./use-iframe-tabs";
+import { useScrollRestore } from "./use-scroll-restore";
 
 export default defineComponent({
   name: "DynamicContainer",
@@ -14,6 +16,7 @@ export default defineComponent({
     const { transitionProps, keepAliveProps, noActiveComponent } = managerOptions || {};
     const componentTabs = useComponentTabs(tabsManager, managerOptions);
     const iframeTabs = useIframeTabs(tabsManager, managerOptions);
+    const viewLayerRef = ref<HTMLElement>();
 
     const keepAliveIncludes = computed<string[]>(() => {
       const cacheNames = tabsManager.tabs.filter(shouldCacheComponentTab).map(item => getTabCacheName(item._id));
@@ -21,6 +24,7 @@ export default defineComponent({
     });
 
     const activeTabId = computed(() => tabsManager.activeTab?._id);
+    useScrollRestore(tabsManager, activeTabId, viewLayerRef);
 
     provide(
       INJECT_ACTIVE_TAB_KEY,
@@ -30,10 +34,7 @@ export default defineComponent({
     const activeTabRender = () => {
       const tabId = activeTabId.value;
       if (!tabId) {
-        if (noActiveComponent) {
-          return createVNode(noActiveComponent);
-        }
-        return null;
+        return createVNode(noActiveComponent || DefaultEmptyComponent);
       }
 
       const activeTab = tabsManager.activeTab;
@@ -94,6 +95,7 @@ export default defineComponent({
           createVNode(
             "div",
             {
+              ref: viewLayerRef,
               class: "dynamic-container__view-layer",
               style: {
                 position: "absolute",

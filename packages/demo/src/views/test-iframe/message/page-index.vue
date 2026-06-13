@@ -20,12 +20,17 @@
         <a-button type="primary" @click="openCachedIframe">打开缓存 iframe</a-button>
         <a-button @click="openNoCacheIframe">打开不缓存 iframe</a-button>
         <a-button @click="openIframeWithHash">打开带 hash iframe</a-button>
+        <a-button @click="openHashIframeOverview">打开 hash 加载验证</a-button>
+        <a-button @click="openHashIframeDetail">切换 hash 片段</a-button>
         <a-button @click="openComponentTab">打开组件页用于切换</a-button>
         <a-button @click="sendToActiveIframe">向当前 iframe 发送消息</a-button>
         <a-button @click="sendToCachedIframeById">按 tabId 发送消息</a-button>
         <a-button @click="openCachedIframe">打开 iframe 后在页面内测试免 tabId</a-button>
         <a-button @click="copySyncedUrl">复制当前同步链接</a-button>
       </a-space>
+      <a-alert>
+        hash 加载验证用于确认 iframe 初次打开会显示加载状态；同文档 hash 切换完成后不会停留在加载状态，并会继续记录 iframe load。
+      </a-alert>
       <a-descriptions :column="1" bordered>
         <a-descriptions-item label="缓存 iframe tabId">{{ cachedIframeTabId || "-" }}</a-descriptions-item>
         <a-descriptions-item label="当前 iframe viewUrl">{{ activeIframeViewUrl }}</a-descriptions-item>
@@ -127,6 +132,20 @@ const openNoCacheIframe = () => {
 const openIframeWithHash = () => {
   tabsManager.openTab(TabViewUrl.createRelative("./iframe-test.html?from=host#sync-demo"), {
     _viewName: "带 Hash Iframe 通信",
+    iframeDemo: true,
+  });
+};
+
+const openHashIframeOverview = () => {
+  tabsManager.openTab(TabViewUrl.createRelative("./iframe-test.html?from=hash-load#overview"), {
+    _viewName: "hash 加载验证",
+    iframeDemo: true,
+  });
+};
+
+const openHashIframeDetail = () => {
+  tabsManager.openTab(TabViewUrl.createRelative("./iframe-test.html?from=hash-load#detail"), {
+    _viewName: "hash 加载详情",
     iframeDemo: true,
   });
 };

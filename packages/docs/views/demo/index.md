@@ -38,8 +38,9 @@ Demo 菜单采用“能力域聚合面板”的方式组织。左侧菜单不再
 | API 覆盖检查  | `src/views/test-api/overview`                   | 导出 API 总览、运行状态、菜单 key、主题变量、存储状态                                                                         |
 | 导航与缓存    | `src/views/test-workbench/navigation-cache`     | `openTab`、`openFirstTab`、`activeFirstTab`、单例、多例、组件缓存、不缓存、刷新、更新、关闭、批量关闭、清空、交换标签         |
 | 通信与守卫    | `src/views/test-workbench/communication-guards` | `defineTabEvents`、`emit`、页面级进入/离开/关闭守卫、全局守卫日志、插件 hook 日志                                             |
-| 链接与 Iframe | `src/views/test-iframe/message`                 | 内部链接、外部链接、相对链接、iframe 缓存、不缓存、`postIframeMessage`、`postActiveIframeMessage`、`postCurrentIframeMessage` |
+| 链接与 Iframe | `src/views/test-iframe/message`                 | 内部链接、外部链接、相对链接、iframe 缓存、不缓存、hash 加载验证、`postIframeMessage`、`postActiveIframeMessage`、`postCurrentIframeMessage` |
 | 插件与主题    | `src/views/test-theme/icons`                    | `plugins`、`TabsManagerHooks`、`DynamicIconComponent`、`DynamicTabsComponent`、`applyTheme`                                   |
+| 状态组件      | `src/views/test-theme/state-components`         | 默认 loading、error、empty、not-found 组件，自定义状态组件配置                                                              |
 | 项目实践      | `src/views/practice/test-table-detail`          | 表格打开详情、多页面来源链路、业务场景接入                                                                                    |
 
 ## 建议验证路径
@@ -90,6 +91,7 @@ Demo 菜单采用“能力域聚合面板”的方式组织。左侧菜单不再
 2. 在 iframe 内触发消息发送。
 3. 观察宿主日志区是否出现 message 记录。
 4. 使用宿主按钮向当前 iframe 发送消息。
+5. 打开 hash 加载验证页，确认加载完成后不会停留在加载状态，且 hash 导航仍触发 iframe load 日志。
 
 ### 6. 验证守卫和 hooks
 
@@ -98,6 +100,13 @@ Demo 菜单采用“能力域聚合面板”的方式组织。左侧菜单不再
 1. 打开页面级守卫示例。
 2. 尝试切换或关闭 tab。
 3. 观察全局守卫日志和插件 hook 日志。
+
+### 7. 验证默认状态组件
+
+进入“状态组件”：
+
+1. 查看内置 loading、error、empty、not-found 四类状态组件的默认视觉。
+2. 使用页面内预览区切换自定义状态组件，验证 `render.*Component` 覆盖效果。
 
 ## 测试目标页
 
@@ -116,6 +125,7 @@ Demo 菜单采用“能力域聚合面板”的方式组织。左侧菜单不再
 | 页面守卫        | `src/views/test-guard`                   | `onBeforeTabEnter`、`onBeforeTabLeave`、`onBeforeTabClose` |
 | 菜单联动        | `src/layouts/container`                  | `useTabMenu`、`selectedKeys`、相同链接 key 区分            |
 | 预览容器        | `src/views/test-preview/container`       | `PreviewContainerComponent`，需单独预览场景，不挂主菜单    |
+| 状态组件        | `src/views/test-theme/state-components`  | 默认状态组件和自定义状态组件配置                           |
 | Vue Router 集成 | `src/plugins/vue-router`                 | 登录页/工作台分层                                          |
 
 ## 项目结构

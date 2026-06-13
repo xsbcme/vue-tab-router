@@ -27,8 +27,17 @@ export default defineStore("menu", () => {
     },
     {
       name: "插件与主题",
-      url: "/src/views/test-theme/icons/page-index.vue",
       icon: "IconApps",
+      children: [
+        {
+          name: "插件与主题",
+          url: "/src/views/test-theme/icons/page-index.vue",
+        },
+        {
+          name: "状态组件",
+          url: "/src/views/test-theme/state-components/page-index.vue",
+        },
+      ],
     },
     {
       name: "项目实践",

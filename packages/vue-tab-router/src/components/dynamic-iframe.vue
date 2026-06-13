@@ -3,14 +3,13 @@
     <iframe ref="iframeRef" class="dynamic-iframe-content" :src="iframeUrl" :title="title" @load="onLoad">
       您的浏览器不支持内联框架
     </iframe>
-    <template v-if="loading">
-      <div class="dynamic-iframe-loading">内联框架加载中...</div>
-    </template>
+    <component :is="loadingComponent" v-if="loading" class="dynamic-iframe-loading" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, shallowRef, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, shallowRef, watch } from "vue";
+import type { Component } from "vue";
 import {
   type DynamicIframeExpose,
   isIframeMessageOriginAllowed,
@@ -18,6 +17,7 @@ import {
   type IframeMessageOriginValidator,
 } from "../iframe-message";
 import type { Tab } from "../tab";
+import { DefaultLoadingComponent } from "./default-state";
 
 defineOptions({
   name: "DynamicIframe",
@@ -33,17 +33,114 @@ const props = withDefaults(
     link: string;
     linkProps?: Record<string, unknown>;
     title?: string;
+    loadingComponent?: Component;
     allowedOrigins?: IframeMessageOriginValidator;
     messageTab?: Partial<Tab>;
   }>(),
   {
     linkProps: () => ({}),
     title: "内联页面",
+    loadingComponent: () => DefaultLoadingComponent,
   }
 );
 
 const loading = shallowRef(true);
 const iframeRef = shallowRef<HTMLIFrameElement>();
+const lastCompletedUrl = shallowRef<string>();
+let sameDocumentLoadVersion = 0;
+let cleanupIframeNavigationListeners: (() => void) | undefined;
+
+function resolveUrl(url: string) {
+  try {
+    return new URL(url, window.location.href);
+  } catch (error) {
+    return undefined;
+  }
+}
+
+function readCurrentIframeUrl() {
+  const iframe = iframeRef.value;
+  if (!iframe) return undefined;
+
+  try {
+    const href = iframe.contentWindow?.location.href;
+    if (href && href !== "about:blank") return href;
+  } catch (error) {
+    return iframe.src || undefined;
+  }
+
+  return iframe.src || undefined;
+}
+
+function isSameUrl(urlA: string, urlB: string) {
+  const parsedUrlA = resolveUrl(urlA);
+  const parsedUrlB = resolveUrl(urlB);
+  if (!parsedUrlA || !parsedUrlB) return urlA === urlB;
+
+  return parsedUrlA.href === parsedUrlB.href;
+}
+
+function isSameDocumentUrl(urlA: string, urlB: string) {
+  const current = resolveUrl(urlA);
+  const next = resolveUrl(urlB);
+  if (!current || !next) return urlA === urlB;
+
+  current.hash = "";
+  next.hash = "";
+  return current.href === next.href;
+}
+
+function bindIframeNavigationListeners() {
+  cleanupIframeNavigationListeners?.();
+  cleanupIframeNavigationListeners = undefined;
+
+  try {
+    const frameWindow = iframeRef.value?.contentWindow;
+    if (!frameWindow) return;
+
+    frameWindow.addEventListener("hashchange", emitSameDocumentLoad);
+    frameWindow.addEventListener("popstate", emitSameDocumentLoad);
+    cleanupIframeNavigationListeners = () => {
+      frameWindow.removeEventListener("hashchange", emitSameDocumentLoad);
+      frameWindow.removeEventListener("popstate", emitSameDocumentLoad);
+    };
+  } catch (error) {
+    cleanupIframeNavigationListeners = undefined;
+  }
+}
+
+function completeIframeLoad(e: Event, completedUrl = readCurrentIframeUrl() || iframeUrl.value) {
+  sameDocumentLoadVersion++;
+  loading.value = false;
+  lastCompletedUrl.value = completedUrl;
+  bindIframeNavigationListeners();
+
+  if (iframeRef.value) {
+    emit("load", e, iframeRef.value);
+  }
+}
+
+function emitSameDocumentLoad(e: Event) {
+  const completedUrl = readCurrentIframeUrl() || iframeUrl.value;
+  if (lastCompletedUrl.value && isSameUrl(lastCompletedUrl.value, completedUrl)) return;
+
+  const iframe = iframeRef.value;
+  if (!iframe) return;
+
+  if (e.type === "load") {
+    completeIframeLoad(e, completedUrl);
+    return;
+  }
+
+  iframe.dispatchEvent(new Event("load"));
+}
+
+function hasCompletedSameDocument(nextUrl: string) {
+  const completedUrl = lastCompletedUrl.value;
+  if (!completedUrl) return false;
+
+  return isSameDocumentUrl(completedUrl, nextUrl);
+}
 
 const iframeUrl = computed(() => {
   const hashIndex = props.link.indexOf("#");
@@ -70,15 +167,26 @@ const iframeUrl = computed(() => {
   return `${path}${query ? `?${query}` : ""}${hash ? `#${hash}` : ""}`;
 });
 
-watch(iframeUrl, () => {
-  loading.value = true;
+watch(iframeUrl, async nextUrl => {
+  if (!hasCompletedSameDocument(nextUrl)) {
+    loading.value = true;
+    cleanupIframeNavigationListeners?.();
+    cleanupIframeNavigationListeners = undefined;
+    return;
+  }
+
+  if (lastCompletedUrl.value && isSameUrl(lastCompletedUrl.value, nextUrl)) return;
+
+  const currentVersion = ++sameDocumentLoadVersion;
+  await nextTick();
+  if (currentVersion !== sameDocumentLoadVersion) return;
+  if (hasCompletedSameDocument(nextUrl)) {
+    emitSameDocumentLoad(new Event("load"));
+  }
 });
 
 const onLoad = (e: Event) => {
-  loading.value = false;
-  if (iframeRef.value) {
-    emit("load", e, iframeRef.value);
-  }
+  completeIframeLoad(e);
 };
 
 const onMessage = (e: MessageEvent) => {
@@ -107,6 +215,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  cleanupIframeNavigationListeners?.();
   window.removeEventListener("message", onMessage);
 });
 

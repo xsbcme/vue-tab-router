@@ -58,12 +58,12 @@
 
 <script lang="ts" setup>
 import { computed, ref, watch } from "vue";
-import type { Tab } from "../../tab";
-import { useTabsManager } from "../../use-tabs-manager";
-import IconClose from "../icons/icon-close.vue";
-import IconFullscreen from "../icons/icon-fullscreen.vue";
-import IconRefresh from "../icons/icon-refresh.vue";
-import PreviewContainerComponent from "../preview-container/index.vue";
+import type { Tab } from "../tab";
+import { useTabsManager } from "../use-tabs-manager";
+import IconClose from "./icons/icon-close.vue";
+import IconFullscreen from "./icons/icon-fullscreen.vue";
+import IconRefresh from "./icons/icon-refresh.vue";
+import PreviewContainerComponent from "./preview-container.vue";
 
 const props = defineProps<{
   visible: boolean;

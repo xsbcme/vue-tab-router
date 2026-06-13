@@ -80,7 +80,7 @@ import ContextMenu from "./context-menu.vue";
 import { useTabsManager } from "@/use-tabs-manager";
 import IconArrowLeft from "../icons/icon-arrow-left.vue";
 import IconArrowRight from "../icons/icon-arrow-right.vue";
-import DetachedContainerComponent from "../detached-container/index.vue";
+import DetachedContainerComponent from "../detached-container.vue";
 
 type TabsType = "text" | "line" | "card" | "rounded" | "capsule";
 

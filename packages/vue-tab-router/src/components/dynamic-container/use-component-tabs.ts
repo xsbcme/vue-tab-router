@@ -3,6 +3,7 @@ import { INJECT_CURRENT_TAB_KEY } from "@/constant";
 import type { TabsManager } from "@/tabs-manager";
 import type { ITabsManagerOptions } from "@/types";
 import { clone } from "@/utils";
+import { DefaultNotFoundComponent } from "@/components/default-state";
 import { getTabCacheName } from "./types";
 
 export function useComponentTabs(tabsManager: TabsManager, managerOptions: ITabsManagerOptions | null) {
@@ -36,10 +37,7 @@ export function useComponentTabs(tabsManager: TabsManager, managerOptions: ITabs
 
           const comp = tabsManager.resolveComponent(currentTab.viewUrl);
           if (!comp) {
-            if (noExistComponent) {
-              return createVNode(noExistComponent);
-            }
-            return createVNode("div", null, "此页面不存在！");
+            return createVNode(noExistComponent || DefaultNotFoundComponent);
           }
 
           return createVNode(comp, {

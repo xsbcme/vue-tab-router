@@ -14,13 +14,13 @@
 </template>
 <script lang="ts" setup>
 import { computed, provide, reactive, watch } from "vue";
-import { jsonToObject } from "../../utils";
-import { useTabsManager } from "../../use-tabs-manager";
-import { TABS_MANAGER_KEY } from "../../tabs-manager-context";
-import type { TabsManager } from "../../tabs-manager";
-import type { IframeMessageEvent } from "../../iframe-message";
-import DynamicContainerComponent from "../dynamic-container";
-import DynamicTabsComponent from "../dynamic-tabs/index.vue";
+import { jsonToObject } from "../utils";
+import { useTabsManager } from "../use-tabs-manager";
+import { TABS_MANAGER_KEY } from "../tabs-manager-context";
+import type { TabsManager } from "../tabs-manager";
+import type { IframeMessageEvent } from "../iframe-message";
+import DynamicContainerComponent from "./dynamic-container";
+import DynamicTabsComponent from "./dynamic-tabs/index.vue";
 
 const props = withDefaults(
   defineProps<{

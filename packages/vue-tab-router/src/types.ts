@@ -67,6 +67,21 @@ export interface ITabsManagerOptions {
   noExistComponent?: Component;
 
   /**
+   * 默认加载组件。异步页面与 iframe 未单独配置时会使用它。
+   */
+  loadingComponent?: Component;
+
+  /**
+   * 默认失败组件。异步页面加载失败且 views.source.errorComponent 未配置时会使用它。
+   */
+  errorComponent?: Component;
+
+  /**
+   * iframe 加载中展示的组件。未配置时使用 loadingComponent 或内置默认加载组件。
+   */
+  iframeLoadingComponent?: Component;
+
+  /**
    * iframe 加载完成回调。可通过 `iframe` 访问 DOM；跨域 iframe 只能操作元素本身，不能访问内部 document。
    */
   onIframeLoad?: (context: IframeLoadEvent) => void;
@@ -176,6 +191,11 @@ export interface TabsManagerRenderOptions {
   noActiveComponent?: Component;
   /** 目标组件不存在时展示的占位组件。 */
   noExistComponent?: Component;
+
+  /** 默认加载组件。异步页面与 iframe 未单独配置时会使用它。 */
+  loadingComponent?: Component;
+  /** 默认失败组件。异步页面加载失败且 views.source.errorComponent 未配置时会使用它。 */
+  errorComponent?: Component;
   /** 标签名称最大显示长度（主要用于内置 Tabs 组件）。 */
   viewNameMaxLength?: number;
   /** 是否启用内置标签栏拖拽排序。默认 `true`。 */
@@ -194,6 +214,8 @@ export interface TabsManagerDetachedOptions {
 
 /** iframe 页面配置。 */
 export interface TabsManagerIframeOptions {
+  /** iframe 加载中展示的组件。未配置时使用 render.loadingComponent 或内置默认加载组件。 */
+  loadingComponent?: Component;
   /** iframe 加载完成回调。可通过 `iframe` 访问 DOM；跨域 iframe 只能操作元素本身，不能访问内部 document。 */
   onLoad?: (context: IframeLoadEvent) => void;
   /** 允许接收 iframe 消息的来源。默认只允许当前页面同源。 */

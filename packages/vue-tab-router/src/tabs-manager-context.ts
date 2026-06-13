@@ -3,14 +3,13 @@ import {
   AsyncComponentLoader,
   Component,
   defineAsyncComponent,
-  defineComponent,
-  createVNode,
   InjectionKey,
   markRaw,
   reactive,
 } from "vue";
 import type { ITabsManagerOptions, Modules, TabViewMeta } from "./types";
 import type { TabsManager } from "./tabs-manager";
+import { DefaultErrorComponent, DefaultLoadingComponent } from "./components/default-state";
 
 export const TABS_MANAGER_KEY = Symbol("TabsManager") as InjectionKey<TabsManager>;
 
@@ -100,20 +99,9 @@ export class TabsSharedContext {
   private createComponent(component: Component | (() => Promise<Component>)) {
     if (typeof component !== "function") return component;
 
-    const loadingComponent = defineComponent({
-      setup() {
-        return () => createVNode("div", null, "加载中...");
-      },
-    });
-    const errorComponent = defineComponent({
-      setup() {
-        return () => createVNode("div", null, "出错了!");
-      },
-    });
-
     return defineAsyncComponent<Component>({
-      loadingComponent,
-      errorComponent,
+      loadingComponent: this.options.loadingComponent || DefaultLoadingComponent,
+      errorComponent: this.options.errorComponent || DefaultErrorComponent,
       delay: 500,
       ...this.source,
       loader: component as AsyncComponentLoader<Component>,

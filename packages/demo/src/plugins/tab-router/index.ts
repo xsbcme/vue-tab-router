@@ -103,7 +103,18 @@ const tabsManager = createTabsManager({
       {
         title: "插件与主题",
         icon: "IconApps",
-        viewUrl: "/src/views/test-theme/icons/page-index.vue",
+        children: [
+          {
+            title: "插件与主题",
+            icon: "IconApps",
+            viewUrl: "/src/views/test-theme/icons/page-index.vue",
+          },
+          {
+            title: "状态组件",
+            icon: "IconApps",
+            viewUrl: "/src/views/test-theme/state-components/page-index.vue",
+          },
+        ],
       },
     ],
   },

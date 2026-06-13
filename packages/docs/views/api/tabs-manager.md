@@ -41,11 +41,15 @@ const tabsManager = createTabsManager({
 | --- | --- |
 | `transition` | 页面切换过渡配置。 |
 | `keepAlive` | keep-alive 配置，例如 `{ max: 20 }`。 |
-| `noActiveComponent` | 没有激活 tab 时展示的占位组件。 |
-| `noExistComponent` | 目标组件不存在时展示的占位组件。 |
+| `noActiveComponent` | 没有激活 tab 时展示的占位组件；未配置时使用内置 `DefaultEmptyComponent`。 |
+| `noExistComponent` | 目标组件不存在时展示的占位组件；未配置时使用内置 `DefaultNotFoundComponent`。 |
+| `loadingComponent` | 默认加载组件。异步组件加载与 iframe 加载未单独配置时使用；未配置时使用内置 `DefaultLoadingComponent`。 |
+| `errorComponent` | 默认失败组件。异步组件加载失败且 `views.source.errorComponent` 未配置时使用；未配置时使用内置 `DefaultErrorComponent`。 |
 | `viewNameMaxLength` | 内置标签栏标题最大显示长度。 |
 | `draggable` | 是否启用内置标签栏拖拽排序，默认 `true`。 |
 | `showIcon` | 是否在内置标签栏显示图标，默认 `true`。 |
+
+`views.source.loadingComponent`、`views.source.errorComponent` 会继续透传给 Vue `defineAsyncComponent`，优先级高于 `render.loadingComponent`、`render.errorComponent`。如果希望组件页和 iframe 页使用同一套加载视觉，只配置 `render.loadingComponent` 即可；如果 iframe 需要独立视觉，可使用 `iframe.loadingComponent` 覆盖。
 
 ### options.detached
 

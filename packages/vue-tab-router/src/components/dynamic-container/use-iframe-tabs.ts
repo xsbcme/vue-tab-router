@@ -91,6 +91,7 @@ export function useIframeTabs(tabsManager: TabsManager, managerOptions: ITabsMan
       ref: (exposed: IframeRefValue) => setIframeRef(currentTab._id, exposed),
       link: viewUrl,
       linkProps: currentTab.viewProps,
+      loadingComponent: managerOptions?.iframeLoadingComponent || managerOptions?.loadingComponent,
       allowedOrigins: managerOptions?.iframeMessageOrigins,
       messageTab: clone(currentTab),
       onLoad: (e: Event, iframe: HTMLIFrameElement) => {

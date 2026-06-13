@@ -1,4 +1,4 @@
-import { inject } from "vue";
+import { inject, markRaw } from "vue";
 import type { IframePostMessageOptions } from "./iframe-message";
 import { TabsManager } from "./tabs-manager";
 import { INJECT_CURRENT_TAB_KEY } from "./constant";
@@ -20,6 +20,11 @@ function normalizeTabsManagerOptions(options: TabsManagerOptions): ITabsManagerO
   const iframe = options.iframe;
   const guards = options.guards;
   const detached = options.detached;
+  const noActiveComponent = render?.noActiveComponent ? markRaw(render.noActiveComponent) : undefined;
+  const noExistComponent = render?.noExistComponent ? markRaw(render.noExistComponent) : undefined;
+  const loadingComponent = render?.loadingComponent ? markRaw(render.loadingComponent) : undefined;
+  const errorComponent = render?.errorComponent ? markRaw(render.errorComponent) : undefined;
+  const iframeLoadingComponent = iframe?.loadingComponent ? markRaw(iframe.loadingComponent) : undefined;
 
   return {
     modules: views.modules,
@@ -31,11 +36,14 @@ function normalizeTabsManagerOptions(options: TabsManagerOptions): ITabsManagerO
     plugins: options.plugins,
     transitionProps: render?.transition,
     keepAliveProps: render?.keepAlive,
-    noActiveComponent: render?.noActiveComponent,
-    noExistComponent: render?.noExistComponent,
+    noActiveComponent,
+    noExistComponent,
+    loadingComponent,
+    errorComponent,
     viewNameMaxLength: render?.viewNameMaxLength,
     tabsDraggable: render?.draggable,
     tabsShowIcon: render?.showIcon,
+    iframeLoadingComponent,
     iframeMessageOrigins: iframe?.messageOrigins,
     onIframeLoad: iframe?.onLoad,
     onIframeMessage: iframe?.onMessage,
