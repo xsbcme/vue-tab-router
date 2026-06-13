@@ -1,9 +1,10 @@
 <template>
-  <div class="practice-page">
-    <a-card title="运营复盘报表" :bordered="false">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" title="运营复盘报表">
+    <div class="practice-page">
       <a-space direction="vertical" fill size="large">
         <a-alert type="info">
-          这个实践页组合演示长内容滚动、iframe 报表、postMessage、弹窗显示和批量标签管理，刷新报表时指标和渠道数据会重新生成。
+          这个实践页组合演示长内容滚动、iframe
+          报表、postMessage、弹窗显示和批量标签管理，刷新报表时指标和渠道数据会重新生成。
         </a-alert>
         <a-descriptions :column="{ xs: 1, sm: 1, md: 2 }" bordered>
           <a-descriptions-item label="当前 tabId">{{ tabId || "-" }}</a-descriptions-item>
@@ -33,30 +34,32 @@
           </a-button>
         </a-space>
       </a-space>
-    </a-card>
 
-    <a-row :gutter="16">
-      <a-col v-for="item in metrics" :key="item.label" :xs="24" :sm="12" :md="6">
-        <a-card :bordered="false">
-          <a-statistic :title="item.label" :value="item.value" :suffix="item.suffix" show-group-separator />
-        </a-card>
-      </a-col>
-    </a-row>
+      <a-row :gutter="16">
+        <a-col v-for="item in metrics" :key="item.label" :xs="24" :sm="12" :md="6">
+          <a-card :bordered="false">
+            <a-statistic :title="item.label" :value="item.value" :suffix="item.suffix" show-group-separator />
+          </a-card>
+        </a-col>
+      </a-row>
 
-    <a-card title="渠道复盘" :bordered="false">
-      <a-table :columns="columns" :data="rows" :pagination="false" row-key="channel" :scroll="{ x: 900 }">
-        <template #trend="{ record }">
-          <a-tag :color="record.trend >= 0 ? 'green' : 'red'">{{ record.trend >= 0 ? '+' : '' }}{{ record.trend }}%</a-tag>
-        </template>
-      </a-table>
-    </a-card>
+      <a-card title="渠道复盘" :bordered="false">
+        <a-table :columns="columns" :data="rows" :pagination="false" row-key="channel" :scroll="{ x: 900 }">
+          <template #trend="{ record }">
+            <a-tag :color="record.trend >= 0 ? 'green' : 'red'"
+              >{{ record.trend >= 0 ? "+" : "" }}{{ record.trend }}%</a-tag
+            >
+          </template>
+        </a-table>
+      </a-card>
 
-    <a-card v-for="section in sections" :key="section.title" :title="section.title" :bordered="false">
-      <a-space direction="vertical" fill>
-        <p v-for="line in section.lines" :key="line">{{ line }}</p>
-      </a-space>
-    </a-card>
-  </div>
+      <a-card v-for="section in sections" :key="section.title" :title="section.title" :bordered="false">
+        <a-space direction="vertical" fill>
+          <p v-for="line in section.lines" :key="line">{{ line }}</p>
+        </a-space>
+      </a-card>
+    </div>
+  </a-card>
 </template>
 
 <script setup lang="ts">
@@ -103,10 +106,38 @@ const columns: TableColumnData[] = [
 const createRows = (seed: number): ReportRow[] => {
   const offset = seed % 120;
   const rows = [
-    { channel: "搜索投放", visits: 96200 + offset * 9, leads: 486 + (offset % 50), orders: 108 + (offset % 16), trend: (offset % 18) - 6, summary: "高意向词稳定，低意向词需要收缩预算。" },
-    { channel: "内容运营", visits: 73400 + offset * 7, leads: 362 + (offset % 42), orders: 84 + (offset % 12), trend: (offset % 14) - 4, summary: "行业模板文章带来持续长尾流量。" },
-    { channel: "客户转介绍", visits: 12800 + offset * 3, leads: 143 + (offset % 30), orders: 62 + (offset % 10), trend: (offset % 20) - 3, summary: "客单价高，适合继续做激励机制。" },
-    { channel: "线下活动", visits: 41200 + offset * 5, leads: 528 + (offset % 38), orders: 96 + (offset % 14), trend: (offset % 16) - 8, summary: "转化周期长，需要补充销售跟进节奏。" },
+    {
+      channel: "搜索投放",
+      visits: 96200 + offset * 9,
+      leads: 486 + (offset % 50),
+      orders: 108 + (offset % 16),
+      trend: (offset % 18) - 6,
+      summary: "高意向词稳定，低意向词需要收缩预算。",
+    },
+    {
+      channel: "内容运营",
+      visits: 73400 + offset * 7,
+      leads: 362 + (offset % 42),
+      orders: 84 + (offset % 12),
+      trend: (offset % 14) - 4,
+      summary: "行业模板文章带来持续长尾流量。",
+    },
+    {
+      channel: "客户转介绍",
+      visits: 12800 + offset * 3,
+      leads: 143 + (offset % 30),
+      orders: 62 + (offset % 10),
+      trend: (offset % 20) - 3,
+      summary: "客单价高，适合继续做激励机制。",
+    },
+    {
+      channel: "线下活动",
+      visits: 41200 + offset * 5,
+      leads: 528 + (offset % 38),
+      orders: 96 + (offset % 14),
+      trend: (offset % 16) - 8,
+      summary: "转化周期长，需要补充销售跟进节奏。",
+    },
   ];
   return activeChannel.value === "全部渠道" ? rows : rows.filter(row => row.channel === activeChannel.value);
 };
@@ -151,9 +182,7 @@ const openLongReport = () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 16px;
   min-height: 100%;
-  background: #f7f8fa;
 }
 
 .practice-page p {
@@ -165,7 +194,6 @@ const openLongReport = () => {
 @media (max-width: 768px) {
   .practice-page {
     gap: 10px;
-    padding: 8px;
   }
 
   .practice-page :deep(.arco-select) {

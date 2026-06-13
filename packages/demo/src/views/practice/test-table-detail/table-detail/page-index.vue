@@ -1,9 +1,11 @@
 <template>
-  <div class="practice-page">
-    <a-card :title="`客户详情 ${record.name}`" :bordered="false">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" :title="`客户详情 ${record.name}`">
+    <div class="practice-page">
       <a-space direction="vertical" fill size="large">
         <a-alert :type="dirty ? 'warning' : 'info'">
-          {{ dirty ? "当前客户详情有未保存修改，关闭标签会触发确认。" : "编辑备注后保存，会通过来源页签事件回写列表。" }}
+          {{
+            dirty ? "当前客户详情有未保存修改，关闭标签会触发确认。" : "编辑备注后保存，会通过来源页签事件回写列表。"
+          }}
         </a-alert>
         <a-descriptions :column="{ xs: 1, sm: 1, md: 2 }" bordered>
           <a-descriptions-item label="当前 tabId">{{ tabId || "-" }}</a-descriptions-item>
@@ -38,8 +40,8 @@
           <a-button status="danger" @click="tabsManager.closeTab()">关闭当前详情</a-button>
         </a-space>
       </a-space>
-    </a-card>
-  </div>
+    </div>
+  </a-card>
 </template>
 
 <script lang="ts" setup>
@@ -101,14 +103,6 @@ const renameTab = () => {
 
 <style scoped>
 .practice-page {
-  padding: 16px;
   min-height: 100%;
-  background: #f7f8fa;
-}
-
-@media (max-width: 768px) {
-  .practice-page {
-    padding: 8px;
-  }
 }
 </style>

@@ -43,7 +43,13 @@
 
       <a-divider orientation="left">菜单 key 规则覆盖</a-divider>
       <section class="coverage-section">
-        <a-table :columns="menuKeyColumns" :data="menuKeyRows" :pagination="false" row-key="name" :scroll="{ x: 760 }" />
+        <a-table
+          :columns="menuKeyColumns"
+          :data="menuKeyRows"
+          :pagination="false"
+          row-key="name"
+          :scroll="{ x: 760 }"
+        />
         <a-typography-paragraph> 归一化结果：{{ normalizedPropsText }} </a-typography-paragraph>
       </section>
 
@@ -57,7 +63,9 @@
           <a-descriptions-item label="自定义菜单 key">{{ customReportKey }}</a-descriptions-item>
           <a-descriptions-item label="findMenu 结果">{{ customFoundMenu?.label || "-" }}</a-descriptions-item>
           <a-descriptions-item label="findMenuPath 结果">{{ customMenuPathText }}</a-descriptions-item>
-          <a-descriptions-item label="当前自定义选中">{{ customTabMenu.selectedKeys.value.join(" / ") || "-" }}</a-descriptions-item>
+          <a-descriptions-item label="当前自定义选中">{{
+            customTabMenu.selectedKeys.value.join(" / ") || "-"
+          }}</a-descriptions-item>
         </a-descriptions>
       </section>
 
@@ -152,7 +160,7 @@ const customTabMenu = useTabMenu<CustomDemoMenu>({
   getViewName: menu => menu.label,
   getViewIcon: menu => menu.iconName,
   getViewProps: menu => menu.payload,
-  getMenuKey: menu => menu.route ? createTabMenuKey(menu.route, menu.payload) : menu.code,
+  getMenuKey: menu => (menu.route ? createTabMenuKey(menu.route, menu.payload) : menu.code),
 });
 
 const customReportKey = createTabMenuKey("/src/views/practice/operations-report/page-index.vue", {
@@ -160,7 +168,12 @@ const customReportKey = createTabMenuKey("/src/views/practice/operations-report/
   report: "month",
 });
 const customFoundMenu = computed(() => customTabMenu.findMenu(customReportKey));
-const customMenuPathText = computed(() => customTabMenu.findMenuPath(customReportKey).map(menu => menu.label).join(" / "));
+const customMenuPathText = computed(() =>
+  customTabMenu
+    .findMenuPath(customReportKey)
+    .map(menu => menu.label)
+    .join(" / ")
+);
 
 const openCustomCustomerMenu = () => {
   const customerMenu = customMenus[0]?.items?.[0];
@@ -202,9 +215,13 @@ const menuKeyRows = computed(() => [
   },
   {
     name: "展示参数参与 key",
-    key: createTabMenuKey("/src/views/test-router/router-target/page-index.vue", { _viewName: "标题参与", a: 1 }, {
-      includeTabOptionsInKey: true,
-    }),
+    key: createTabMenuKey(
+      "/src/views/test-router/router-target/page-index.vue",
+      { _viewName: "标题参与", a: 1 },
+      {
+        includeTabOptionsInKey: true,
+      }
+    ),
   },
 ]);
 
@@ -224,7 +241,12 @@ const defaultThemeVariableCount = computed(() => Object.keys(themeToCssVariables
 const storedTabsCount = computed(() => tabsManager.storage?.get("tabs", []).length ?? 0);
 const metaInfo = computed(() => tabsManager.getViewMeta(metaTargetUrl));
 const metaPropsText = computed(() => JSON.stringify(metaInfo.value?.props || {}));
-const metaPathText = computed(() => tabsManager.getViewMetaPath(metaTargetUrl).map(item => item.title || item.viewUrl).join(" / "));
+const metaPathText = computed(() =>
+  tabsManager
+    .getViewMetaPath(metaTargetUrl)
+    .map(item => item.title || item.viewUrl)
+    .join(" / ")
+);
 const activeTabQuery = computed(() => {
   const value = route.query.activeTab;
   return Array.isArray(value) ? value[0] : value;
@@ -232,9 +254,11 @@ const activeTabQuery = computed(() => {
 const documentTitle = computed(() => (typeof document === "undefined" ? "-" : document.title));
 
 const openMissingView = () => {
-  tabsManager.openTab("/src/views/not-exists/page-index.vue", { _viewName: "未注册视图", _viewSingle: true }).catch(error => {
-    Message.error(error instanceof Error ? error.message : String(error));
-  });
+  tabsManager
+    .openTab("/src/views/not-exists/page-index.vue", { _viewName: "未注册视图", _viewSingle: true })
+    .catch(error => {
+      Message.error(error instanceof Error ? error.message : String(error));
+    });
 };
 
 const openMetaDefaultView = () => {

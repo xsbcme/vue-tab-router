@@ -1,6 +1,6 @@
 <template>
-  <div class="practice-page">
-    <a-card title="项目实践覆盖状态" :bordered="false">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" title="项目实践覆盖状态">
+    <div class="practice-page">
       <a-space direction="vertical" fill size="large">
         <a-alert type="info">
           项目实践把插件能力放进接近真实后台的流程里，重点观察刷新是否重建、缓存是否保留、详情是否回传、单例和多例是否符合预期。
@@ -21,19 +21,19 @@
           </template>
         </a-table>
       </a-space>
-    </a-card>
 
-    <a-card title="动态验证建议" :bordered="false">
-      <a-row :gutter="16">
-        <a-col v-for="group in validationGroups" :key="group.title" :xs="24" :sm="12" :md="6">
-          <a-list :bordered="false" size="small">
-            <template #header>{{ group.title }}</template>
-            <a-list-item v-for="item in group.items" :key="item">{{ item }}</a-list-item>
-          </a-list>
-        </a-col>
-      </a-row>
-    </a-card>
-  </div>
+      <a-card title="动态验证建议" :bordered="false">
+        <a-row :gutter="16">
+          <a-col v-for="group in validationGroups" :key="group.title" :xs="24" :sm="12" :md="6">
+            <a-list :bordered="false" size="small">
+              <template #header>{{ group.title }}</template>
+              <a-list-item v-for="item in group.items" :key="item">{{ item }}</a-list-item>
+            </a-list>
+          </a-col>
+        </a-row>
+      </a-card>
+    </div>
+  </a-card>
 </template>
 
 <script setup lang="ts">
@@ -119,15 +119,12 @@ const openScenario = (record: ScenarioRecord) => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 16px;
   min-height: 100%;
-  background: #f7f8fa;
 }
 
 @media (max-width: 768px) {
   .practice-page {
     gap: 10px;
-    padding: 8px;
   }
 }
 </style>

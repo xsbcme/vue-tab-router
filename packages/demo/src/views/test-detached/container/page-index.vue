@@ -66,7 +66,9 @@ const ownerTab = computed(() => tabsManager.getTabById(ownerTabId.value));
 const otherTab = computed(() => tabsManager.getTabById(otherTabId.value));
 const ownerTabStatus = computed(() => ownerTab.value?.viewName || (ownerTabId.value ? "已关闭" : "未打开"));
 const otherTabStatus = computed(() => otherTab.value?.viewName || (otherTabId.value ? "已关闭" : "未打开"));
-const detachedStatus = computed(() => tabsManager.detachedTab?.viewName || tabsManager.detachedTab?.viewUrl || "未打开");
+const detachedStatus = computed(
+  () => tabsManager.detachedTab?.viewName || tabsManager.detachedTab?.viewUrl || "未打开"
+);
 
 const openOwnerDetachedDemo = async () => {
   const seed = ++demoSeed;

@@ -1,6 +1,6 @@
 <template>
-  <div class="practice-page">
-    <a-card title="订单处理中心" :bordered="false">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" title="订单处理中心">
+    <div class="practice-page">
       <a-space direction="vertical" fill>
         <a-alert type="info">
           这个页面模拟列表到详情的常见后台流程，组合演示多开、单例复用、详情传参、关闭守卫和来源页签事件。
@@ -31,8 +31,8 @@
           </template>
         </a-table>
       </a-space>
-    </a-card>
-  </div>
+    </div>
+  </a-card>
 </template>
 
 <script setup lang="ts">
@@ -82,11 +82,46 @@ const columns: TableColumnData[] = [
 const createOrders = (seed: number): OrderRecord[] => {
   const offset = seed % 40;
   return [
-    { id: `SO-${240601 + offset}`, customer: "北辰科技", product: "企业协作套件", amount: 128600 + offset, status: "待审核", owner: "Jane" },
-    { id: `SO-${240602 + offset}`, customer: "远山制造", product: "数据看板服务", amount: 86400 + offset * 3, status: "处理中", owner: "Alisa" },
-    { id: `SO-${240603 + offset}`, customer: "星河零售", product: "门店运营系统", amount: 45200 + offset * 5, status: "已发货", owner: "Kevin" },
-    { id: `SO-${240604 + offset}`, customer: "风禾物流", product: "调度优化模块", amount: 67300 + offset * 7, status: "异常", owner: "Ed" },
-    { id: `SO-${240605 + offset}`, customer: "云图咨询", product: "客户成功包", amount: 31900 + offset * 11, status: "处理中", owner: "William" },
+    {
+      id: `SO-${240601 + offset}`,
+      customer: "北辰科技",
+      product: "企业协作套件",
+      amount: 128600 + offset,
+      status: "待审核",
+      owner: "Jane",
+    },
+    {
+      id: `SO-${240602 + offset}`,
+      customer: "远山制造",
+      product: "数据看板服务",
+      amount: 86400 + offset * 3,
+      status: "处理中",
+      owner: "Alisa",
+    },
+    {
+      id: `SO-${240603 + offset}`,
+      customer: "星河零售",
+      product: "门店运营系统",
+      amount: 45200 + offset * 5,
+      status: "已发货",
+      owner: "Kevin",
+    },
+    {
+      id: `SO-${240604 + offset}`,
+      customer: "风禾物流",
+      product: "调度优化模块",
+      amount: 67300 + offset * 7,
+      status: "异常",
+      owner: "Ed",
+    },
+    {
+      id: `SO-${240605 + offset}`,
+      customer: "云图咨询",
+      product: "客户成功包",
+      amount: 31900 + offset * 11,
+      status: "处理中",
+      owner: "William",
+    },
   ];
 };
 
@@ -138,18 +173,10 @@ const openFirstOrderPair = () => {
 
 <style scoped>
 .practice-page {
-  padding: 16px;
   min-height: 100%;
-  background: #f7f8fa;
 }
 
 .operate-links {
   white-space: nowrap;
-}
-
-@media (max-width: 768px) {
-  .practice-page {
-    padding: 8px;
-  }
 }
 </style>

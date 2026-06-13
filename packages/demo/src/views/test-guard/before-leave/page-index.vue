@@ -1,5 +1,5 @@
 <template>
-  <a-card :style="{ height: '100%' }">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" title="离开守卫测试">
     <div>离开标签页时触发回调，失败则无法离开</div>
   </a-card>
 </template>

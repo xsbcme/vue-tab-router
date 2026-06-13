@@ -1,6 +1,6 @@
 <template>
-  <div class="practice-page">
-    <a-card title="列表详情联动" :bordered="false">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" title="列表详情联动">
+    <div class="practice-page">
       <a-space direction="vertical" fill>
         <a-alert type="info">
           这个页面演示最常见的列表到详情联动：筛选列表、打开多例详情、保存详情后回写列表，并观察缓存状态是否保留。
@@ -41,8 +41,8 @@
           </template>
         </a-table>
       </a-space>
-    </a-card>
-  </div>
+    </div>
+  </a-card>
 </template>
 
 <script lang="ts" setup>
@@ -86,11 +86,51 @@ const columns: TableColumnData[] = [
 const createRows = (seed: number): CustomerRecord[] => {
   const offset = seed % 20;
   return [
-    { key: `C-${1001 + offset}`, name: "北辰科技", salary: 93000 + offset * 120, address: "华东区", email: "beichen@example.com", owner: "Jane", level: "重点" },
-    { key: `C-${1002 + offset}`, name: "远山制造", salary: 76000 + offset * 90, address: "华南区", email: "yuanshan@example.com", owner: "Alisa", level: "成长" },
-    { key: `C-${1003 + offset}`, name: "星河零售", salary: 52000 + offset * 70, address: "华北区", email: "xinghe@example.com", owner: "Kevin", level: "观察" },
-    { key: `C-${1004 + offset}`, name: "风禾物流", salary: 68000 + offset * 80, address: "西南区", email: "fenghe@example.com", owner: "Ed", level: "成长" },
-    { key: `C-${1005 + offset}`, name: "云图咨询", salary: 43000 + offset * 60, address: "华中区", email: "yuntu@example.com", owner: "William", level: "观察" },
+    {
+      key: `C-${1001 + offset}`,
+      name: "北辰科技",
+      salary: 93000 + offset * 120,
+      address: "华东区",
+      email: "beichen@example.com",
+      owner: "Jane",
+      level: "重点",
+    },
+    {
+      key: `C-${1002 + offset}`,
+      name: "远山制造",
+      salary: 76000 + offset * 90,
+      address: "华南区",
+      email: "yuanshan@example.com",
+      owner: "Alisa",
+      level: "成长",
+    },
+    {
+      key: `C-${1003 + offset}`,
+      name: "星河零售",
+      salary: 52000 + offset * 70,
+      address: "华北区",
+      email: "xinghe@example.com",
+      owner: "Kevin",
+      level: "观察",
+    },
+    {
+      key: `C-${1004 + offset}`,
+      name: "风禾物流",
+      salary: 68000 + offset * 80,
+      address: "西南区",
+      email: "fenghe@example.com",
+      owner: "Ed",
+      level: "成长",
+    },
+    {
+      key: `C-${1005 + offset}`,
+      name: "云图咨询",
+      salary: 43000 + offset * 60,
+      address: "华中区",
+      email: "yuntu@example.com",
+      owner: "William",
+      level: "观察",
+    },
   ];
 };
 
@@ -154,9 +194,7 @@ const openSelectedDetail = () => {
 
 <style scoped>
 .practice-page {
-  padding: 16px;
   min-height: 100%;
-  background: #f7f8fa;
 }
 
 .operate-links {
@@ -164,10 +202,6 @@ const openSelectedDetail = () => {
 }
 
 @media (max-width: 768px) {
-  .practice-page {
-    padding: 8px;
-  }
-
   .practice-page :deep(.arco-input-wrapper) {
     width: 100% !important;
   }

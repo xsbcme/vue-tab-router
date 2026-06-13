@@ -1,9 +1,11 @@
 <template>
-  <div class="practice-page">
-    <a-card :title="`订单详情 ${order.id}`" :bordered="false">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" :title="`订单详情 ${order.id}`">
+    <div class="practice-page">
       <a-space direction="vertical" fill size="large">
         <a-alert :type="dirty ? 'warning' : 'success'">
-          {{ dirty ? "当前订单有未提交修改，关闭标签时会触发页面级关闭守卫。" : "当前订单没有未提交修改，可以直接关闭。" }}
+          {{
+            dirty ? "当前订单有未提交修改，关闭标签时会触发页面级关闭守卫。" : "当前订单没有未提交修改，可以直接关闭。"
+          }}
         </a-alert>
         <a-descriptions :column="{ xs: 1, sm: 1, md: 2 }" bordered>
           <a-descriptions-item label="当前 tabId">{{ tabId || "-" }}</a-descriptions-item>
@@ -29,8 +31,8 @@
           <a-button status="danger" @click="tabsManager.closeTab()">关闭当前详情</a-button>
         </a-space>
       </a-space>
-    </a-card>
-  </div>
+    </div>
+  </a-card>
 </template>
 
 <script setup lang="ts">
@@ -86,14 +88,6 @@ const renameTab = () => {
 
 <style scoped>
 .practice-page {
-  padding: 16px;
   min-height: 100%;
-  background: #f7f8fa;
-}
-
-@media (max-width: 768px) {
-  .practice-page {
-    padding: 8px;
-  }
 }
 </style>

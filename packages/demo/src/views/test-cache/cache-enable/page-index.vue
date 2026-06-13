@@ -1,5 +1,5 @@
 <template>
-  <a-card :style="{ height: '100%' }">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" title="缓存启用测试">
     <div>
       <div>缓存启用 - 默认启用</div>
       <div>当前时间：{{ time }}</div>

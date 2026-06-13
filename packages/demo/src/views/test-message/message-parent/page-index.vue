@@ -1,5 +1,5 @@
 <template>
-  <a-card :style="{ height: '100%' }">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" title="通信父页面测试">
     <div>
       <div>当前为A页面的父页面</div>
       <div><button @click="handleToPageA">去A页面并注册事件</button></div>

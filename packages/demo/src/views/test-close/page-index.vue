@@ -1,5 +1,5 @@
 <template>
-  <a-card :style="{ height: '100%' }">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" title="关闭标签测试">
     <div>
       <div><button @click="handleClose">点我关闭页面</button></div>
     </div>

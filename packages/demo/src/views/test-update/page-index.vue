@@ -1,5 +1,5 @@
 <template>
-  <a-card :style="{ height: '100%' }">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" title="更新页面参数测试">
     <div>
       <div>当前页面参数：{{ props }}</div>
       <a-space wrap>

@@ -25,7 +25,12 @@
           <a-button @click="hideFirstTab = !hideFirstTab">切换隐藏首页</a-button>
           <a-button @click="openLongTitleTab">打开长标题页</a-button>
         </a-space>
-        <DynamicTabsComponent type="card" :show-icon="showDemoIcon" :hide-first="hideFirstTab" default-icon="IconApps" />
+        <DynamicTabsComponent
+          type="card"
+          :show-icon="showDemoIcon"
+          :hide-first="hideFirstTab"
+          default-icon="IconApps"
+        />
         <DynamicBreadcrumbComponent separator=">" show-icon />
       </a-space>
 

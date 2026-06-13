@@ -1,5 +1,5 @@
 <template>
-  <a-card :style="{ height: '100%' }">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" title="路由目标页面">
     <a-space direction="vertical" fill>
       <div>这里是路由目标页面</div>
       <div>页面接收参数：{{ props }}</div>

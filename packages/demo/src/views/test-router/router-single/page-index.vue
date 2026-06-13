@@ -1,5 +1,5 @@
 <template>
-  <a-card :style="{ height: '100%' }">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" title="单例路由测试">
     <div>
       <div>单例路由 - 覆盖模式 - 默认使用多例模式</div>
       <div>

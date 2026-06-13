@@ -1,5 +1,5 @@
 <template>
-  <a-card :style="{ height: '100%' }">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" title="刷新页面测试">
     <div>
       <div>当前时间：{{ time }}</div>
       <div><button @click="handleToRefresh">点我刷新页面</button></div>

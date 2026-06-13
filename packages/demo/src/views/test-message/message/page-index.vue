@@ -1,5 +1,5 @@
 <template>
-  <a-card :style="{ height: '100%' }">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" title="通信子页面测试">
     <div>
       <div>当前为A页面</div>
       <div>

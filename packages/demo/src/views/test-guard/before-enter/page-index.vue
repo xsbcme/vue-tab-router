@@ -1,5 +1,5 @@
 <template>
-  <a-card :style="{ height: '100%' }">
+  <a-card :style="{ height: '100%', overflow: 'auto' }" title="进入守卫测试">
     <a-space direction="vertical">
       <div>进入标签页时触发回调，拒绝则无法激活此标签。</div>
       <a-switch v-model="allowEnter">

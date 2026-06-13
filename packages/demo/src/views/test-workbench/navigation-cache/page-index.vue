@@ -204,7 +204,9 @@ const swapActiveWithPreviousById = () => {
 
 const moveActiveBeforeFirstMovable = async () => {
   const activeTab = tabsManager.activeTab;
-  const targetTab = tabsManager.tabs.find(tab => tab._id !== activeTab?._id && tabsManager.canMoveTab(activeTab?._id, tab._id, "before"));
+  const targetTab = tabsManager.tabs.find(
+    tab => tab._id !== activeTab?._id && tabsManager.canMoveTab(activeTab?._id, tab._id, "before")
+  );
   if (!activeTab || !targetTab) {
     Message.info("没有符合规则的移动目标，可先批量打开或添加置顶/禁拖标签");
     return;
