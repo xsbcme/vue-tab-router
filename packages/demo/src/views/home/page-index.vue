@@ -1,129 +1,127 @@
 <template>
-  <a-card :style="{ height: '100%', overflow: 'auto' }" title="Vue Tab Router" class="home-entry-card">
-    <div class="home-page">
-      <section class="hero-section">
-        <div class="hero-copy">
-          <div class="hero-kicker">
-            <IconApps />
-            Vue 3 多标签页路由插件
-          </div>
-          <h1>Vue Tab Router</h1>
-          <p class="hero-desc">
-            面向后台管理系统、工作台和多文档编辑场景，把路由、标签页、缓存、守卫和 iframe 编排成一套稳定的页面工作流。
-          </p>
-          <div class="hero-actions">
-            <a-button type="primary" size="large" @click="openWorkbench">
-              <template #icon><IconDashboard /></template>
-              打开工作台
-            </a-button>
-            <a-button size="large" @click="openApiOverview">
-              <template #icon><IconCode /></template>
-              API 覆盖检查
-            </a-button>
+  <div class="home-page">
+    <section class="hero-section">
+      <div class="hero-copy">
+        <div class="hero-kicker">
+          <IconApps />
+          Vue 3 多标签页路由插件
+        </div>
+        <h1>Vue Tab Router</h1>
+        <p class="hero-desc">
+          面向后台管理系统、工作台和多文档编辑场景，把路由、标签页、缓存、守卫和 iframe 编排成一套稳定的页面工作流。
+        </p>
+        <div class="hero-actions">
+          <a-button type="primary" size="large" @click="openWorkbench">
+            <template #icon><IconDashboard /></template>
+            打开工作台
+          </a-button>
+          <a-button size="large" @click="openApiOverview">
+            <template #icon><IconCode /></template>
+            API 覆盖检查
+          </a-button>
+        </div>
+      </div>
+
+      <div class="workspace-preview" aria-label="Vue Tab Router 工作台预览">
+        <div class="preview-bar">
+          <div class="preview-dot is-red"></div>
+          <div class="preview-dot is-yellow"></div>
+          <div class="preview-dot is-green"></div>
+          <span>tab-router.workspace</span>
+        </div>
+        <div class="preview-tabs">
+          <div
+            v-for="tab in previewTabs"
+            :key="tab"
+            class="preview-tab"
+            :class="{ 'is-active': tab === '客户运营工作台' }"
+          >
+            {{ tab }}
           </div>
         </div>
-
-        <div class="workspace-preview" aria-label="Vue Tab Router 工作台预览">
-          <div class="preview-bar">
-            <div class="preview-dot is-red"></div>
-            <div class="preview-dot is-yellow"></div>
-            <div class="preview-dot is-green"></div>
-            <span>tab-router.workspace</span>
-          </div>
-          <div class="preview-tabs">
-            <div
-              v-for="tab in previewTabs"
-              :key="tab"
-              class="preview-tab"
-              :class="{ 'is-active': tab === '客户运营工作台' }"
-            >
-              {{ tab }}
+        <div class="preview-body">
+          <div class="preview-panel">
+            <div class="panel-title">页面状态</div>
+            <div class="state-row" v-for="item in stateRows" :key="item.label">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
             </div>
           </div>
-          <div class="preview-body">
-            <div class="preview-panel">
-              <div class="panel-title">页面状态</div>
-              <div class="state-row" v-for="item in stateRows" :key="item.label">
-                <span>{{ item.label }}</span>
-                <strong>{{ item.value }}</strong>
-              </div>
-            </div>
-            <div class="preview-panel is-main">
-              <div class="panel-title">能力编排</div>
-              <div class="flow-list">
-                <div v-for="item in flowItems" :key="item.title" class="flow-item">
-                  <component :is="item.icon" />
-                  <div>
-                    <strong>{{ item.title }}</strong>
-                    <span>{{ item.desc }}</span>
-                  </div>
+          <div class="preview-panel is-main">
+            <div class="panel-title">能力编排</div>
+            <div class="flow-list">
+              <div v-for="item in flowItems" :key="item.title" class="flow-item">
+                <component :is="item.icon" />
+                <div>
+                  <strong>{{ item.title }}</strong>
+                  <span>{{ item.desc }}</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="metrics-section">
-        <div v-for="metric in metrics" :key="metric.label" class="metric-card">
-          <span>{{ metric.label }}</span>
-          <strong>{{ metric.value }}</strong>
-          <em>{{ metric.desc }}</em>
-        </div>
-      </section>
+    <section class="metrics-section">
+      <div v-for="metric in metrics" :key="metric.label" class="metric-card">
+        <span>{{ metric.label }}</span>
+        <strong>{{ metric.value }}</strong>
+        <em>{{ metric.desc }}</em>
+      </div>
+    </section>
 
-      <section class="feature-section">
-        <div v-for="feature in features" :key="feature.title" class="feature-card">
-          <div class="feature-icon">
-            <component :is="feature.icon" />
-          </div>
-          <div>
-            <h2>{{ feature.title }}</h2>
-            <p>{{ feature.desc }}</p>
-          </div>
+    <section class="feature-section">
+      <div v-for="feature in features" :key="feature.title" class="feature-card">
+        <div class="feature-icon">
+          <component :is="feature.icon" />
         </div>
-      </section>
+        <div>
+          <h2>{{ feature.title }}</h2>
+          <p>{{ feature.desc }}</p>
+        </div>
+      </div>
+    </section>
 
-      <section class="scan-section">
-        <div class="section-heading">
-          <div>
-            <span>自动扫描结果</span>
-            <h2>已注册页面清单</h2>
-          </div>
-          <strong>{{ tabsManager.registerTabPaths.length }} views</strong>
+    <section class="scan-section">
+      <div class="section-heading">
+        <div>
+          <span>自动扫描结果</span>
+          <h2>已注册页面清单</h2>
         </div>
-        <div class="scan-layout">
-          <div class="scan-groups">
-            <div v-for="group in scanGroups" :key="group.name" class="scan-group">
-              <span>{{ group.name }}</span>
-              <strong>{{ group.count }}</strong>
-              <em>{{ group.desc }}</em>
-            </div>
-          </div>
-          <div class="scan-list">
-            <div class="scan-list-header">
-              <span>菜单入口</span>
-              <span>viewUrl</span>
-            </div>
-            <button
-              v-for="view in featuredScanViews"
-              :key="view.path"
-              class="scan-row"
-              type="button"
-              @click="openScannedView(view)"
-            >
-              <span>{{ view.title }}</span>
-              <code>{{ view.path }}</code>
-            </button>
-          </div>
-          <div class="path-list">
-            <div class="path-list-title">扫描样本</div>
-            <code v-for="path in visibleScanPaths" :key="path">{{ path }}</code>
+        <strong>{{ tabsManager.registerTabPaths.length }} views</strong>
+      </div>
+      <div class="scan-layout">
+        <div class="scan-groups">
+          <div v-for="group in scanGroups" :key="group.name" class="scan-group">
+            <span>{{ group.name }}</span>
+            <strong>{{ group.count }}</strong>
+            <em>{{ group.desc }}</em>
           </div>
         </div>
-      </section>
-    </div>
-  </a-card>
+        <div class="scan-list">
+          <div class="scan-list-header">
+            <span>菜单入口</span>
+            <span>viewUrl</span>
+          </div>
+          <button
+            v-for="view in featuredScanViews"
+            :key="view.path"
+            class="scan-row"
+            type="button"
+            @click="openScannedView(view)"
+          >
+            <span>{{ view.title }}</span>
+            <code>{{ view.path }}</code>
+          </button>
+        </div>
+        <div class="path-list">
+          <div class="path-list-title">扫描样本</div>
+          <code v-for="path in visibleScanPaths" :key="path">{{ path }}</code>
+        </div>
+      </div>
+    </section>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -269,15 +267,13 @@ function formatViewName(path: string) {
 <style lang="scss" scoped>
 .home-page {
   min-height: 100%;
+  padding: 20px;
+  overflow: auto;
   color: #1d2129;
   background:
     radial-gradient(circle at 14% 12%, rgba(0, 180, 160, 0.16), transparent 30%),
     radial-gradient(circle at 86% 6%, rgba(255, 125, 0, 0.14), transparent 28%),
     linear-gradient(135deg, #f6f8fb 0%, #eef6f5 48%, #f8f4ed 100%);
-}
-
-.home-entry-card :deep(.arco-card-body) {
-  padding: 0;
 }
 
 .hero-section {
@@ -709,7 +705,7 @@ h1 {
 
 @media (max-width: 768px) {
   .home-page {
-    min-height: 100%;
+    padding: 10px;
   }
 
   .hero-section,
