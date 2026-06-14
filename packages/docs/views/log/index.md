@@ -3,6 +3,18 @@
 本文记录 `@xsbcme/vue-tab-router` 的重要变更，帮助你了解新能力、行为变化和升级影响。
 
 <!-- VUE_TAB_ROUTER_CHANGELOG_START -->
+## 1.1.0
+
+### 新增能力
+
+- 88bfbe5: 新增内置默认状态组件并补齐渲染配置：提供 `DefaultLoadingComponent`、`DefaultErrorComponent`、`DefaultEmptyComponent`、`DefaultNotFoundComponent`，支持通过 `render.loadingComponent`、`render.errorComponent`、`render.noActiveComponent`、`render.noExistComponent` 和 `iframe.loadingComponent` 覆盖。
+
+### 修复与优化
+
+- 3b49072: 修复组件页内容超过容器高度时无法滚动查看完整内容的问题。组件页内容层现在允许滚动，iframe 页面仍保持外层裁剪，避免链接页面显示溢出。
+- 772c993: 修复右键菜单“弹窗显示”中的关闭行为：弹窗内原页面调用关闭当前标签页时，会同步关闭主工作台中的来源标签和弹窗；弹窗内新打开的子标签关闭时仅影响弹窗内部标签，不会误关来源标签或弹窗。不可关闭标签仍会保持不可关闭，不会被弹窗内关闭操作绕过。
+- 95e5adc: 修复 iframe 页面请求刷新或关闭当前标签页时的弹窗显示行为：iframe 位于右键菜单“弹窗显示”的原页面时，会正确刷新弹窗内 iframe，关闭时会同步关闭主工作台中的来源标签和弹窗；iframe 位于弹窗内新打开的子标签时，仅刷新或关闭弹窗内部子标签。同时修复通过 `createTabsManager()` 返回的根实例触发关闭、刷新等状态变更时，界面可能要等到下一次标签切换才同步更新的问题。
+
 ## 1.1.0-beta.4
 
 ### 新增能力
