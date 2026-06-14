@@ -1,5 +1,11 @@
 # @xsbcme/vue-tab-router
 
+## 1.1.1-beta.0
+
+### Patch Changes
+
+- 修复异步组件页面首次打开时 loading 延迟显示，避免页面在组件加载前短暂空白。
+
 ## 1.1.0
 
 ### Minor Changes

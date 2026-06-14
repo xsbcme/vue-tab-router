@@ -102,7 +102,7 @@ export class TabsSharedContext {
     return defineAsyncComponent<Component>({
       loadingComponent: this.options.loadingComponent || DefaultLoadingComponent,
       errorComponent: this.options.errorComponent || DefaultErrorComponent,
-      delay: 500,
+      delay: 0,
       ...this.source,
       loader: component as AsyncComponentLoader<Component>,
     });

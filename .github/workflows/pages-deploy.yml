@@ -5,6 +5,17 @@ on:
     branches:
       - master
       - main
+    paths:
+      - .github/workflows/pages-deploy.yml
+      - packages/docs/**
+      - packages/demo/**
+      - packages/vue-tab-router/**
+      - scripts/build-pages.mjs
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - tsconfig.base.json
+      - turbo.json
   workflow_dispatch:
 
 permissions:

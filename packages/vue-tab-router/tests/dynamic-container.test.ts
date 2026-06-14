@@ -226,6 +226,25 @@ describe("DynamicContainer iframe rendering", () => {
     }
   });
 
+  it("shows component loading immediately on first open", async () => {
+    const pendingViewUrl = "/pending-view.vue";
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [pendingViewUrl]: () => new Promise(() => {}),
+        },
+      },
+    });
+
+    await tabsManager.openTab(pendingViewUrl, { _viewName: "加载中页面" });
+    await flushTicks(2);
+
+    expect(host.textContent).toContain("加载中...");
+
+    app.unmount();
+    host.remove();
+  });
+
   it("keeps same-document iframe hash updates out of the loading state while emitting load", async () => {
     const { app, host, link, loadEvents } = mountDynamicIframe("/iframe-test.html#overview");
     await flushTicks(2);
