@@ -37,6 +37,8 @@ export class TabsManager {
   private _options: ITabsManagerOptions;
   private _app: App | null = null;
   private _tabs: Tab[] = [];
+  private _tabById = new Map<string, Tab>();
+  private _firstTabByViewUrl = new Map<string, Tab>();
   private _activeTabId?: string;
   private _activeTab?: Tab;
   private _detachedTab: Partial<Tab> | null = null;
@@ -60,7 +62,7 @@ export class TabsManager {
     this.sharedContext = markRaw(sharedContext);
     this._options = options;
     this._persistence = new TabsPersistence(options);
-    this._tabs = this.restoreTabs();
+    this.setTabs(this.restoreTabs());
   }
 
   private readonly sharedContext: TabsSharedContext;
@@ -238,11 +240,14 @@ export class TabsManager {
         return manager.events;
       },
       setTabs(tabs) {
-        manager._tabs = tabs;
-        manager.syncActiveTabId();
+        manager.setTabs(tabs);
       },
       setActiveTabId(tabId) {
         manager.setActiveTabId(tabId);
+      },
+      syncTabs() {
+        manager.rebuildTabIndexes();
+        manager.syncActiveTabId();
       },
       getTabById(tabId) {
         return manager.getTabById(tabId);
@@ -335,11 +340,11 @@ export class TabsManager {
    * 按 tabId 获取标签页实例。
    */
   public getTabById(tabId: string | undefined) {
-    return this._tabs.find(item => item._id === tabId);
+    return tabId ? this._tabById.get(tabId) : undefined;
   }
 
   private getTabByViewUrl(viewUrl: string) {
-    return this._tabs.find(item => item.viewUrl == viewUrl);
+    return this._firstTabByViewUrl.get(viewUrl);
   }
 
   public resolveComponent(name: string) {
@@ -348,11 +353,28 @@ export class TabsManager {
 
   private insertTab(tab: Tab) {
     insertTabByOrder(this._tabs, tab);
+    this.rebuildTabIndexes();
   }
 
   private sortPinnedTabs() {
-    this._tabs = sortTabsByPinned(this._tabs);
+    this.setTabs(sortTabsByPinned(this._tabs));
+  }
+
+  private setTabs(tabs: Tab[]) {
+    this._tabs = tabs;
+    this.rebuildTabIndexes();
     this.syncActiveTabId();
+  }
+
+  private rebuildTabIndexes() {
+    this._tabById = new Map();
+    this._firstTabByViewUrl = new Map();
+    this._tabs.forEach(tab => {
+      this._tabById.set(tab._id, tab);
+      if (!this._firstTabByViewUrl.has(tab.viewUrl)) {
+        this._firstTabByViewUrl.set(tab.viewUrl, tab);
+      }
+    });
   }
 
   private syncActiveTabId() {
@@ -373,6 +395,7 @@ export class TabsManager {
         return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
       }
       Object.assign<Tab, Partial<Tab>>(findTab, { _noClose: noAllow });
+      this.rebuildTabIndexes();
       this.persistTabs();
     });
   }
@@ -388,7 +411,9 @@ export class TabsManager {
       this._tabs[findIndex]._noDrag = true;
       if (findIndex >= 1) {
         this._tabs.unshift(this._tabs.splice(findIndex, 1)[0]);
+        this.rebuildTabIndexes();
       }
+      this.syncActiveTabId();
       this.persistTabs();
     });
   }
@@ -588,6 +613,8 @@ export class TabsManager {
 
       if (previousPinned !== findTab._pinned) {
         this.sortPinnedTabs();
+      } else {
+        this.rebuildTabIndexes();
       }
 
       this.persistTabs();
@@ -710,6 +737,7 @@ export class TabsManager {
 
     return nextTick(() => {
       if (swapTabsByIndex(this._tabs, tabIndex1, tabIndex2)) {
+        this.rebuildTabIndexes();
         this.persistTabs();
       }
     });
@@ -729,6 +757,7 @@ export class TabsManager {
     return nextTick(() => {
       const moved = moveTabByOrder(this._tabs, tabId, targetTabId, position);
       if (!moved) return false;
+      this.rebuildTabIndexes();
       this.persistTabs();
       return true;
     });
@@ -832,6 +861,7 @@ export class TabsManager {
     if (stateManager !== this) return stateManager.clear();
 
     this._tabs = [];
+    this.rebuildTabIndexes();
     this._activeTabId = undefined;
     this._activeTab = undefined;
     this._refreshAllTabFlag = false;

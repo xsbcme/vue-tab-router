@@ -16,9 +16,18 @@ export function insertTab(tabs: Tab[], tab: Tab) {
 }
 
 export function sortPinnedTabs(tabs: Tab[]) {
-  const firstTabs = tabs.filter(tab => tab._isFirst);
-  const pinnedTabs = tabs.filter(tab => !tab._isFirst && tab._pinned);
-  const normalTabs = tabs.filter(tab => !tab._isFirst && !tab._pinned);
+  const firstTabs: Tab[] = [];
+  const pinnedTabs: Tab[] = [];
+  const normalTabs: Tab[] = [];
+  tabs.forEach(tab => {
+    if (tab._isFirst) {
+      firstTabs.push(tab);
+    } else if (tab._pinned) {
+      pinnedTabs.push(tab);
+    } else {
+      normalTabs.push(tab);
+    }
+  });
   return [...firstTabs, ...pinnedTabs, ...normalTabs];
 }
 

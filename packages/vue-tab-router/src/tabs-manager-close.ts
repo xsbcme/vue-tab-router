@@ -19,6 +19,7 @@ export interface TabCloseRuntime {
   readonly events: EventManager;
   setTabs(tabs: Tab[]): void;
   setActiveTabId(tabId: string | undefined): void;
+  syncTabs(): void;
   getTabById(tabId: string | undefined): Tab | undefined;
   getNoCloseTabCloseHandler(): ((tab: Partial<Tab>) => boolean | Promise<boolean>) | undefined;
   runChangeActiveTabGuards(toTab: Partial<Tab>, fromTab?: Tab): Promise<void>;
@@ -222,6 +223,7 @@ export async function closeSingleTab(runtime: TabCloseRuntime, tabId: string | u
 
   runtime.tabs.splice(findTabIndex, 1);
   setTabsSourceIdById(runtime.tabs, findTab._id, findTab._sourceId);
+  runtime.syncTabs();
   if (shouldActivateFallback) {
     runtime.setActiveTabId(fallbackTab?._id);
     runtime.tabs.forEach(item => {
