@@ -1,6 +1,6 @@
 {
   "name": "@xsbcme/vue-tab-router",
-  "version": "1.1.0-beta.4",
+  "version": "1.1.0",
   "description": "Vue 3 多标签页路由插件，适用于后台管理系统、工作台和多文档编辑场景。",
   "type": "module",
   "main": "./dist/index.cjs",

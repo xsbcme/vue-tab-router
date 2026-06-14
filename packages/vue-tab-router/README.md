@@ -2,8 +2,6 @@
 
 一个专注于 Vue 3 的多标签页路由插件，适用于后台管理系统、工作台、多文档编辑等场景。
 
-![VueTabRouter 多标签页工作台演示](../../assets/vue-tab-router-demo.gif)
-
 - 支持组件页面和 iframe 页面
 - 支持单页多开 / 单例复用
 - 支持页面缓存控制（keep-alive）
