@@ -12,6 +12,14 @@ export class EventManager {
     return Array.from(this.events.keys());
   }
 
+  offByPrefix(prefix: string) {
+    for (const eventName of this.events.keys()) {
+      if (eventName.startsWith(prefix)) {
+        this.events.delete(eventName);
+      }
+    }
+  }
+
   on(eventName: string, func: Function, ctx?: unknown) {
     if (this.events.has(eventName)) {
       this.events.get(eventName)!.push({ func, ctx });

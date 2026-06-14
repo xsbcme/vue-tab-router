@@ -183,6 +183,38 @@ describe("TabsManager runtime safety", () => {
     expect(storageAdapter.setCount).toBe(1);
   });
 
+  it("keeps non-closable tabs and redirects source links during batch close", async () => {
+    const tabsManager = createTestTabsManager();
+    const homeTabId = await tabsManager.openFirstTab(TabViewUrl.createRelative("/home"), { _viewName: "首页" });
+    const parentTabId = await tabsManager.openTab(TabViewUrl.createRelative("/parent"), { _viewName: "父标签" });
+    const childTabId = await tabsManager.openTab(TabViewUrl.createRelative("/child"), { _viewName: "子标签" });
+    const grandChildTabId = await tabsManager.openTab(TabViewUrl.createRelative("/grand-child"), { _viewName: "孙标签" });
+
+    await tabsManager.closeTabsByOther(grandChildTabId);
+
+    expect(tabsManager.tabs.map(tab => tab._id)).toEqual([homeTabId, grandChildTabId]);
+    expect(tabsManager.getTabById(grandChildTabId)?._sourceId).toBe(homeTabId);
+    expect(tabsManager.getTabById(homeTabId)?._noClose).toBe(true);
+    expect(tabsManager.getTabById(parentTabId)).toBeUndefined();
+    expect(tabsManager.getTabById(childTabId)).toBeUndefined();
+  });
+
+  it("runs tab:closed hooks for each tab after a batch close", async () => {
+    const tabsManager = createTestTabsManager();
+    await tabsManager.openTab(TabViewUrl.createRelative("/one"), { _viewName: "一" });
+    await tabsManager.openTab(TabViewUrl.createRelative("/two"), { _viewName: "二" });
+    await tabsManager.openTab(TabViewUrl.createRelative("/three"), { _viewName: "三" });
+    const closedTabs: string[] = [];
+
+    tabsManager.hooks.on("tab:closed", tab => {
+      if (tab.viewName) closedTabs.push(tab.viewName);
+    });
+
+    await tabsManager.closeTabByAll();
+
+    expect(closedTabs).toEqual(["一", "二", "三"]);
+  });
+
   it("awaits tabs:cleared hooks", async () => {
     const tabsManager = createTestTabsManager();
     const calls: string[] = [];

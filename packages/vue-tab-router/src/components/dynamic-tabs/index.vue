@@ -25,7 +25,7 @@
               'is-drop-after': dropTargetTabId === tab._id && dropPosition === 'after',
             }"
             :tab="tab"
-            :is-active="tab._id === tabsManager.activeTab?._id"
+            :is-active="tab._id === activeTabId"
             :show-icon="resolvedShowIcon"
             :default-icon="defaultIcon"
             :max-name-length="tabsManager.options?.viewNameMaxLength"
