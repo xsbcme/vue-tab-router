@@ -1,5 +1,7 @@
 # 菜单联动
 
+这一页适合在页面已经能通过 `openTab` 打开之后阅读。菜单负责“用户从哪里进入页面”和“当前选中哪一项”，页面默认标题、图标和非菜单详情层级则更适合交给 `views.meta`。
+
 `useTabMenu` 用于把业务菜单和当前激活标签页关联起来。它会统一生成菜单 key、维护 `selectedKeys`，并提供菜单点击后打开 tab 的方法。
 
 ## 基础接入
@@ -120,5 +122,5 @@ const tabMenu = useTabMenu({
 
 如果需要给非菜单详情页配置层级、默认标题或点击返回上级，请阅读：
 
-- [页面模块与元数据](/views/guide/view-meta)
+- [页面元数据与层级](/views/guide/view-meta)
 - [面包屑导航](/views/guide/breadcrumb)

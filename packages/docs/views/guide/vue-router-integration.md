@@ -1,5 +1,7 @@
 # 与 VueRouter 结合使用
 
+这一页解释外层路由和工作台标签页的分工。第一次接入时不需要把它们混在一起理解，先让 Vue Router 进入工作台页面，再由 VueTabRouter 管理工作台内部页面。
+
 ## 推荐分层
 
 - 顶层使用 `VueRouter`：登录、工作台、错误页等主路由
@@ -93,5 +95,6 @@ router.beforeEach((to, _from, next) => {
 ## 推荐阅读
 
 - [地址栏同步与浏览器历史](/views/guide/url-sync)
-- [页面模块与元数据](/views/guide/view-meta)
+- [页面入口与 viewUrl](/views/guide/view-url)
+- [页面元数据与层级](/views/guide/view-meta)
 - [菜单联动](/views/guide/menu-integration)

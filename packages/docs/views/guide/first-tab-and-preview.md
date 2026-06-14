@@ -1,5 +1,7 @@
 # 首页与预览容器方案
 
+这一页处理工作台的特殊容器形态。普通后台先使用 `DynamicTabsComponent + DynamicContainerComponent`，需要固定首页、嵌入预览或局部标签组时再看这里。
+
 ## 首页标签：`openFirstTab`
 
 `openFirstTab` 用于打开并固定首页标签，首页会被标记为不可关闭。

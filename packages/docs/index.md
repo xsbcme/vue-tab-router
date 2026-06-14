@@ -76,23 +76,25 @@ tabsManager.openTab("/src/views/order/page-index.vue", {
 
 ## 推荐阅读路径
 
-| 目标                     | 阅读                                                   |
-| ------------------------ | ------------------------------------------------------ |
-| 先跑起来                 | [快速开始](/views/guide/getting-started)               |
-| 理解页面入口和 `viewUrl` | [页面模块与元数据](/views/guide/view-meta)             |
-| 接入菜单选中状态         | [菜单联动](/views/guide/menu-integration)              |
-| 处理缓存与刷新           | [页面缓存控制](/views/guide/cache-control)             |
-| 控制关闭、切换和通信     | [页面事件通信与守卫](/views/guide/events-and-guards)   |
-| 嵌入报表或旧系统         | [Iframe 通信与缓存](/views/guide/iframe-communication) |
-| 查询完整 API             | [API 总览](/views/api/)                                |
+第一次接入时，只需要先跑通一个能打开页面的工作台。等这个闭环成立后，再把菜单、缓存、守卫、iframe 和插件能力逐步加上去。
+
+| 阶段              | 目标                         | 阅读                                          | Demo 对应入口              |
+| ----------------- | ---------------------------- | --------------------------------------------- | -------------------------- |
+| 1. 先理解边界     | 知道它解决什么、不解决什么   | [什么是 VueTabRouter？](/views/guide/)        | 最小入门                   |
+| 2. 跑通最小闭环   | 创建管理器、放容器、打开页面 | [快速开始](/views/guide/getting-started)      | 最小入门                   |
+| 3. 认清页面身份   | 明白 `viewUrl` 从哪里来      | [页面入口与 viewUrl](/views/guide/view-url)   | 最小入门                   |
+| 4. 学会日常操作   | 打开、切换、关闭、刷新页面   | [基础页面导航](/views/guide/basic-navigation) | 基础操作                   |
+| 5. 接入业务工作台 | 菜单选中、详情层级、面包屑   | [菜单联动](/views/guide/menu-integration)     | 菜单与层级                 |
+| 6. 增强使用体验   | 缓存、守卫、通信、iframe     | [页面缓存控制](/views/guide/cache-control)    | 通信与守卫 / 链接与 Iframe |
+| 7. 查询完整能力   | 查看类型、选项和组件 API     | [API 总览](/views/api/)                       | API 覆盖检查               |
 
 ## 最小接入步骤
 
-1. 使用 `import.meta.glob` 注册可被工作台打开的页面入口。
+1. 准备一批能被工作台打开的页面入口。
 2. 创建并安装 `TabsManager`。
-3. 在布局中放置标签栏和页面容器。
+3. 在工作台布局中放置标签栏和页面容器。
 4. 从菜单、按钮或业务动作中调用 `openTab` 打开页面。
-5. 按需增加缓存、守卫、菜单联动、URL 同步和插件扩展。
+5. 页面能正常打开后，再逐步增加菜单、缓存、守卫、URL 同步和插件扩展。
 
 ```ts
 const tabsManager = createTabsManager({
@@ -102,4 +104,4 @@ const tabsManager = createTabsManager({
 });
 ```
 
-准备接入时，从 [快速开始](/views/guide/getting-started) 进入；想直接看效果，可以打开 [Demo 案例](/views/demo/)。
+准备接入时，从 [快速开始](/views/guide/getting-started) 进入；想先看完整效果，可以打开 [Demo 案例](/views/demo/)。

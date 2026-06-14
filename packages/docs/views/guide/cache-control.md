@@ -1,5 +1,7 @@
 # 页面缓存控制
 
+这一页开始处理工作台体验增强。先确认你已经能打开和关闭页面，再决定哪些页面应该保留现场、哪些页面应该每次重建。
+
 `VueTabRouter` 默认基于增强版 keep-alive 缓存页面，这意味着：
 
 - 首次打开页面触发 `onMounted`
@@ -43,7 +45,7 @@ await tabsManager.refreshTabAll();
 
 ## keep-alive 最大缓存数
 
-通过 `keepAliveProps.max` 限制缓存上限：
+通过 `render.keepAlive.max` 限制缓存上限：
 
 ```ts
 const tabsManager = createTabsManager({

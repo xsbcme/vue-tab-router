@@ -17,19 +17,59 @@ const tabsManager = createTabsManager({
     modules: import.meta.glob("@/views/**/page-index.vue", { eager: false }),
     meta: [
       {
-        title: "API 覆盖检查",
-        viewUrl: "/src/views/test-api/overview/page-index.vue",
+        title: "最小入门",
+        children: [
+          { title: "最小打开页面", viewUrl: "/src/views/learning/start/page-index.vue" },
+          { title: "打开与复用", viewUrl: "/src/views/learning/basic-open/page-index.vue" },
+        ],
       },
       {
-        title: "导航与缓存",
-        viewUrl: "/src/views/test-workbench/navigation-cache/page-index.vue",
-        props: {
-          _viewSingle: true,
-        },
+        title: "基础操作",
+        children: [
+          { title: "当前页操作", viewUrl: "/src/views/learning/current-actions/page-index.vue" },
+          { title: "缓存对照", viewUrl: "/src/views/learning/cache/page-index.vue" },
+          { title: "批量与排序", viewUrl: "/src/views/learning/batch-sort/page-index.vue" },
+        ],
+      },
+      {
+        title: "菜单与层级",
+        viewUrl: "/src/views/learning/menu-breadcrumb/page-index.vue",
       },
       {
         title: "通信与守卫",
-        viewUrl: "/src/views/test-workbench/communication-guards/page-index.vue",
+        children: [
+          { title: "父子通信", viewUrl: "/src/views/learning/events/page-index.vue" },
+          { title: "页面守卫", viewUrl: "/src/views/learning/guards/page-index.vue" },
+        ],
+      },
+      {
+        title: "链接与 Iframe",
+        children: [
+          { title: "链接打开方式", viewUrl: "/src/views/learning/iframe-links/page-index.vue" },
+          { title: "Iframe 缓存", viewUrl: "/src/views/learning/iframe-cache/page-index.vue" },
+          { title: "Iframe 消息", viewUrl: "/src/views/learning/iframe-message/page-index.vue" },
+          { title: "Iframe 导航同步", viewUrl: "/src/views/learning/iframe-navigation/page-index.vue" },
+        ],
+      },
+      {
+        title: "弹窗与预览",
+        children: [
+          {
+            title: "弹窗显示",
+            viewUrl: "/src/views/learning/detached/page-index.vue",
+            props: { _viewSingle: true },
+          },
+          { title: "预览容器", viewUrl: "/src/views/learning/preview/page-index.vue" },
+        ],
+      },
+      {
+        title: "扩展与外观",
+        icon: "IconApps",
+        children: [
+          { title: "插件 Hooks", icon: "IconApps", viewUrl: "/src/views/learning/plugin-hooks/page-index.vue" },
+          { title: "主题与图标", icon: "IconApps", viewUrl: "/src/views/learning/theme/page-index.vue" },
+          { title: "状态组件", icon: "IconApps", viewUrl: "/src/views/test-theme/state-components/page-index.vue" },
+        ],
       },
       {
         title: "项目实践",
@@ -90,31 +130,8 @@ const tabsManager = createTabsManager({
         ],
       },
       {
-        title: "弹窗显示",
-        viewUrl: "/src/views/test-detached/container/page-index.vue",
-        props: {
-          _viewSingle: true,
-        },
-      },
-      {
-        title: "链接与 Iframe",
-        viewUrl: "/src/views/test-iframe/message/page-index.vue",
-      },
-      {
-        title: "插件与主题",
-        icon: "IconApps",
-        children: [
-          {
-            title: "插件与主题",
-            icon: "IconApps",
-            viewUrl: "/src/views/test-theme/icons/page-index.vue",
-          },
-          {
-            title: "状态组件",
-            icon: "IconApps",
-            viewUrl: "/src/views/test-theme/state-components/page-index.vue",
-          },
-        ],
+        title: "API 覆盖检查",
+        viewUrl: "/src/views/learning/api-check/page-index.vue",
       },
     ],
   },

@@ -1,5 +1,7 @@
 # 快速开始
 
+这一页只完成一件事：让你的工作台能够打开一个页面。先不要急着配置菜单、面包屑、缓存和守卫，这些都可以在最小闭环跑通后逐步加上。
+
 ## 在线示例
 
 - 本仓库内置 Demo: [本地演示项目](/views/demo/)
@@ -23,9 +25,6 @@ const tabsManager = createTabsManager({
   views: {
     modules,
   },
-  render: {
-    viewNameMaxLength: 20,
-  },
 });
 
 export default tabsManager;
@@ -33,11 +32,7 @@ export default tabsManager;
 
 > `modules` 的 key（例如 `'/src/views/user/page-index.vue'`）就是后续 `openTab(viewUrl)` 的 `viewUrl`。
 
-这里推荐使用 `import.meta.glob`，是因为 Vite 可以按文件约定自动生成页面入口注册表。`VueTabRouter` 并不强依赖 Vite；非 Vite 项目也可以手写或生成同样结构的 `modules`。推荐扫描 `page-index.vue`，是为了只注册页面入口，避免把页面内部的表格、弹窗、表单等普通组件都当成可打开页面。
-
-`import.meta.glob()` 的扫描表达式必须是当前项目真实可解析的相对路径、绝对路径或 Vite 别名。多模块、依赖包页面聚合、key 规范化等架构约定，请先阅读 [页面模块与元数据](/views/guide/view-meta) 中关于页面入口注册表和 `viewUrl` key 的说明。
-
-如果希望统一配置页面标题、图标、默认单例策略或详情页层级，可以继续配置 `views.meta`。完整说明见 [页面模块与元数据](/views/guide/view-meta)。
+这里推荐扫描 `page-index.vue`，是为了只注册页面入口，避免把页面内部的表格、弹窗、表单等普通组件都当成可打开页面。
 
 ## 2. 在布局中放置容器
 
@@ -79,9 +74,15 @@ tabsManager.openTab("/src/views/about/page-index.vue", {
 });
 ```
 
+如果页面没有打开，先打印 `Object.keys(modules)`，确认传给 `openTab` 的字符串和注册表里的 key 完全一致。
+
 ## 组合式与选项式访问
 
 - 组合式：`useTabsManager()`
 - 选项式：`this.$tabsManager`
 
-下一步建议阅读 [基础页面导航](/views/guide/basic-navigation)、[页面模块与元数据](/views/guide/view-meta) 和 [页面缓存控制](/views/guide/cache-control)。
+## 下一步
+
+- 还不确定 `viewUrl` 为什么是这个字符串：阅读 [页面入口与 viewUrl](/views/guide/view-url)。
+- 已经能打开页面：继续阅读 [基础页面导航](/views/guide/basic-navigation)。
+- 想给页面配置默认标题、图标和层级：阅读 [页面元数据与层级](/views/guide/view-meta)。

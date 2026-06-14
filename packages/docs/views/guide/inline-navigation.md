@@ -1,5 +1,7 @@
 # 内联页面导航（iframe）
 
+这一页适合在组件页面已经跑通后阅读。链接页面仍然通过 `openTab` 打开，只是内容区会渲染为 iframe。
+
 当 `viewUrl` 是链接地址时，`DynamicContainerComponent` 会使用 `iframe` 渲染页面。
 
 ## 可识别的链接形式

@@ -43,22 +43,22 @@ interface TabViewMeta {
 - `children` 用于面包屑层级。
 - `meta` 是业务自定义字段，库不会自动合并到 tab props。
 
-详细用法见 [页面模块与元数据](/views/guide/view-meta)。
+详细用法见 [页面元数据与层级](/views/guide/view-meta)。
 
 ## IOpenTabOptions
 
 `openTab(viewUrl, options)` 的参数类型。
 
-| 字段 | 说明 |
-| --- | --- |
-| `_viewName` | tab 标题。 |
-| `_viewIcon` | tab 图标。 |
-| `_viewNoCache` | 是否禁用缓存。 |
-| `_viewSingle` | 是否单例。 |
-| `_viewPinned` | 是否置顶。 |
-| `_viewNoDrag` | 是否禁止拖拽。 |
-| `_viewOutside` | 是否使用浏览器新窗口打开链接。 |
-| `_viewOutsideProps` | `window.open` 参数。 |
+| 字段                | 说明                           |
+| ------------------- | ------------------------------ |
+| `_viewName`         | tab 标题。                     |
+| `_viewIcon`         | tab 图标。                     |
+| `_viewNoCache`      | 是否禁用缓存。                 |
+| `_viewSingle`       | 是否单例。                     |
+| `_viewPinned`       | 是否置顶。                     |
+| `_viewNoDrag`       | 是否禁止拖拽。                 |
+| `_viewOutside`      | 是否使用浏览器新窗口打开链接。 |
+| `_viewOutsideProps` | `window.open` 参数。           |
 
 其他字段会进入 `tab.viewProps`。
 
@@ -153,15 +153,15 @@ class CustomStorageAdapter extends AbstractStorageAdapter {
 
 宿主接收 iframe 消息时的上下文。
 
-| 字段 | 说明 |
-| --- | --- |
-| `data` | iframe 发送的原始数据。 |
-| `origin` | 消息来源 origin。 |
-| `source` | 消息来源窗口。 |
-| `rawEvent` | 原始 `MessageEvent`。 |
-| `tab` | iframe 所属 tab 信息。 |
-| `tabId` | iframe 所属 tabId。 |
-| `reply(data, options?)` | 回复当前 iframe。 |
+| 字段                    | 说明                    |
+| ----------------------- | ----------------------- |
+| `data`                  | iframe 发送的原始数据。 |
+| `origin`                | 消息来源 origin。       |
+| `source`                | 消息来源窗口。          |
+| `rawEvent`              | 原始 `MessageEvent`。   |
+| `tab`                   | iframe 所属 tab 信息。  |
+| `tabId`                 | iframe 所属 tabId。     |
+| `reply(data, options?)` | 回复当前 iframe。       |
 
 ### IframePostMessageOptions
 
@@ -177,7 +177,7 @@ interface IframePostMessageOptions {
 允许接收 iframe 消息的来源配置。
 
 ```ts
-messageOrigins: ["self", "https://example.com"]
+messageOrigins: ["self", "https://example.com"];
 ```
 
 支持：
@@ -189,21 +189,21 @@ messageOrigins: ["self", "https://example.com"]
 
 ## 菜单与面包屑类型
 
-| 类型 | 说明 |
-| --- | --- |
-| `TabMenuItemLike` | 默认可识别的菜单项结构。 |
-| `UseTabMenuOptions` | `useTabMenu` 配置。 |
-| `UseTabMenuReturn` | `useTabMenu` 返回值。 |
-| `TabBreadcrumbItem` | 面包屑数据项。 |
+| 类型                | 说明                     |
+| ------------------- | ------------------------ |
+| `TabMenuItemLike`   | 默认可识别的菜单项结构。 |
+| `UseTabMenuOptions` | `useTabMenu` 配置。      |
+| `UseTabMenuReturn`  | `useTabMenu` 返回值。    |
+| `TabBreadcrumbItem` | 面包屑数据项。           |
 
 ## 插件类型
 
-| 类型 | 说明 |
-| --- | --- |
-| `TabsManagerPlugin` | 插件函数或插件对象。 |
-| `TabsManagerPluginContext` | 插件 setup 上下文。 |
-| `TabsManagerHookMap` | hook 参数映射。 |
-| `TabsManagerHookName` | hook 名称联合类型。 |
-| `TabsManagerHooks` | hook 注册与触发管理器。 |
+| 类型                       | 说明                    |
+| -------------------------- | ----------------------- |
+| `TabsManagerPlugin`        | 插件函数或插件对象。    |
+| `TabsManagerPluginContext` | 插件 setup 上下文。     |
+| `TabsManagerHookMap`       | hook 参数映射。         |
+| `TabsManagerHookName`      | hook 名称联合类型。     |
+| `TabsManagerHooks`         | hook 注册与触发管理器。 |
 
 详见 [插件与 hooks API](/views/api/plugins)。

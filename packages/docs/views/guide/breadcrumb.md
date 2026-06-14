@@ -1,16 +1,14 @@
 # 面包屑导航
 
+这一页接在 [菜单联动](/views/guide/menu-integration) 之后阅读最自然。菜单通常提供一级入口，`views.meta` 负责补充详情页、编辑页这类非菜单页面的层级。
+
 `DynamicBreadcrumbComponent` 是内置的轻量面包屑组件，适合放在工作台头部或标签栏下方。它会根据当前激活 tab 自动生成层级，并支持点击非末级节点返回上级页面。
 
 ## 基础接入
 
 ```vue
 <template>
-  <DynamicBreadcrumbComponent
-    :menus="menuStore.getMenus"
-    :get-menu-key="tabMenu.getMenuKey"
-    :show-icon="false"
-  />
+  <DynamicBreadcrumbComponent :menus="menuStore.getMenus" :get-menu-key="tabMenu.getMenuKey" :show-icon="false" />
 </template>
 
 <script setup lang="ts">

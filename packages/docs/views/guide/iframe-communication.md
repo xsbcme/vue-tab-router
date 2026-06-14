@@ -1,5 +1,7 @@
 # Iframe 通信与缓存
 
+这一页是 iframe 进阶内容。先确认你已经了解 [内联页面导航](/views/guide/inline-navigation)，再处理缓存、宿主通信和跨域来源校验。
+
 链接型页面支持两种打开方式：
 
 - 内部打开：作为 iframe 标签页渲染

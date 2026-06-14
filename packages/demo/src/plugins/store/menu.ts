@@ -6,32 +6,97 @@ export default defineStore("menu", () => {
   // 定义后台菜单，可远程获取。
   const menus = ref([
     {
-      name: "API 覆盖检查",
-      url: "/src/views/test-api/overview/page-index.vue",
+      name: "最小入门",
+      children: [
+        {
+          name: "最小打开页面",
+          url: "/src/views/learning/start/page-index.vue",
+        },
+        {
+          name: "打开与复用",
+          url: "/src/views/learning/basic-open/page-index.vue",
+        },
+      ],
     },
     {
-      name: "导航与缓存",
-      url: "/src/views/test-workbench/navigation-cache/page-index.vue",
+      name: "基础操作",
+      children: [
+        {
+          name: "当前页操作",
+          url: "/src/views/learning/current-actions/page-index.vue",
+        },
+        {
+          name: "缓存对照",
+          url: "/src/views/learning/cache/page-index.vue",
+        },
+        {
+          name: "批量与排序",
+          url: "/src/views/learning/batch-sort/page-index.vue",
+        },
+      ],
+    },
+    {
+      name: "菜单与层级",
+      url: "/src/views/learning/menu-breadcrumb/page-index.vue",
     },
     {
       name: "通信与守卫",
-      url: "/src/views/test-workbench/communication-guards/page-index.vue",
-    },
-    {
-      name: "弹窗显示",
-      url: "/src/views/test-detached/container/page-index.vue",
+      children: [
+        {
+          name: "父子通信",
+          url: "/src/views/learning/events/page-index.vue",
+        },
+        {
+          name: "页面守卫",
+          url: "/src/views/learning/guards/page-index.vue",
+        },
+      ],
     },
     {
       name: "链接与 Iframe",
-      url: "/src/views/test-iframe/message/page-index.vue",
+      children: [
+        {
+          name: "链接打开方式",
+          url: "/src/views/learning/iframe-links/page-index.vue",
+        },
+        {
+          name: "Iframe 缓存",
+          url: "/src/views/learning/iframe-cache/page-index.vue",
+        },
+        {
+          name: "Iframe 消息",
+          url: "/src/views/learning/iframe-message/page-index.vue",
+        },
+        {
+          name: "Iframe 导航同步",
+          url: "/src/views/learning/iframe-navigation/page-index.vue",
+        },
+      ],
     },
     {
-      name: "插件与主题",
+      name: "弹窗与预览",
+      children: [
+        {
+          name: "弹窗显示",
+          url: "/src/views/learning/detached/page-index.vue",
+        },
+        {
+          name: "预览容器",
+          url: "/src/views/learning/preview/page-index.vue",
+        },
+      ],
+    },
+    {
+      name: "扩展与外观",
       icon: "IconApps",
       children: [
         {
-          name: "插件与主题",
-          url: "/src/views/test-theme/icons/page-index.vue",
+          name: "插件 Hooks",
+          url: "/src/views/learning/plugin-hooks/page-index.vue",
+        },
+        {
+          name: "主题与图标",
+          url: "/src/views/learning/theme/page-index.vue",
         },
         {
           name: "状态组件",
@@ -63,6 +128,10 @@ export default defineStore("menu", () => {
           url: "/src/views/practice/test-table-detail/page-index.vue",
         },
       ],
+    },
+    {
+      name: "API 覆盖检查",
+      url: "/src/views/learning/api-check/page-index.vue",
     },
   ]);
 

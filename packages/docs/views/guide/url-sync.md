@@ -1,5 +1,7 @@
 # 地址栏同步与浏览器历史
 
+这一页属于高级集成。只有当你需要“复制地址后恢复当前 tab”或“浏览器前进/后退切换激活 tab”时，才需要启用 URL 同步插件。
+
 `VueTabRouter` 默认不改写地址栏，适合在工作台内部独立管理多标签页。若希望复制链接后能直达某个标签页，或让浏览器前进/后退切换激活标签，可以使用 `createTabUrlSyncPlugin`。
 
 ## 基础用法
@@ -32,20 +34,20 @@ const tabsManager = createTabsManager({
 
 ## 常用配置
 
-| 配置 | 默认值 | 说明 |
-| --- | --- | --- |
-| `queryKey` | `"tab"` | 存储当前激活 tab 状态的 query 参数名。 |
-| `routePath` | 不限制 | 只在指定外层路由上同步，例如 `/dashboard`。 |
-| `historyMode` | `"push"` | 打开或切换标签时写入历史的方式。首次写入会自动改用 `replace`。 |
-| `syncInitialActiveTab` | `true` | URL 没有 tab 状态但当前已有激活 tab 时，是否补齐 URL。 |
-| `syncDocumentTitle` | `true` | 是否跟随当前激活 tab 更新浏览器标题。 |
-| `formatDocumentTitle` | 无 | 自定义浏览器标题格式。 |
-| `allowExternal` | `false` | 是否允许 URL 打开 `http` / `https` 外部 iframe 页面。 |
-| `allowRelative` | `true` | 是否允许 URL 打开 `TabViewUrl.createRelative` 创建的相对 iframe 页面。 |
-| `syncIframeNavigation` | `true` | 是否同步同源 iframe 内部链接导航后的当前地址。 |
-| `validate` | 无 | 从 URL 打开 tab 前的自定义校验。 |
-| `serialize` / `deserialize` | base64url JSON | 自定义 URL 状态序列化方式。 |
-| `onError` | `console.error` | 同步失败、反序列化失败、目标页面未注册等错误回调。 |
+| 配置                        | 默认值          | 说明                                                                   |
+| --------------------------- | --------------- | ---------------------------------------------------------------------- |
+| `queryKey`                  | `"tab"`         | 存储当前激活 tab 状态的 query 参数名。                                 |
+| `routePath`                 | 不限制          | 只在指定外层路由上同步，例如 `/dashboard`。                            |
+| `historyMode`               | `"push"`        | 打开或切换标签时写入历史的方式。首次写入会自动改用 `replace`。         |
+| `syncInitialActiveTab`      | `true`          | URL 没有 tab 状态但当前已有激活 tab 时，是否补齐 URL。                 |
+| `syncDocumentTitle`         | `true`          | 是否跟随当前激活 tab 更新浏览器标题。                                  |
+| `formatDocumentTitle`       | 无              | 自定义浏览器标题格式。                                                 |
+| `allowExternal`             | `false`         | 是否允许 URL 打开 `http` / `https` 外部 iframe 页面。                  |
+| `allowRelative`             | `true`          | 是否允许 URL 打开 `TabViewUrl.createRelative` 创建的相对 iframe 页面。 |
+| `syncIframeNavigation`      | `true`          | 是否同步同源 iframe 内部链接导航后的当前地址。                         |
+| `validate`                  | 无              | 从 URL 打开 tab 前的自定义校验。                                       |
+| `serialize` / `deserialize` | base64url JSON  | 自定义 URL 状态序列化方式。                                            |
+| `onError`                   | `console.error` | 同步失败、反序列化失败、目标页面未注册等错误回调。                     |
 
 ## 登录后进入工作台
 

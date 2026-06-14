@@ -1,6 +1,6 @@
 # 本地演示项目
 
-当前仓库已内置演示项目：`packages/demo`。它由原 `vue-tab-router-demo` 迁移而来，用于展示插件在后台工作台中的完整接入方式。
+当前仓库已内置演示项目：`packages/demo`。它用于展示插件在后台工作台中的完整接入方式，并按“从简单到复杂”的顺序拆成多组小演示。
 
 ## 启动
 
@@ -29,104 +29,74 @@ pnpm --filter @xsbcme/demo dev
 pnpm build:demo
 ```
 
-## 菜单结构
+## 渐进式菜单结构
 
-Demo 菜单采用“能力域聚合面板”的方式组织。左侧菜单不再把每个细功能都作为入口，而是进入聚合页后通过按钮、状态面板和日志完成多场景验证。
+Demo 左侧菜单现在按学习顺序组织。建议从上往下点击，每个入口只聚焦一组能力。
 
-| 菜单入口      | Demo 位置                                       | 覆盖能力                                                                                                                      |
-| ------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| API 覆盖检查  | `src/views/test-api/overview`                   | 导出 API 总览、运行状态、菜单 key、主题变量、存储状态                                                                         |
-| 导航与缓存    | `src/views/test-workbench/navigation-cache`     | `openTab`、`openFirstTab`、`activeFirstTab`、单例、多例、组件缓存、不缓存、刷新、更新、关闭、批量关闭、清空、交换标签         |
-| 通信与守卫    | `src/views/test-workbench/communication-guards` | `defineTabEvents`、`emit`、页面级进入/离开/关闭守卫、全局守卫日志、插件 hook 日志                                             |
-| 链接与 Iframe | `src/views/test-iframe/message`                 | 内部链接、外部链接、相对链接、iframe 缓存、不缓存、hash 加载验证、`postIframeMessage`、`postActiveIframeMessage`、`postCurrentIframeMessage` |
-| 插件与主题    | `src/views/test-theme/icons`                    | `plugins`、`TabsManagerHooks`、`DynamicIconComponent`、`DynamicTabsComponent`、`applyTheme`                                   |
-| 状态组件      | `src/views/test-theme/state-components`         | 默认 loading、error、empty、not-found 组件，自定义状态组件配置                                                              |
-| 项目实践      | `src/views/practice/test-table-detail`          | 表格打开详情、多页面来源链路、业务场景接入                                                                                    |
+| 菜单入口      | Demo 位置                            | 覆盖能力                                 |
+| ------------- | ------------------------------------ | ---------------------------------------- |
+| 最小入门      | `src/views/learning/start`           | 最小 `openTab` 闭环、`viewUrl`、目标页   |
+| 基础操作      | `src/views/learning/basic-open`      | 单例复用、多开、刷新、更新、关闭、缓存   |
+| 菜单与层级    | `src/views/learning/menu-breadcrumb` | 菜单入口、详情页层级、面包屑             |
+| 通信与守卫    | `src/views/learning/events`          | 父子通信、进入守卫、离开守卫、关闭守卫   |
+| 链接与 Iframe | `src/views/learning/iframe-links`    | 链接打开、iframe 缓存、消息、导航同步    |
+| 弹窗与预览    | `src/views/learning/detached`        | 弹窗显示、预览容器、独立标签组           |
+| 扩展与外观    | `src/views/learning/plugin-hooks`    | 插件 hooks、主题变量、动态图标、状态组件 |
+| 项目实践      | `src/views/practice/overview`        | 业务场景组合、列表详情、报表、客户工作台 |
+| API 覆盖检查  | `src/views/learning/api-check`       | 维护者检查清单、状态组件入口             |
 
 ## 建议验证路径
 
-### 1. 验证基础标签页
+### 1. 最小打开页面
 
-进入“导航与缓存”：
+进入“最小入门 / 最小打开页面”：
 
-1. 点击打开单例页面，重复点击应复用同一个 tab。
-2. 点击打开多开页面，携带不同参数时会出现多个 tab。
-3. 点击刷新当前页，观察页面重新渲染。
-4. 点击批量关闭，验证首页不可关闭。
+1. 点击“打开目标页”。
+2. 观察标签栏出现目标页。
+3. 在页面中查看示例 `viewUrl`。
 
-### 2. 验证页面元数据和面包屑
+### 2. 基础操作
 
-进入“项目实践”：
+进入“基础操作”：
 
-1. 从表格打开项目详情。
-2. 观察面包屑显示 `测试工作台 / 项目实践 / 项目详情`。
-3. 点击“项目实践”，应返回上级页面。
-4. 不需要在左侧菜单中配置“项目详情”，层级来自 `views.meta`。
+1. 在“打开与复用”中比较单例和多开。
+2. 在“当前页操作”中验证刷新、更新标题、关闭当前页。
+3. 在“缓存对照”中切换缓存页和不缓存页。
+4. 在“批量与排序”中验证首页、置顶、禁拖和批量关闭。
 
-### 3. 验证 URL 同步
+### 3. 菜单、层级和面包屑
 
-切换任意 tab 后观察地址栏：
+进入“菜单与层级”：
 
-```txt
-/#/dashboard?activeTab=...
-```
+1. 打开订单处理中心。
+2. 再打开订单详情。
+3. 观察面包屑和父路径推导。
+4. 详情页不需要出现在左侧菜单中，层级来自 `views.meta`。
 
-刷新页面后，插件会从 `activeTab` 参数恢复当前 tab。浏览器前进/后退会在历史里的激活 tab 间切换。
-
-### 4. 验证浏览器标题同步
-
-切换 tab 后，浏览器标签页标题会更新为：
-
-```txt
-页面标题 - Vue Tab Router Demo
-```
-
-对应配置位于 `packages/demo/src/plugins/tab-router/index.ts`。
-
-### 5. 验证 iframe 通信
-
-进入“链接与 Iframe”：
-
-1. 打开相对 iframe 页面。
-2. 在 iframe 内触发消息发送。
-3. 观察宿主日志区是否出现 message 记录。
-4. 使用宿主按钮向当前 iframe 发送消息。
-5. 打开 hash 加载验证页，确认加载完成后不会停留在加载状态，且 hash 导航仍触发 iframe load 日志。
-
-### 6. 验证守卫和 hooks
+### 4. 通信、守卫和 hooks
 
 进入“通信与守卫”：
 
-1. 打开页面级守卫示例。
-2. 尝试切换或关闭 tab。
-3. 观察全局守卫日志和插件 hook 日志。
+1. 在“父子通信”中打开通信子页并发送事件。
+2. 在“页面守卫”中分别验证进入、离开和关闭守卫。
+3. 在“插件 Hooks”中观察全局守卫日志和插件 hook 日志。
 
-### 7. 验证默认状态组件
+### 5. Iframe 能力
 
-进入“状态组件”：
+进入“链接与 Iframe”：
 
-1. 查看内置 loading、error、empty、not-found 四类状态组件的默认视觉。
-2. 使用页面内预览区切换自定义状态组件，验证 `render.*Component` 覆盖效果。
+1. 先看链接打开方式，理解内部 iframe 与外部新窗口。
+2. 再看 iframe 缓存，比较切换后的状态保留。
+3. 再看 iframe 消息，验证宿主和 iframe 双向通信。
+4. 最后看 iframe 导航同步和地址栏恢复。
 
-## 测试目标页
+### 6. 高级能力与综合实践
 
-以下页面主要由聚合面板打开，不再直接挂到左侧菜单中：
+进入“弹窗与预览”“扩展与外观”“项目实践”：
 
-| 功能            | Demo 位置                                | 对应能力                                                   |
-| --------------- | ---------------------------------------- | ---------------------------------------------------------- |
-| 首页标签        | `src/views/home/page-index.vue`          | `openFirstTab`、`activeFirstTab`                           |
-| 单例页面        | `src/views/test-router/router-single`    | `_viewSingle`                                              |
-| 多开页面        | `src/views/test-router/router-no-single` | `viewProps` 区分多实例                                     |
-| 组件缓存控制    | `src/views/test-cache`                   | `_viewNoCache`、keep-alive                                 |
-| 刷新页面        | `src/views/test-refresh`                 | `refreshTab`                                               |
-| 更新页签        | `src/views/test-update`                  | `updateTabOptions`                                         |
-| 关闭页签        | `src/views/test-close`                   | `closeTab`                                                 |
-| 父子通信        | `src/views/test-message`                 | `defineTabEvents`、`emit`                                  |
-| 页面守卫        | `src/views/test-guard`                   | `onBeforeTabEnter`、`onBeforeTabLeave`、`onBeforeTabClose` |
-| 菜单联动        | `src/layouts/container`                  | `useTabMenu`、`selectedKeys`、相同链接 key 区分            |
-| 预览容器        | `src/views/test-preview/container`       | `PreviewContainerComponent`，需单独预览场景，不挂主菜单    |
-| 状态组件        | `src/views/test-theme/state-components`  | 默认状态组件和自定义状态组件配置                           |
-| Vue Router 集成 | `src/plugins/vue-router`                 | 登录页/工作台分层                                          |
+1. 验证弹窗显示和预览容器。
+2. 验证插件 hooks、主题、图标和状态组件。
+3. 进入项目实践页，从完整业务场景回看前面的能力组合。
 
 ## 项目结构
 
@@ -138,34 +108,12 @@ packages/demo
 │  │  ├─vue-router      # 顶层路由与登录鉴权
 │  │  └─store           # Pinia 状态
 │  ├─layouts/container  # 工作台布局、菜单、标签栏、内容区
-│  └─views              # 可打开的页面入口
+│  └─views
+│     ├─learning        # 渐进式演示页
+│     ├─practice        # 综合业务实践
+│     └─test-*          # 渐进式页面调用的目标页
 ├─vite.config.ts
 └─package.json
 ```
 
 Demo 依赖工作区内的 `@xsbcme/vue-tab-router`，因此修改插件源码后重新构建即可在 demo 中验证。
-
-## 常见问题
-
-### pnpm run dev 启动失败？
-
-仓库根目录可能没有直接配置 `dev` 脚本，建议使用明确的 demo 命令：
-
-```sh
-pnpm --filter @xsbcme/demo dev
-```
-
-或查看根目录 `package.json` 中当前可用脚本。
-
-### 改了核心包但 demo 没变化？
-
-demo 依赖工作区包。建议重新执行：
-
-```sh
-pnpm --filter @xsbcme/vue-tab-router build
-pnpm --filter @xsbcme/demo dev
-```
-
-### 登录后没有恢复上次 tab？
-
-检查 `sessionStorage` 中是否还有 tabs 数据，以及 URL 中是否有 `activeTab` 参数。退出登录时 demo 会清空 tab 状态。

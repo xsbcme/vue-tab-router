@@ -65,50 +65,56 @@ export default defineConfig({
     sidebar: {
       "/views/guide/": [
         {
-          text: "开始",
+          text: "先认识",
           items: [
             { text: "什么是 VueTabRouter？", link: "/views/guide/" },
-            { text: "快速开始", link: "/views/guide/getting-started" },
+            { text: "入门约定", link: "/views/guide/introduction" },
           ],
         },
         {
-          text: "核心用法",
+          text: "最小接入",
           items: [
-            { text: "入门", link: "/views/guide/introduction" },
+            { text: "快速开始", link: "/views/guide/getting-started" },
+            { text: "页面入口与 viewUrl", link: "/views/guide/view-url" },
             { text: "基础页面导航", link: "/views/guide/basic-navigation" },
+            { text: "页面元信息与更新", link: "/views/guide/tab-options" },
+          ],
+        },
+        {
+          text: "工作台增强",
+          items: [
             { text: "内联页面导航", link: "/views/guide/inline-navigation" },
             { text: "外链页面导航", link: "/views/guide/outside-navigation" },
-            { text: "页面模块与元数据", link: "/views/guide/view-meta" },
+            { text: "页面元数据与层级", link: "/views/guide/view-meta" },
             { text: "菜单联动", link: "/views/guide/menu-integration" },
             { text: "面包屑导航", link: "/views/guide/breadcrumb" },
             { text: "页面缓存控制", link: "/views/guide/cache-control" },
           ],
         },
         {
-          text: "进阶能力",
+          text: "集成与扩展",
           items: [
-            { text: "页面元信息与更新", link: "/views/guide/tab-options" },
             {
               text: "页面事件通信与守卫",
               link: "/views/guide/events-and-guards",
             },
             { text: "Iframe 通信与缓存", link: "/views/guide/iframe-communication" },
-            { text: "插件扩展", link: "/views/guide/plugins" },
-            {
-              text: "首页与预览容器方案",
-              link: "/views/guide/first-tab-and-preview",
-            },
             {
               text: "与 VueRouter 结合使用",
               link: "/views/guide/vue-router-integration",
             },
             { text: "地址栏同步与浏览器历史", link: "/views/guide/url-sync" },
-            { text: "实现文档（源码版）", link: "/views/guide/implementation" },
+            { text: "插件扩展", link: "/views/guide/plugins" },
+            {
+              text: "首页与预览容器方案",
+              link: "/views/guide/first-tab-and-preview",
+            },
           ],
         },
         {
-          text: "更多",
+          text: "参考与排障",
           items: [
+            { text: "实现文档（源码版）", link: "/views/guide/implementation" },
             { text: "主题与组件样式", link: "/views/guide/theme" },
             { text: "常见问题", link: "/views/guide/faq" },
           ],

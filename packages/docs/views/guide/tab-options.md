@@ -1,5 +1,7 @@
 # 页面元信息与更新
 
+这一页讲打开页面之后的标签体验控制，例如标题、图标、单例、多开和运行中更新。你应该已经完成 [快速开始](/views/guide/getting-started)，并知道 `openTab(viewUrl, options)` 的基本用法。
+
 `VueTabRouter` 的标签页由两部分数据组成：
 
 - **元信息**：标题、图标、单例、缓存等行为字段
@@ -87,4 +89,4 @@ await tabsManager.openTab("/src/views/user/detail/page-index.vue", {
 });
 ```
 
-`openTab` 显式传入的字段仍然会覆盖 `views.meta` 的默认值。更多配置见 [页面模块与元数据](/views/guide/view-meta)。
+`openTab` 显式传入的字段仍然会覆盖 `views.meta` 的默认值。更多配置见 [页面元数据与层级](/views/guide/view-meta)。

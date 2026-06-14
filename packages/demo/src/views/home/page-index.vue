@@ -13,7 +13,7 @@
         <div class="hero-actions">
           <a-button type="primary" size="large" @click="openWorkbench">
             <template #icon><IconDashboard /></template>
-            打开工作台
+            开始渐进演示
           </a-button>
           <a-button size="large" @click="openApiOverview">
             <template #icon><IconCode /></template>
@@ -191,6 +191,7 @@ const moduleLabels: Record<string, string> = {
   "test-theme": "主题",
   "test-update": "更新",
   "test-workbench": "工作台",
+  learning: "渐进演示",
 };
 
 const scanGroups = computed(() => {
@@ -226,14 +227,14 @@ const visibleScanPaths = computed(() =>
 );
 
 const openWorkbench = () => {
-  tabsManager.openTab("/src/views/practice/customer-workbench/page-index.vue", {
-    _viewName: "客户运营工作台",
+  tabsManager.openTab("/src/views/learning/start/page-index.vue", {
+    _viewName: "最小打开页面",
     _viewSingle: true,
   });
 };
 
 const openApiOverview = () => {
-  tabsManager.openTab("/src/views/test-api/overview/page-index.vue", {
+  tabsManager.openTab("/src/views/learning/api-check/page-index.vue", {
     _viewName: "API 覆盖检查",
     _viewSingle: true,
   });

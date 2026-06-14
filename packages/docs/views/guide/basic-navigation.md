@@ -1,5 +1,7 @@
 # 基础页面导航
 
+这一页只讲最常用的 tab 操作：打开、激活、刷新和关闭。先掌握这些，再去接菜单、缓存和守卫。
+
 下面的 `tabsManager` 均指 `useTabsManager()` 获取到的实例（或选项式 API 中的 `this.$tabsManager`）。
 
 ## 打开页面：`openTab`
