@@ -41,7 +41,6 @@ export async function openTab<Url extends string>(
   } as IOpenTabOptions;
   const {
     _viewOutside,
-    _viewOutsideProps,
     _viewName,
     _viewIcon,
     _viewNoCache,
@@ -55,7 +54,7 @@ export async function openTab<Url extends string>(
     const newViewUrl = TabViewUrl.resolveIframe(viewUrl);
     if (_viewOutside) {
       if (typeof window === "undefined") return null;
-      const { target, features } = _viewOutsideProps || {};
+      const { target, features } = typeof _viewOutside === "object" ? _viewOutside : {};
       return window.open(newViewUrl, target, features);
     }
   } else if (!runtime.resolveComponent(viewUrl)) {

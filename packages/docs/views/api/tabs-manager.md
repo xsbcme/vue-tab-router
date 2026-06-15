@@ -45,9 +45,10 @@ const tabsManager = createTabsManager({
 | `noExistComponent` | 目标组件不存在时展示的占位组件；未配置时使用内置 `DefaultNotFoundComponent`。 |
 | `loadingComponent` | 默认加载组件。异步组件加载与 iframe 加载未单独配置时使用；未配置时使用内置 `DefaultLoadingComponent`。 |
 | `errorComponent` | 默认失败组件。异步组件加载失败且 `views.source.errorComponent` 未配置时使用；未配置时使用内置 `DefaultErrorComponent`。 |
-| `viewNameMaxLength` | 内置标签栏标题最大显示长度。 |
-| `draggable` | 是否启用内置标签栏拖拽排序，默认 `true`。 |
-| `showIcon` | 是否在内置标签栏显示图标，默认 `true`。 |
+| `tabs.titleMaxLength` | 内置标签栏标题最大显示长度。 |
+| `tabs.draggable` | 是否启用内置标签栏拖拽排序，默认 `true`。 |
+| `tabs.showIcon` | 是否在内置标签栏显示图标，默认 `true`。 |
+| `tabs.virtual` | 内置标签栏虚拟滚动配置。默认 `{ enabled: true, threshold: 30, overscan: 6, estimatedWidth: 148, minWidth: 72, maxWidth: 260 }`。 |
 
 `views.source.loadingComponent`、`views.source.errorComponent` 会继续透传给 Vue `defineAsyncComponent`，优先级高于 `render.loadingComponent`、`render.errorComponent`。如果希望组件页和 iframe 页使用同一套加载视觉，只配置 `render.loadingComponent` 即可；如果 iframe 需要独立视觉，可使用 `iframe.loadingComponent` 覆盖。
 
@@ -95,7 +96,7 @@ await tabsManager.openTab("/src/views/user/detail/page-index.vue", {
 返回值：
 
 - 普通打开：`Promise<string>`，返回 tabId。
-- `_viewOutside: true`：`Promise<Window | null>`，返回 `window.open` 的结果。
+- `_viewOutside: true` 或 `_viewOutside: { target, features }`：`Promise<Window | null>`，返回 `window.open` 的结果。
 
 常用参数：
 
@@ -107,8 +108,7 @@ await tabsManager.openTab("/src/views/user/detail/page-index.vue", {
 | `_viewNoCache` | 是否禁用组件/iframe 缓存。 |
 | `_viewPinned` | 是否置顶。 |
 | `_viewNoDrag` | 是否禁止拖拽排序。 |
-| `_viewOutside` | 是否用浏览器新窗口打开链接。 |
-| `_viewOutsideProps` | `window.open` 参数，如 `target`、`features`。 |
+| `_viewOutside` | 是否用浏览器新窗口打开链接；也可传 `{ target, features }` 作为 `window.open` 参数。 |
 
 除 `_view*` 外的字段会进入 `tab.viewProps`。
 

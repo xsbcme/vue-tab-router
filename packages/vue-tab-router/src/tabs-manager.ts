@@ -12,6 +12,7 @@ import {
   TabGuard,
   TabGuardName,
   TabLeaveGuard,
+  ViewOutsideOptions,
 } from "./types";
 import { jsonToObject, clone, findParentPathsByPath } from "./utils";
 import { TabsManagerHooks, TabsManagerPluginCleanup } from "./tabs-manager-plugin";
@@ -437,7 +438,7 @@ export class TabsManager {
    */
   public async openFirstTab<Url extends string>(
     viewUrl: Url,
-    tabOptions?: Omit<IOpenTabOptions, "_viewOutside" | "_viewOutsideProps">,
+    tabOptions?: Omit<IOpenTabOptions, "_viewOutside">,
     mode: "clear" | "replace" | "move" = "replace"
   ) {
     const stateManager = this.getStateManager();
@@ -462,7 +463,6 @@ export class TabsManager {
     const tabId = await this.openTab(viewUrl, {
       ...tabOptions,
       _viewOutside: false,
-      _viewOutsideProps: undefined,
       _viewSingle: true,
     });
 
@@ -593,8 +593,16 @@ export class TabsManager {
       if (!findTab) return;
 
       const parsedOptions = jsonToObject(options, {}) as IUpdateTabOptions;
-      const { _viewName, _viewIcon, _viewUrl, _viewNoCache, _viewSingle, _viewPinned, _viewNoDrag, ...viewProps } =
-        parsedOptions;
+      const {
+        _viewName,
+        _viewIcon,
+        _viewUrl,
+        _viewNoCache,
+        _viewSingle,
+        _viewPinned,
+        _viewNoDrag,
+        ...viewProps
+      } = parsedOptions;
 
       // viewProps 采用浅合并，保证未覆盖字段仍然保留。
       const mergedViewProps = { ...findTab.viewProps, ...viewProps };
@@ -624,11 +632,11 @@ export class TabsManager {
 
   /**
    * 打开新标签页或复用已存在标签页。
-   * 若 `options._viewOutside` 为 true，则在新窗口打开链接并返回 `Window`。
+   * 若 `options._viewOutside` 为 true 或新窗口配置对象，则在新窗口打开链接并返回 `Window`。
    */
   public openTab<Url extends string>(
     viewUrl: Url,
-    tabOptions?: IOpenTabOptions & { _viewOutside: true }
+    tabOptions?: IOpenTabOptions & { _viewOutside: true | ViewOutsideOptions }
   ): Promise<Window | null>;
   public openTab<Url extends string>(
     viewUrl: Url,

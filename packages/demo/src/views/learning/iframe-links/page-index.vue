@@ -33,8 +33,7 @@ const openRelativeInline = () => {
 
 const openHttpOutside = () => {
   tabsManager.openTab("https://www.baidu.com/", {
-    _viewOutside: true,
-    _viewOutsideProps: { target: "_blank", features: "noopener,noreferrer" },
+    _viewOutside: { target: "_blank", features: "noopener,noreferrer" },
   });
 };
 

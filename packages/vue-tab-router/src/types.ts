@@ -118,9 +118,9 @@ export interface ITabsManagerOptions {
   onBeforeTabClose?: TabCloseGuard;
 
   /**
-   * 标签名称最大显示长度（主要用于内置 Tabs 组件）。
+   * 内置标签栏标题最大显示长度。
    */
-  viewNameMaxLength?: number;
+  tabsTitleMaxLength?: number;
 
   /**
    * 是否启用内置标签栏拖拽排序。默认启用。
@@ -131,6 +131,11 @@ export interface ITabsManagerOptions {
    * 是否在内置标签栏显示图标。默认显示。
    */
   tabsShowIcon?: boolean;
+
+  /**
+   * 内置标签栏虚拟滚动配置。默认启用。
+   */
+  tabsVirtual?: TabsVirtualOptions;
 
   /**
    * 弹窗显示层级。
@@ -196,13 +201,40 @@ export interface TabsManagerRenderOptions {
   loadingComponent?: Component;
   /** 默认失败组件。异步页面加载失败且 views.source.errorComponent 未配置时会使用它。 */
   errorComponent?: Component;
-  /** 标签名称最大显示长度（主要用于内置 Tabs 组件）。 */
-  viewNameMaxLength?: number;
-  /** 是否启用内置标签栏拖拽排序。默认 `true`。 */
-  draggable?: boolean;
-  /** 是否在内置标签栏显示图标。默认 `true`。 */
-  showIcon?: boolean;
+
+  /** 内置标签栏显示配置。 */
+  tabs?: TabsManagerRenderTabsOptions;
 }
+
+/** 内置标签栏显示配置。 */
+export interface TabsManagerRenderTabsOptions {
+  /** 标签标题最大显示长度。 */
+  titleMaxLength?: number;
+  /** 是否启用拖拽排序。默认 `true`。 */
+  draggable?: boolean;
+  /** 是否显示图标。默认 `true`。 */
+  showIcon?: boolean;
+  /** 虚拟滚动配置。默认启用。 */
+  virtual?: TabsVirtualOptions;
+}
+
+/** 内置标签栏虚拟滚动配置。 */
+export type TabsVirtualOptions =
+  | boolean
+  | {
+      /** 是否启用虚拟滚动。默认 `true`。 */
+      enabled?: boolean;
+      /** 标签数量达到该阈值时启用虚拟滚动。默认 `30`。 */
+      threshold?: number;
+      /** 可视区域两侧额外渲染的估算标签数量。默认 `6`。 */
+      overscan?: number;
+      /** 未完成真实测量时的标签估算宽度。默认 `148`。 */
+      estimatedWidth?: number;
+      /** 标签估算最小宽度。默认 `72`。 */
+      minWidth?: number;
+      /** 标签估算最大宽度。默认 `260`。 */
+      maxWidth?: number;
+    };
 
 /** 弹窗显示配置。 */
 export interface TabsManagerDetachedOptions {
@@ -286,6 +318,14 @@ export interface CloseTabOptions {
 
 export interface CloseTabsOptions extends CloseTabOptions {
   continueOnRejected?: boolean;
+}
+
+/** 新窗口打开链接时的 `window.open` 配置。 */
+export interface ViewOutsideOptions {
+  /** `window.open` 的 target 参数。 */
+  target?: string;
+  /** `window.open` 的 features 参数。 */
+  features?: string;
 }
 
 /**
@@ -376,6 +416,7 @@ export interface IUpdateTabOptions extends Record<string, unknown> {
    * 更新是否禁止拖拽排序。
    */
   _viewNoDrag?: boolean;
+
 }
 
 /**
@@ -413,17 +454,7 @@ export interface IOpenTabOptions extends Record<string, unknown> {
   _viewNoDrag?: boolean;
 
   /**
-   * 是否在新窗口打开（仅对链接型 viewUrl 生效）。
+   * 是否在新窗口打开，或指定 `window.open` 配置（仅对链接型 viewUrl 生效）。
    */
-  _viewOutside?: boolean;
-
-  /**
-   * 新窗口打开时的 `window.open` 配置。
-   */
-  _viewOutsideProps?: {
-    /** `window.open` 的 target 参数。 */
-    target?: string;
-    /** `window.open` 的 features 参数。 */
-    features?: string;
-  };
+  _viewOutside?: boolean | ViewOutsideOptions;
 }

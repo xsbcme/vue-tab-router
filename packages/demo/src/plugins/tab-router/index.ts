@@ -159,7 +159,9 @@ const tabsManager = createTabsManager({
       },
       () => "视图未注册或已失效"
     ),
-    viewNameMaxLength: 12,
+    tabs: {
+      titleMaxLength: 12,
+    },
   },
   detached: {
     zIndex: 900,

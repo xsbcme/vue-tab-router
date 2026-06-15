@@ -47,7 +47,6 @@ const tabMenu = useTabMenu({
 会影响打开行为或菜单身份的字段会保留，例如：
 
 - `_viewOutside`
-- `_viewOutsideProps`
 - 业务字段，如 `a`、`id`、`menuKey`
 
 因此内部链接和新窗口外部链接不会串选：

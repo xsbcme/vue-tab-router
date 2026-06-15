@@ -17,7 +17,7 @@
       <template v-if="showIcon && (tab.viewIcon || defaultIcon)">
         <dynamic-icon width="16px" height="16px" :icon="tab.viewIcon || defaultIcon" />
       </template>
-      <TruncatedText :text="tab._loading ? '加载中...' : tab.viewName || '未命名'" :max-length="maxNameLength" />
+      <TruncatedText :text="tab._loading ? '加载中...' : tab.viewName || '未命名'" :max-length="maxTitleLength" />
     </div>
     <span class="tabs-nav__divider" />
     <button
@@ -44,7 +44,7 @@ defineProps<{
   isActive: boolean;
   showIcon: boolean;
   defaultIcon?: string;
-  maxNameLength?: number;
+  maxTitleLength?: number;
   draggable?: boolean;
 }>();
 

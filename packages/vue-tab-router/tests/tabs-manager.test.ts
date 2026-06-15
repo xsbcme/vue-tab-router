@@ -154,6 +154,16 @@ describe("TabsManager runtime safety", () => {
     await expect(tabsManager.openTab("https://example.com", { _viewOutside: true })).resolves.toBeNull();
   });
 
+  it("supports window.open options through _viewOutside", async () => {
+    const tabsManager = createTestTabsManager();
+
+    await expect(
+      tabsManager.openTab("https://example.com", {
+        _viewOutside: { target: "_blank", features: "noopener,noreferrer" },
+      })
+    ).resolves.toBeNull();
+  });
+
   it("stableStringify handles circular references", () => {
     const value: Record<string, unknown> = { name: "tab" };
     value.self = value;

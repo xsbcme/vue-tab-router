@@ -57,10 +57,41 @@ interface TabViewMeta {
 | `_viewSingle`       | 是否单例。                     |
 | `_viewPinned`       | 是否置顶。                     |
 | `_viewNoDrag`       | 是否禁止拖拽。                 |
-| `_viewOutside`      | 是否使用浏览器新窗口打开链接。 |
-| `_viewOutsideProps` | `window.open` 参数。           |
+| `_viewOutside`      | 是否使用浏览器新窗口打开链接；也可传 `{ target, features }` 作为 `window.open` 参数。 |
 
 其他字段会进入 `tab.viewProps`。
+
+## ViewOutsideOptions
+
+`_viewOutside` 传对象时使用的 `window.open` 配置类型。
+
+```ts
+interface ViewOutsideOptions {
+  target?: string;
+  features?: string;
+}
+```
+
+简写 `_viewOutside: true` 会直接调用 `window.open(viewUrl)`；对象写法会调用 `window.open(viewUrl, target, features)`。
+
+## TabsVirtualOptions
+
+内置标签栏虚拟滚动配置，可用于 `render.tabs.virtual` 或 `DynamicTabsComponent` 的 `virtual` prop。
+
+```ts
+type TabsVirtualOptions =
+  | boolean
+  | {
+      enabled?: boolean;
+      threshold?: number;
+      overscan?: number;
+      estimatedWidth?: number;
+      minWidth?: number;
+      maxWidth?: number;
+    };
+```
+
+默认值为 `{ enabled: true, threshold: 30, overscan: 6, estimatedWidth: 148, minWidth: 72, maxWidth: 260 }`。
 
 ## IUpdateTabOptions
 

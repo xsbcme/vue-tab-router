@@ -70,11 +70,16 @@ const tabsManager = createTabsManager({
 | 字段 | 说明 |
 | --- | --- |
 | `type` | 标签栏样式类型。 |
-| `showIcon` | 是否显示图标；未传时使用 `render.showIcon`，默认 `true`。 |
+| `showIcon` | 是否显示图标；未传时使用 `render.tabs.showIcon`，默认 `true`。 |
 | `defaultIcon` | 没有图标时的默认图标。 |
+| `titleMaxLength` | 标签标题最大显示长度；未传时使用 `render.tabs.titleMaxLength`。 |
+| `draggable` | 是否启用拖拽排序；未传时使用 `render.tabs.draggable`，默认 `true`。 |
+| `virtual` | 虚拟滚动配置；未传时使用 `render.tabs.virtual`，默认启用，标签数量达到 `threshold: 30` 时开始虚拟渲染。 |
 | `hideFirst` | 是否隐藏首页标签。 |
 
-内置标签栏支持激活、关闭、右键菜单、刷新、弹窗显示、置顶和拖拽排序。图标显示可通过 `render.showIcon` 全局控制，也可通过组件 `showIcon` prop 局部覆盖；拖拽能力可通过 `render.draggable` 全局控制，也可通过 `_viewNoDrag` 控制单个 tab。
+内置标签栏支持激活、关闭、右键菜单、刷新、弹窗显示、置顶和拖拽排序。图标显示可通过 `render.tabs.showIcon` 全局控制，也可通过组件 `showIcon` prop 局部覆盖；拖拽能力可通过 `render.tabs.draggable` 全局控制，也可通过 `_viewNoDrag` 控制单个 tab。
+
+虚拟滚动默认参数为 `{ enabled: true, threshold: 30, overscan: 6, estimatedWidth: 148, minWidth: 72, maxWidth: 260 }`。如果希望 20 个标签页也启用虚拟渲染，可设置 `virtual: { threshold: 20 }`。
 
 拖拽排序规则：首页标签不可拖动，`_viewNoDrag` 标签不可拖动，置顶标签只能在置顶组内排序，普通标签只能在普通组内排序；激活状态不限制排序，移动后激活状态会跟随原 tab 保留。
 

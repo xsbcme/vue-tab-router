@@ -120,12 +120,11 @@ createTabUrlSyncPlugin(router, {
 
 ## 外部链接为什么没有在浏览器新标签页打开？
 
-默认情况下，http/https 地址会作为内部 iframe tab 打开。如果希望直接使用浏览器新窗口，需要传 `_viewOutside: true`：
+默认情况下，http/https 地址会作为内部 iframe tab 打开。如果希望直接使用浏览器新窗口，需要传 `_viewOutside: true`；需要指定 `window.open` 参数时可传对象：
 
 ```ts
 await tabsManager.openTab("https://example.com", {
-  _viewOutside: true,
-  _viewOutsideProps: {
+  _viewOutside: {
     target: "_blank",
   },
 });

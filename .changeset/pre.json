@@ -1,0 +1,12 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@xsbcme/demo": "1.0.0",
+    "@xsbcme/docs": "0.0.3",
+    "@xsbcme/vue-tab-router": "1.1.1"
+  },
+  "changesets": [
+    "virtual-tabs-major"
+  ]
+}

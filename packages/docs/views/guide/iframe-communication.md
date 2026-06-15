@@ -5,7 +5,7 @@
 链接型页面支持两种打开方式：
 
 - 内部打开：作为 iframe 标签页渲染
-- 外部打开：传 `_viewOutside: true` 后使用 `window.open`
+- 外部打开：传 `_viewOutside: true` 或 `_viewOutside: { target, features }` 后使用 `window.open`
 
 ## 打开 iframe 标签
 

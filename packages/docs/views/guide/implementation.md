@@ -80,7 +80,7 @@ VueTabRouter 本质上是一个“页签状态管理器 + 动态视图容器”�
 ### A. URL 判定
 
 - 若 `viewUrl` 是 `http/https` 或通过 `TabViewUrl.createRelative()` 创建，视为链接型页面
-- `_viewOutside = true` 时直接 `window.open()`，不进入内部 tabs
+- `_viewOutside = true` 或 `_viewOutside = { target, features }` 时直接 `window.open()`，不进入内部 tabs
 - 否则进入内部 tab + iframe 渲染链路
 
 ### B. 组件判定
@@ -233,7 +233,7 @@ const tabsManager = createTabsManager({
 
 - 点击标签：激活（通过 `openTab(tab.viewUrl, tab.viewProps)` 复用逻辑）
 - 删除标签：关闭当前标签
-- 拖拽标签：调整排序，默认启用，可通过 `render.draggable: false` 关闭，首页不可拖拽
+- 拖拽标签：调整排序，默认启用，可通过 `render.tabs.draggable: false` 关闭，首页不可拖拽
 - 右键菜单：
   - 刷新此页
   - 弹窗显示
@@ -242,7 +242,8 @@ const tabsManager = createTabsManager({
   - 关闭其他
   - 全部关闭
   - 全部刷新
-- 支持图标与标题截断显示（`viewNameMaxLength`）
+- 支持图标与标题截断显示（`render.tabs.titleMaxLength` 或组件 `titleMaxLength`）
+- 支持虚拟滚动，默认 `threshold: 30`，可通过 `render.tabs.virtual` 或组件 `virtual` 调整
 - 支持置顶标签（`_viewPinned`）：位于首页之后、普通标签之前
 - 支持禁止拖拽（`_viewNoDrag`）：适合首页、固定页或业务锁定页
 
@@ -285,7 +286,9 @@ const tabsManager = createTabsManager({
     modules,
   },
   render: {
-    viewNameMaxLength: 20,
+    tabs: {
+      titleMaxLength: 20,
+    },
   },
   guards: {
     beforeOpen: async toTab => {

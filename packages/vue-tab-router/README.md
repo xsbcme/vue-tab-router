@@ -99,7 +99,9 @@ const tabsManager = createTabsManager({
     modules,
   },
   render: {
-    viewNameMaxLength: 20,
+    tabs: {
+      titleMaxLength: 20,
+    },
   },
   guards: {
     beforeOpen: async (openingTab, sourceTab) => {
@@ -173,7 +175,7 @@ tabsManager.openTab("/src/views/user/page-index.vue", { userId: 1001 });
 - 状态标记：`_isActive`、`_isRefresh`
 - 链路关系：`_sourceId`（来源页签 id）
 
-内置标签栏默认启用拖拽排序，可通过 `render.draggable: false` 关闭。首页标签默认不可拖拽；置顶标签会保持在首页之后、普通标签之前，可通过 `_viewPinned` 和 `_viewNoDrag` 控制。
+内置标签栏默认启用拖拽排序，可通过 `render.tabs.draggable: false` 关闭。首页标签默认不可拖拽；置顶标签会保持在首页之后、普通标签之前，可通过 `_viewPinned` 和 `_viewNoDrag` 控制。
 
 ### 视图渲染
 
@@ -199,7 +201,10 @@ tabsManager.openTab("/src/views/user/page-index.vue", { userId: 1001 });
 - `render.transition`: 过渡动画配置
 - `render.noActiveComponent`: 没有激活页时显示的组件
 - `render.noExistComponent`: 页面不存在时显示的组件
-- `render.viewNameMaxLength`: 标题最大展示长度（配合内置 tabs 组件）
+- `render.tabs.titleMaxLength`: 标题最大展示长度（配合内置 tabs 组件）
+- `render.tabs.draggable`: 是否启用内置标签栏拖拽排序，默认 `true`
+- `render.tabs.showIcon`: 是否在内置标签栏显示图标，默认 `true`
+- `render.tabs.virtual`: 虚拟滚动配置。默认启用，但标签数量达到 `threshold: 30` 时才开始虚拟渲染
 - `iframe.onLoad`: iframe 加载完成回调，可访问 iframe 元素
 - `iframe.messageOrigins`: 允许接收 iframe 消息的来源，默认只允许同源
 - `iframe.onMessage`: iframe 发送 `postMessage` 时触发
@@ -422,8 +427,7 @@ window.parent.postMessage(
 
 ```ts
 tabsManager.openTab("https://example.com", {
-  _viewOutside: true,
-  _viewOutsideProps: {
+  _viewOutside: {
     target: "_blank",
     features: "noopener,noreferrer",
   },

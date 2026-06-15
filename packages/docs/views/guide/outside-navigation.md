@@ -2,12 +2,11 @@
 
 这一页处理“不放进工作台内部”的链接。需要第三方系统、下载页或强跨域页面直接跳出当前工作台时，再使用这个能力。
 
-当你希望链接在浏览器新标签页或新窗口打开时，使用 `_viewOutside: true`。
+当你希望链接在浏览器新标签页或新窗口打开时，使用 `_viewOutside: true`；需要指定 `window.open` 参数时，直接传配置对象。
 
 ```ts
 const opened = await tabsManager.openTab("https://example.com", {
-  _viewOutside: true,
-  _viewOutsideProps: {
+  _viewOutside: {
     target: "_blank",
     features: "noopener,noreferrer",
   },
@@ -36,7 +35,7 @@ const opened = await tabsManager.openTab("https://example.com", {
 | 打开方式             | 是否创建内部 tab | 是否受 iframe 跨域限制 | 适合场景                             |
 | -------------------- | ---------------- | ---------------------- | ------------------------------------ |
 | 不传 `_viewOutside`  | 是               | 是                     | 希望在工作台内嵌入展示。             |
-| `_viewOutside: true` | 否               | 否                     | 第三方系统、报表、监控页面、下载页。 |
+| `_viewOutside: true` 或对象配置 | 否               | 否                     | 第三方系统、报表、监控页面、下载页。 |
 
 ## 安全建议
 
@@ -44,8 +43,7 @@ const opened = await tabsManager.openTab("https://example.com", {
 
 ```ts
 await tabsManager.openTab("https://example.com", {
-  _viewOutside: true,
-  _viewOutsideProps: {
+  _viewOutside: {
     target: "_blank",
     features: "noopener,noreferrer",
   },

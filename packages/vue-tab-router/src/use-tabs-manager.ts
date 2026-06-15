@@ -17,6 +17,7 @@ function normalizeTabsManagerOptions(options: TabsManagerOptions): ITabsManagerO
   const views = options.views;
   const storage = options.storage;
   const render = options.render;
+  const renderTabs = render?.tabs;
   const iframe = options.iframe;
   const guards = options.guards;
   const detached = options.detached;
@@ -40,9 +41,10 @@ function normalizeTabsManagerOptions(options: TabsManagerOptions): ITabsManagerO
     noExistComponent,
     loadingComponent,
     errorComponent,
-    viewNameMaxLength: render?.viewNameMaxLength,
-    tabsDraggable: render?.draggable,
-    tabsShowIcon: render?.showIcon,
+    tabsTitleMaxLength: renderTabs?.titleMaxLength,
+    tabsDraggable: renderTabs?.draggable,
+    tabsShowIcon: renderTabs?.showIcon,
+    tabsVirtual: renderTabs?.virtual,
     iframeLoadingComponent,
     iframeMessageOrigins: iframe?.messageOrigins,
     onIframeLoad: iframe?.onLoad,
