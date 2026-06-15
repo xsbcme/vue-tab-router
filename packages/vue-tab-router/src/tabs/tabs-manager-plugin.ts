@@ -1,5 +1,5 @@
 import type { App } from "vue";
-import type { IframeLoadEvent, IframeMessageEvent } from "./iframe-message";
+import type { IframeLoadEvent, IframeMessageEvent } from "../iframe/iframe-message";
 import type { Tab } from "./tab";
 import type { TabsManager } from "./tabs-manager";
 import { TabGuardRejectError } from "./tab-guard";

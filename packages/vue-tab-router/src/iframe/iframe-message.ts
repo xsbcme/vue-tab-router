@@ -1,4 +1,4 @@
-import type { Tab } from "./tab";
+import type { Tab } from "../tabs/tab";
 
 /** 当前页面同源消息来源标记。 */
 export const IFRAME_MESSAGE_ORIGIN_SELF = "self";

@@ -14,15 +14,15 @@ export default defineConfig({
     dts({
       insertTypesEntry: true,
       include: ["src"],
-      skipDiagnostics: false,
-      logDiagnostics: true,
       afterDiagnostic(diagnostics) {
         if (diagnostics.length > 0) {
           throw new Error(`Declaration type check failed with ${diagnostics.length} diagnostics.`);
         }
       },
     }),
-    cssInjectedByJs(),
+    cssInjectedByJs({
+      jsAssetsFilterFunction: chunk => chunk.fileName === "index.js" || chunk.fileName === "index.cjs",
+    }),
     externalizeDeps(),
   ],
   build: {
@@ -30,17 +30,10 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(__dirname, "src/index.ts"),
+        "iframe-client": resolve(__dirname, "src/iframe-client.ts"),
       },
       formats: ["es", "cjs"],
       fileName: (format, entryName) => `${entryName}.${format === "es" ? "js" : "cjs"}`,
     },
-  },
-  define: {
-    "process.env": {},
-    __SSR__: `true`,
-    __DEV__: `false`,
-    __COMPAT__: `false`,
-    __FEATURE_SUSPENSE__: `true`,
-    __FEATURE_PROD_DEVTOOLS__: `false`,
   },
 });

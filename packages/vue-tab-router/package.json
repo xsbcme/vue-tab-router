@@ -6,11 +6,18 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "unpkg": "./dist/browser/vue-tab-router.global.js",
+  "jsdelivr": "./dist/browser/vue-tab-router.global.js",
   "exports": {
     ".": {
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
+    },
+    "./iframe-client": {
+      "import": "./dist/iframe-client.js",
+      "require": "./dist/iframe-client.cjs",
+      "types": "./dist/iframe-client.d.ts"
     }
   },
   "files": [
@@ -27,7 +34,8 @@
     "url": "https://github.com/xsbcme/vue-tab-router/issues"
   },
   "scripts": {
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --noEmit && vite build && pnpm run build:browser",
+    "build:browser": "vite build --config vite.browser.config.ts && vite build --config vite.iframe-client.browser.config.ts",
     "build:watch": "vite build --watch",
     "dev": "vite build --watch",
     "type-check": "vue-tsc --noEmit",

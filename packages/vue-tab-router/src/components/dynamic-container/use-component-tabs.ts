@@ -1,8 +1,8 @@
 import { Component, computed, createVNode, defineComponent, provide } from "vue";
-import { INJECT_CURRENT_TAB_KEY } from "@/constant";
-import type { TabsManager } from "@/tabs-manager";
+import { INJECT_CURRENT_TAB_KEY } from "@/shared";
+import type { TabsManager } from "@/tabs/tabs-manager";
 import type { ITabsManagerOptions } from "@/types";
-import { clone } from "@/utils";
+import { clone } from "@/shared";
 import { DefaultNotFoundComponent } from "@/components/default-state";
 import { getTabCacheName } from "./types";
 

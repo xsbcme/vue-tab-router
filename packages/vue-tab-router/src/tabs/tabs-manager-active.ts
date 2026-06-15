@@ -1,8 +1,8 @@
 import { Tab } from "./tab";
 import { runTabGuard } from "./tab-guard";
 import { TabsManagerHooks } from "./tabs-manager-plugin";
-import type { ITabsManagerOptions } from "./types";
-import { clone } from "./utils";
+import type { ITabsManagerOptions } from "../types";
+import { clone } from "../shared";
 
 export interface TabActiveRuntime {
   readonly tabs: Tab[];

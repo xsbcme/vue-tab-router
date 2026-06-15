@@ -3,8 +3,8 @@
 import { createApp, h, nextTick } from "vue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import DynamicTabsComponent from "../src/components/dynamic-tabs/index.vue";
-import { createTabsManager, useTabsManager } from "../src/use-tabs-manager";
-import type { TabsManager } from "../src/tabs-manager";
+import { createTabsManager, useTabsManager } from "../src/composables";
+import type { TabsManager } from "../src/tabs";
 import type { TabsManagerRenderOptions, TabsVirtualOptions } from "../src/types";
 
 const moduleComponent = { render: () => null };
@@ -13,6 +13,18 @@ class TestResizeObserver {
   observe() {}
   unobserve() {}
   disconnect() {}
+}
+
+function mockPointerMedia(matches: boolean) {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn().mockImplementation((query: string) => ({
+      matches: query === "(pointer: coarse)" ? matches : false,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+  );
 }
 
 function defineDimension(element: Element, key: "clientWidth" | "scrollWidth" | "offsetWidth", value: number) {
@@ -82,6 +94,7 @@ function applyVariableTabWidths(host: HTMLElement) {
 describe("DynamicTabsComponent virtual tabs", () => {
   beforeEach(() => {
     vi.stubGlobal("ResizeObserver", TestResizeObserver);
+    mockPointerMedia(false);
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => window.setTimeout(() => callback(0), 0));
     vi.stubGlobal("cancelAnimationFrame", (handle: number) => window.clearTimeout(handle));
     HTMLElement.prototype.scrollTo = vi.fn(function (this: HTMLElement, options?: ScrollToOptions) {
@@ -193,6 +206,19 @@ describe("DynamicTabsComponent virtual tabs", () => {
 
     expect(host.querySelector(".truncated-text")?.textContent?.trim()).toBe("这是...标题");
     expect(host.querySelector(".tabs-nav__item")?.getAttribute("draggable")).toBe("true");
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("disables native tab dragging on coarse pointer devices", async () => {
+    mockPointerMedia(true);
+    const { app, host, tabsManager } = mountDynamicTabs(1, { tabs: { virtual: false } }, { draggable: true });
+
+    await tabsManager.openTab("/tab-0", { _viewName: "移动端标签" });
+    await nextTick();
+
+    expect(host.querySelector(".tabs-nav__item")?.getAttribute("draggable")).toBe("false");
 
     app.unmount();
     host.remove();

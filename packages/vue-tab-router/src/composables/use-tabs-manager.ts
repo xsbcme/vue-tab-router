@@ -1,7 +1,7 @@
 import { inject, markRaw } from "vue";
-import type { IframePostMessageOptions } from "./iframe-message";
-import { TabsManager } from "./tabs-manager";
-import { INJECT_CURRENT_TAB_KEY } from "./constant";
+import type { IframePostMessageOptions } from "../iframe";
+import { TabsManager } from "../tabs";
+import { INJECT_CURRENT_TAB_KEY } from "../shared";
 import {
   DefineEvents,
   IDefineTabOptions,
@@ -10,8 +10,8 @@ import {
   TabCloseGuard,
   TabEnterGuard,
   TabLeaveGuard,
-} from "./types";
-import { TABS_MANAGER_KEY } from "./tabs-manager-context";
+} from "../types";
+import { TABS_MANAGER_KEY } from "../tabs";
 
 function normalizeTabsManagerOptions(options: TabsManagerOptions): ITabsManagerOptions {
   const views = options.views;

@@ -1,8 +1,8 @@
 import { Tab } from "./tab";
 import { runTabGuard } from "./tab-guard";
 import { TabsManagerHooks } from "./tabs-manager-plugin";
-import type { IOpenTabOptions, ITabsManagerOptions } from "./types";
-import { clone, createRandomString, jsonToObject, stableStringify, TabViewUrl } from "./utils";
+import type { IOpenTabOptions, ITabsManagerOptions } from "../types";
+import { clone, createRandomString, jsonToObject, stableStringify, TabViewUrl } from "../shared";
 
 export interface TabOpenRuntime {
   readonly activeTab: Tab | undefined;

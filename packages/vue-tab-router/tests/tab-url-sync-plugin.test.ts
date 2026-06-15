@@ -2,14 +2,14 @@
 
 import { ref, type Ref } from "vue";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createTabsManager } from "../src/use-tabs-manager";
+import { createTabsManager } from "../src/composables";
 import {
   createTabUrlSyncPlugin,
   type CreateTabUrlSyncPluginOptions,
   type TabUrlSyncRoute,
   type TabUrlSyncRouter,
-} from "../src/tab-url-sync-plugin";
-import { TabViewUrl } from "../src/utils";
+} from "../src/plugins";
+import { TabViewUrl } from "../src/shared";
 
 type RouteQuery = NonNullable<TabUrlSyncRoute["query"]>;
 type RouterStub = TabUrlSyncRouter & {

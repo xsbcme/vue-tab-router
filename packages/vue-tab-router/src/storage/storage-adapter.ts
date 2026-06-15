@@ -1,4 +1,4 @@
-import { AbstractStorageAdapter } from "./abstract-storage-adapter";
+import { AbstractStorageAdapter } from "./storage-adapter-base";
 
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
@@ -19,7 +19,11 @@ class MemoryStorage implements StorageLike {
 }
 
 function getDefaultStorage(): StorageLike {
-  return typeof sessionStorage === "undefined" ? new MemoryStorage() : sessionStorage;
+  try {
+    return typeof sessionStorage === "undefined" ? new MemoryStorage() : sessionStorage;
+  } catch (error) {
+    return new MemoryStorage();
+  }
 }
 
 export class StorageAdapter extends AbstractStorageAdapter {
@@ -29,7 +33,7 @@ export class StorageAdapter extends AbstractStorageAdapter {
 
   get<T = unknown>(key: string, def?: T): T {
     const val = this.storage.getItem(key);
-    if (!val) return def as T;
+    if (val === null) return def as T;
     try {
       return JSON.parse(val);
     } catch (error) {

@@ -1,5 +1,5 @@
 import { Tab } from "./tab";
-import { MaybeGuardReturn } from "./types";
+import { MaybeGuardReturn } from "../types";
 
 export class TabGuardRejectError extends Error {
   constructor(message = "Tab guard rejected") {

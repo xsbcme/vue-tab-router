@@ -1,5 +1,5 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, watch, type ComponentPublicInstance, type Ref } from "vue";
-import type { Tab } from "@/tab";
+import type { Tab } from "@/tabs/tab";
 import type { TabsVirtualOptions } from "@/types";
 
 export interface VirtualTab {

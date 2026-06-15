@@ -38,7 +38,7 @@ import { computed } from "vue";
 import ContextMenu from "./context-menu.vue";
 import TabsNav from "./tabs-nav.vue";
 import { useTabContextMenu } from "./use-tab-context-menu";
-import { useTabsManager } from "@/use-tabs-manager";
+import { useTabsManager } from "@/composables";
 import type { TabsVirtualOptions } from "@/types";
 import DetachedContainerComponent from "../detached-container.vue";
 

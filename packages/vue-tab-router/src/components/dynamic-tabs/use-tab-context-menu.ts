@@ -1,6 +1,6 @@
 import { reactive } from "vue";
-import type { Tab } from "@/tab";
-import type { TabsManager } from "@/tabs-manager";
+import type { Tab } from "@/tabs/tab";
+import type { TabsManager } from "@/tabs/tabs-manager";
 
 type TabContextAction =
   | "detach"

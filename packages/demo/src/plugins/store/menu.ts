@@ -68,6 +68,10 @@ export default defineStore("menu", () => {
           url: "/src/views/learning/iframe-message/page-index.vue",
         },
         {
+          name: "Iframe Client",
+          url: "/src/views/learning/iframe-client/page-index.vue",
+        },
+        {
           name: "Iframe 导航同步",
           url: "/src/views/learning/iframe-navigation/page-index.vue",
         },

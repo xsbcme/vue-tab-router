@@ -7,9 +7,9 @@ import {
   markRaw,
   reactive,
 } from "vue";
-import type { ITabsManagerOptions, Modules, TabViewMeta } from "./types";
+import type { ITabsManagerOptions, Modules, TabViewMeta } from "../types";
 import type { TabsManager } from "./tabs-manager";
-import { DefaultErrorComponent, DefaultLoadingComponent } from "./components/default-state";
+import { DefaultErrorComponent, DefaultLoadingComponent } from "../components/default-state";
 
 export const TABS_MANAGER_KEY = Symbol("TabsManager") as InjectionKey<TabsManager>;
 

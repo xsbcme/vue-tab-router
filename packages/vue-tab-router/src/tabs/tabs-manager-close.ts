@@ -1,9 +1,9 @@
-import { EventManager } from "./event-manager";
+import { EventManager } from "../shared";
 import { Tab } from "./tab";
 import { runTabGuard } from "./tab-guard";
 import { TabsManagerHooks } from "./tabs-manager-plugin";
-import type { CloseTabOptions, CloseTabsOptions, ITabsManagerOptions } from "./types";
-import { clone } from "./utils";
+import type { CloseTabOptions, CloseTabsOptions, ITabsManagerOptions } from "../types";
+import { clone } from "../shared";
 
 type ClosedTabRecord = {
   tab: Tab;

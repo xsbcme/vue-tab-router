@@ -58,8 +58,8 @@
 
 <script lang="ts" setup>
 import { computed, ref, watch } from "vue";
-import type { Tab } from "../tab";
-import { useTabsManager } from "../use-tabs-manager";
+import type { Tab } from "../tabs/tab";
+import { useTabsManager } from "../composables/use-tabs-manager";
 import IconClose from "./icons/icon-close.vue";
 import IconFullscreen from "./icons/icon-fullscreen.vue";
 import IconRefresh from "./icons/icon-refresh.vue";

@@ -73,6 +73,26 @@ pnpm add @xsbcme/vue-tab-router
 yarn add @xsbcme/vue-tab-router
 ```
 
+如果不使用构建工具，也可以通过浏览器脚本引入。主插件的浏览器包依赖全局 `Vue`，需要先引入 Vue：
+
+```html
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/@xsbcme/vue-tab-router/dist/browser/vue-tab-router.global.js"></script>
+<script>
+  const { createTabsManager, DynamicTabsComponent, DynamicContainerComponent } = VueTabRouter;
+</script>
+```
+
+iframe 页面只需要轻量 client 时，可以单独引入浏览器 client 包，不需要引入 Vue：
+
+```html
+<script src="https://unpkg.com/@xsbcme/vue-tab-router/dist/browser/iframe-client.global.js"></script>
+<script>
+  const { createIframeTabClient } = VueTabRouterIframeClient;
+  const tabClient = createIframeTabClient();
+</script>
+```
+
 ---
 
 ## 版本与依赖
@@ -419,6 +439,58 @@ window.parent.postMessage(
   },
   window.location.origin
 );
+```
+
+插件宿主侧已经内置 iframe client 协议处理能力；只要 iframe 页面发出符合协议的消息，`DynamicContainerComponent` 会自动识别并按消息来源定位当前 tab。
+
+如果 iframe 页面也由你控制，推荐在 iframe 内使用 `createIframeTabClient()`。它只是协议的 iframe 侧封装，不是宿主侧必需依赖，也不是替代宿主侧的 `iframe.onMessage`。它让 iframe 页面自己持有业务逻辑：读取当前 tab、更新标题、打开子标签、刷新/关闭当前标签、向来源页签发事件。
+
+这意味着你可以把逻辑写回 iframe 页面内部，而不是继续在全局 `iframe.onMessage` 里靠 `tabId` 分支判断“这是哪个页面”。
+
+iframe 子项目只需要轻量 client 能力，必须从子入口导入，避免引入宿主侧组件、TabsManager 和存储等完整插件能力：
+
+```ts
+import { createIframeTabClient } from "@xsbcme/vue-tab-router/iframe-client";
+
+const tabClient = createIframeTabClient();
+
+const tab = await tabClient.getTab();
+await tabClient.updateTabOptions({ _viewName: `报表 ${tab.viewProps?.reportId}` });
+
+document.querySelector("#refresh")?.addEventListener("click", () => {
+  tabClient.refreshTab();
+});
+
+document.querySelector("#open-detail")?.addEventListener("click", () => {
+  tabClient.openTab("/src/views/order/detail/page-index.vue", {
+    _viewName: "订单详情",
+    orderId: 1001,
+  });
+});
+```
+
+如果 iframe 页面没有构建工具，也可以直接使用浏览器 client 包：
+
+```html
+<script src="https://unpkg.com/@xsbcme/vue-tab-router/dist/browser/iframe-client.global.js"></script>
+<script>
+  const tabClient = VueTabRouterIframeClient.createIframeTabClient();
+  tabClient.updateTabOptions({ _viewName: "Iframe 已就绪" });
+</script>
+```
+
+如果你只是想在宿主统一监听 iframe 的消息，继续使用 `iframe.onMessage` + `postMessage` 即可。`iframe client` 只解决“iframe 页面自己管理当前标签”的场景，两者可以同时存在。
+
+宿主仍然可以向某个 iframe 页签发送业务消息，iframe 内部按消息类型局部监听即可：
+
+```ts
+const stopTheme = tabClient.on<{ type: "set-theme"; theme: string }>("set-theme", message => {
+  document.documentElement.dataset.theme = message.theme;
+});
+
+// 页面卸载时可主动清理。
+stopTheme();
+tabClient.dispose();
 ```
 
 默认只接收同源消息。跨域 iframe 需要显式配置 `iframe.messageOrigins`，不建议在生产环境使用 `"*"`。

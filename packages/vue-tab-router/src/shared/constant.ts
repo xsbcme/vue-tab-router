@@ -1,5 +1,5 @@
 import { InjectionKey, ComputedRef } from "vue";
-import { Tab } from "./tab";
+import { Tab } from "../tabs/tab";
 
 export const STORAGE_TABS_KEY = "tabs";
 export const INJECT_ACTIVE_TAB_KEY = Symbol("ActiveTab") as InjectionKey<ComputedRef<Tab | undefined>>;

@@ -29,7 +29,7 @@ import IconClose from "../icons/icon-close.vue";
 import IconFolderDelete from "../icons/icon-folder-delete.vue";
 import IconExternal from "../icons/icon-external.vue";
 import IconPin from "../icons/icon-pin.vue";
-import type { Tab } from "../../tab";
+import type { Tab } from "../../tabs/tab";
 
 const props = defineProps<{
   visible: boolean;

@@ -1,8 +1,8 @@
 import type { Ref } from "vue";
-import type { Tab } from "./tab";
-import type { TabsManagerPlugin } from "./tabs-manager-plugin";
-import type { IOpenTabOptions } from "./types";
-import { clone, stableStringify, TabViewUrl } from "./utils";
+import type { Tab } from "../tabs";
+import type { TabsManagerPlugin } from "../tabs";
+import type { IOpenTabOptions } from "../types";
+import { clone, stableStringify, TabViewUrl } from "../shared";
 
 type RouteQueryValue = string | number | boolean | null | undefined;
 type RouteQuery = Record<string, RouteQueryValue | RouteQueryValue[]>;

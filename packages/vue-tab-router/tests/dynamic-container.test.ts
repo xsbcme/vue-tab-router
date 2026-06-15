@@ -4,10 +4,12 @@ import { createApp, defineComponent, h, nextTick, ref } from "vue";
 import { describe, expect, it, vi } from "vitest";
 import DynamicIframeComponent from "../src/components/dynamic-iframe.vue";
 import DynamicContainerComponent from "../src/components/dynamic-container";
-import { AbstractStorageAdapter } from "../src/abstract-storage-adapter";
-import { createTabsManager, useTabsManager } from "../src/use-tabs-manager";
-import { TabViewUrl } from "../src/utils";
-import type { TabsManager } from "../src/tabs-manager";
+import { AbstractStorageAdapter } from "../src/storage";
+import { createIframeTabClient } from "../src/iframe-client";
+import { createIframeTabClientRequest, createIframeTabClientResponse } from "../src/iframe-client";
+import { createTabsManager, useTabsManager } from "../src/composables";
+import { TabViewUrl } from "../src/shared";
+import type { TabsManager } from "../src/tabs";
 import type { TabsManagerOptions } from "../src/types";
 
 const iframeViewUrl = TabViewUrl.createRelative("/iframe-test.html");
@@ -449,5 +451,94 @@ describe("DynamicContainer iframe rendering", () => {
 
     app.unmount();
     host.remove();
+  });
+
+  it("handles iframe tab client requests without global message branching", async () => {
+    const globalMessageHandler = vi.fn();
+    const { app, host, tabsManager } = mountDynamicContainer({ iframe: { onMessage: globalMessageHandler } });
+
+    const tabId = await tabsManager.openTab(iframeViewUrl, { _viewName: "Iframe 测试" });
+    await flushTicks(2);
+
+    const iframe = host.querySelector("iframe");
+    expect(iframe?.contentWindow).toBeDefined();
+    const postMessageSpy = vi.spyOn(iframe!.contentWindow!, "postMessage");
+
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: createIframeTabClientRequest("update-title", "tab:update", { options: { _viewName: "Iframe 内更新" } }),
+        origin: window.location.origin,
+        source: iframe!.contentWindow,
+      })
+    );
+    await flushTicks(3);
+
+    expect(tabsManager.getTabById(tabId)?.viewName).toBe("Iframe 内更新");
+    expect(host.querySelector("iframe")).toBe(iframe);
+    expect(globalMessageHandler).not.toHaveBeenCalled();
+    expect(postMessageSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "update-title", ok: true }),
+      window.location.origin
+    );
+
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: createIframeTabClientRequest("open-child", "tab:open", {
+          viewUrl: TabViewUrl.createRelative("/iframe-child.html"),
+          options: { _viewName: "Iframe 内打开" },
+        }),
+        origin: window.location.origin,
+        source: iframe!.contentWindow,
+      })
+    );
+    await expect.poll(() => tabsManager.tabs.map(tab => tab.viewName)).toContain("Iframe 内打开");
+
+    expect(postMessageSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "open-child", ok: true, data: expect.any(String) }),
+      window.location.origin
+    );
+
+    postMessageSpy.mockRestore();
+    app.unmount();
+    host.remove();
+  });
+});
+
+describe("Iframe tab client", () => {
+  it("ignores responses from unexpected windows or origins", async () => {
+    const parentWindow = { postMessage: vi.fn() } as unknown as Window;
+    const attackerWindow = { postMessage: vi.fn() } as unknown as Window;
+    const client = createIframeTabClient({ currentWindow: window, parentWindow, targetOrigin: window.location.origin });
+
+    const requestPromise = client.getTab();
+    const sentRequest = (parentWindow.postMessage as ReturnType<typeof vi.fn>).mock.calls[0][0] as ReturnType<
+      typeof createIframeTabClientRequest
+    >;
+
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: createIframeTabClientResponse(sentRequest, true, { _id: "attacker-tab" }),
+        origin: window.location.origin,
+        source: attackerWindow,
+      })
+    );
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: createIframeTabClientResponse(sentRequest, true, { _id: "wrong-origin-tab" }),
+        origin: "https://attacker.example.com",
+        source: parentWindow,
+      })
+    );
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: createIframeTabClientResponse(sentRequest, true, { _id: "safe-tab" }),
+        origin: window.location.origin,
+        source: parentWindow,
+      })
+    );
+
+    await expect(requestPromise).resolves.toEqual({ _id: "safe-tab" });
+
+    client.dispose();
   });
 });

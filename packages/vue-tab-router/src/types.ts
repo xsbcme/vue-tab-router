@@ -1,8 +1,8 @@
 import { AsyncComponentLoader, AsyncComponentOptions, Component, TransitionProps } from "vue";
-import { AbstractStorageAdapter } from "./abstract-storage-adapter";
-import type { IframeLoadEvent, IframeMessageEvent, IframeMessageOriginValidator } from "./iframe-message";
-import { Tab } from "./tab";
-import type { TabsManagerPlugin } from "./tabs-manager-plugin";
+import { AbstractStorageAdapter } from "./storage/storage-adapter-base";
+import type { IframeLoadEvent, IframeMessageEvent, IframeMessageOriginValidator } from "./iframe/iframe-message";
+import { Tab } from "./tabs/tab";
+import type { TabsManagerPlugin } from "./tabs/tabs-manager-plugin";
 
 /**
  * TabsManager 内部归一化配置。

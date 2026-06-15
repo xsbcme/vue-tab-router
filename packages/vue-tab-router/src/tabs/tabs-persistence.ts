@@ -1,8 +1,8 @@
 import { toRaw } from "vue";
-import { AbstractStorageAdapter } from "./abstract-storage-adapter";
-import { STORAGE_TABS_KEY } from "./constant";
-import { StorageAdapter } from "./storage-adapter";
-import type { ITabsManagerOptions } from "./types";
+import { AbstractStorageAdapter } from "../storage/storage-adapter-base";
+import { STORAGE_TABS_KEY } from "../shared/constant";
+import { StorageAdapter } from "../storage/storage-adapter";
+import type { ITabsManagerOptions } from "../types";
 
 export class TabsPersistence {
   private storageAdapter: AbstractStorageAdapter | null;

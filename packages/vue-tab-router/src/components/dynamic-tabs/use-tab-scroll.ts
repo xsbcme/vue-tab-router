@@ -1,5 +1,5 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch, type Ref } from "vue";
-import type { Tab } from "@/tab";
+import type { Tab } from "@/tabs/tab";
 
 interface TabVirtualMetrics {
   offsets: number[];

@@ -3,9 +3,9 @@
 import { createApp, h, nextTick } from "vue";
 import { describe, expect, it, vi } from "vitest";
 import DynamicBreadcrumbComponent from "../src/components/dynamic-breadcrumb.vue";
-import { createTabsManager } from "../src/use-tabs-manager";
-import { useTabsManager } from "../src/use-tabs-manager";
-import type { TabsManager } from "../src/tabs-manager";
+import { createTabsManager } from "../src/composables";
+import { useTabsManager } from "../src/composables";
+import type { TabsManager } from "../src/tabs";
 
 const parentViewUrl = "/src/views/practice/test-table-detail/page-index.vue";
 const detailViewUrl = "/src/views/practice/test-table-detail/table-detail/page-index.vue";

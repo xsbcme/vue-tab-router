@@ -94,6 +94,66 @@ postCurrentIframeMessage({ type: "page:message" });
 window.parent.postMessage({ type: "iframe:ping" }, window.location.origin);
 ```
 
+这种方式适合宿主统一处理协议，例如所有 iframe 都把 `{ type, payload }` 发给 `iframe.onMessage`，由宿主按消息类型决定打开标签、刷新标签或回包。
+
+## iframe 页面内部使用 Client
+
+宿主侧已经内置 iframe client 协议处理能力。协议属于插件内部约定：宿主负责识别请求、定位消息来源对应的 tab，并执行允许的当前页签动作；client 只是 iframe 侧的可选封装。
+
+如果 iframe 页面也由你控制，并且希望业务逻辑写在 iframe 页面内部，可以使用轻量子入口 `@xsbcme/vue-tab-router/iframe-client`。
+
+它解决的是“当前 iframe 想操作自己所属的 tab”的问题：宿主会根据 `postMessage` 的来源窗口自动定位 tab，不需要你在 iframe 内传 tabId，也不需要在全局 `iframe.onMessage` 里按页面来源写大量分支。
+
+```ts
+import { createIframeTabClient } from "@xsbcme/vue-tab-router/iframe-client";
+
+const tabClient = createIframeTabClient();
+
+const tab = await tabClient.getTab();
+await tabClient.updateTabOptions({
+  _viewName: `${tab.viewName || "Iframe"} · 已就绪`,
+});
+
+document.querySelector("#open-detail")?.addEventListener("click", () => {
+  tabClient.openTab("/src/views/order/detail/page-index.vue", {
+    _viewName: "订单详情",
+    orderId: 1001,
+  });
+});
+
+document.querySelector("#refresh")?.addEventListener("click", () => {
+  tabClient.refreshTab();
+});
+```
+
+没有构建工具的 iframe 页面可以直接引入浏览器 client 包。这个包是独立的，不需要先引入 Vue：
+
+```html
+<script src="https://unpkg.com/@xsbcme/vue-tab-router/dist/browser/iframe-client.global.js"></script>
+<script>
+  const tabClient = VueTabRouterIframeClient.createIframeTabClient();
+
+  document.querySelector("#refresh")?.addEventListener("click", () => {
+    tabClient.refreshTab();
+  });
+</script>
+```
+
+宿主仍然可以通过 `postIframeMessage` 给 iframe 发业务消息，iframe 内部用局部监听处理：
+
+```ts
+const stop = tabClient.on<{ type: "set-theme"; theme: string }>("set-theme", message => {
+  document.documentElement.dataset.theme = message.theme;
+});
+
+window.addEventListener("beforeunload", () => {
+  stop();
+  tabClient.dispose();
+});
+```
+
+注意：`iframe client` 不是用来让宿主页面调用的，也不是必须替代 `iframe.onMessage`。主包只负责内置协议和宿主能力，`createIframeTabClient()` 只从 `@xsbcme/vue-tab-router/iframe-client` 子入口导入。如果你的需求是“宿主统一接收所有 iframe 消息并集中处理”，继续使用上一节的 `postMessage` 方式更合适。Demo 中同时保留了 `Iframe 消息` 和 `Iframe Client` 两个案例，分别对应这两种模式。
+
 ## 加载后修改样式
 
 `onIframeLoad` 会暴露 iframe 元素。跨域时只能操作 iframe 元素本身；同源时可以访问内部 `document`。

@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { findVueComponent } from "@/utils";
+import { findVueComponent } from "@/shared";
 import { shallowRef, watch, createVNode, render, getCurrentInstance, computed } from "vue";
 import type { Component } from "vue";
 

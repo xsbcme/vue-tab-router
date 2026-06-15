@@ -1,6 +1,6 @@
 import { KeepAlive, Transition, computed, createVNode, defineComponent, provide, ref } from "vue";
-import { INJECT_ACTIVE_TAB_KEY } from "@/constant";
-import { useTabsManager } from "@/use-tabs-manager";
+import { INJECT_ACTIVE_TAB_KEY } from "@/shared";
+import { useTabsManager } from "@/composables";
 import type { ITabsManagerOptions } from "@/types";
 import { DefaultEmptyComponent } from "@/components/default-state";
 import { getTabCacheName, isIframeTab, shouldCacheComponentTab } from "./types";

@@ -1,4 +1,4 @@
-import { PersistedTab, TabCloseGuard, TabEnterGuard, TabLeaveGuard } from "./types";
+import { PersistedTab, TabCloseGuard, TabEnterGuard, TabLeaveGuard } from "../types";
 
 export class Tab {
   _id!: string;

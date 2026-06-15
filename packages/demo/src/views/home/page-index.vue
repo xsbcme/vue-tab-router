@@ -337,6 +337,7 @@ h1 {
 }
 
 .workspace-preview {
+  min-width: 0;
   min-height: 330px;
   overflow: hidden;
 }
@@ -374,15 +375,33 @@ h1 {
 .preview-tabs {
   display: flex;
   gap: 6px;
-  padding: 12px 14px 0;
-  overflow: hidden;
+  box-sizing: border-box;
+  width: calc(100% - 28px);
+  min-width: 0;
+  max-width: 100%;
+  margin: 12px 14px 0;
+  padding: 0 0 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.preview-tabs::after {
+  flex: 0 0 8px;
+  content: "";
 }
 
 .preview-tab {
   flex: 0 0 auto;
+  min-width: 0;
+  max-width: 100%;
   padding: 8px 12px;
+  overflow: hidden;
   color: #4e5969;
   font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   background: #f2f3f5;
   border: 1px solid #e5e6eb;
   border-bottom: none;
@@ -746,7 +765,12 @@ h1 {
   }
 
   .preview-tabs {
-    overflow-x: auto;
+    width: calc(100% - 20px);
+    margin-inline: 10px;
+  }
+
+  .preview-tab {
+    padding: 8px 10px;
   }
 }
 </style>

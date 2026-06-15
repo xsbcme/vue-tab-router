@@ -1,5 +1,5 @@
 import { App, markRaw, nextTick } from "vue";
-import type { IframePostMessageOptions } from "./iframe-message";
+import type { IframePostMessageOptions } from "../iframe";
 import { Tab } from "./tab";
 import {
   CloseTabOptions,
@@ -13,10 +13,10 @@ import {
   TabGuardName,
   TabLeaveGuard,
   ViewOutsideOptions,
-} from "./types";
-import { jsonToObject, clone, findParentPathsByPath } from "./utils";
+} from "../types";
+import { jsonToObject, clone, findParentPathsByPath } from "../shared";
 import { TabsManagerHooks, TabsManagerPluginCleanup } from "./tabs-manager-plugin";
-import { EventManager } from "./event-manager";
+import { EventManager } from "../shared";
 import { provideTabsManager, TabsSharedContext } from "./tabs-manager-context";
 import { closeSingleTab, closeTabsInBatch, type TabCloseRuntime } from "./tabs-manager-close";
 import { TabsPersistence } from "./tabs-persistence";

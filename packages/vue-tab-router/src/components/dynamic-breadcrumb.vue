@@ -27,7 +27,7 @@
 <script lang="ts" setup generic="BreadcrumbMenu extends object = TabMenuItemLike">
 import { computed } from "vue";
 import DynamicIcon from "./dynamic-icon.vue";
-import { type TabBreadcrumbItem, type TabMenuItemLike, type UseTabMenuOptions, useTabMenu } from "../use-tab-menu";
+import { type TabBreadcrumbItem, type TabMenuItemLike, type UseTabMenuOptions, useTabMenu } from "../composables/use-tab-menu";
 
 const props = withDefaults(
   defineProps<{

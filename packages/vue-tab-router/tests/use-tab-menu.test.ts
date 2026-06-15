@@ -2,10 +2,10 @@
 
 import { createApp, h, nextTick } from "vue";
 import { describe, expect, it } from "vitest";
-import { createTabsManager } from "../src/use-tabs-manager";
+import { createTabsManager } from "../src/composables";
 import type { Modules, TabViewMeta } from "../src/types";
-import { useTabMenu } from "../src/use-tab-menu";
-import { TabViewUrl } from "../src/utils";
+import { useTabMenu } from "../src/composables";
+import { TabViewUrl } from "../src/shared";
 
 type TestMenu = {
   id?: string;

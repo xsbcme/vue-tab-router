@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { AbstractStorageAdapter } from "../src/abstract-storage-adapter";
-import { createTabsManager } from "../src/use-tabs-manager";
-import { stableStringify, TabViewUrl } from "../src/utils";
+import { AbstractStorageAdapter } from "../src/storage";
+import { createTabsManager } from "../src/composables";
+import { stableStringify, TabViewUrl } from "../src/shared";
 
 class CountingStorageAdapter extends AbstractStorageAdapter {
   private readonly data = new Map<string, unknown>();

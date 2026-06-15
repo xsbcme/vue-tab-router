@@ -58,9 +58,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from "vue";
-import type { Tab } from "@/tab";
-import type { TabsManager } from "@/tabs-manager";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import type { Tab } from "@/tabs/tab";
+import type { TabsManager } from "@/tabs/tabs-manager";
 import type { TabsVirtualOptions } from "@/types";
 import TabItem from "./tab-item.vue";
 import { useTabDrag } from "./use-tab-drag";
@@ -99,7 +99,24 @@ const virtualOptionsRef = computed(() => props.virtualOptions);
 const titleMaxLengthRef = computed(() => props.titleMaxLength);
 const showIconRef = computed(() => props.showIcon);
 const defaultIconRef = computed(() => props.defaultIcon);
+const isCoarsePointer = ref(false);
 let updateMeasuredScrollState: () => void = () => undefined;
+let pointerMediaQuery: MediaQueryList | undefined;
+
+const updatePointerType = () => {
+  isCoarsePointer.value = Boolean(pointerMediaQuery?.matches);
+};
+
+onMounted(() => {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+  pointerMediaQuery = window.matchMedia("(pointer: coarse)");
+  updatePointerType();
+  pointerMediaQuery.addEventListener?.("change", updatePointerType);
+});
+
+onBeforeUnmount(() => {
+  pointerMediaQuery?.removeEventListener?.("change", updatePointerType);
+});
 
 const { resolvedVirtualOptions, setTabItemRef, virtualMetrics, virtualTabs, virtualTotalWidth } = useTabVirtualList({
   tabs: tabsRef,
@@ -125,7 +142,7 @@ const { canScrollLeft, canScrollRight, handleWheel, isOverflowing, scrollTabs, u
 
 updateMeasuredScrollState = updateScrollState;
 
-const isTabDraggable = (tab: Tab) => props.draggable && !tab._isFirst && !tab._noDrag;
+const isTabDraggable = (tab: Tab) => props.draggable && !isCoarsePointer.value && !tab._isFirst && !tab._noDrag;
 const { draggingTabId, dropPosition, dropTargetTabId, handleDragEnd, handleDragLeave, handleDragOver, handleDragStart, handleDrop } =
   useTabDrag({ tabsManager: props.tabsManager, isTabDraggable });
 </script>

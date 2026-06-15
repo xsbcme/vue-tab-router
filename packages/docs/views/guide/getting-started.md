@@ -14,6 +14,16 @@ pnpm add @xsbcme/vue-tab-router
 yarn add @xsbcme/vue-tab-router
 ```
 
+也可以通过浏览器脚本直接引入。主插件浏览器包依赖全局 `Vue`，需要先加载 Vue：
+
+```html
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/@xsbcme/vue-tab-router/dist/browser/vue-tab-router.global.js"></script>
+<script>
+  const { createTabsManager, DynamicTabsComponent, DynamicContainerComponent } = VueTabRouter;
+</script>
+```
+
 ## 1. 创建 TabsManager
 
 ```ts

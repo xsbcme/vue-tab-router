@@ -48,6 +48,7 @@ const tabsManager = createTabsManager({
           { title: "链接打开方式", viewUrl: "/src/views/learning/iframe-links/page-index.vue" },
           { title: "Iframe 缓存", viewUrl: "/src/views/learning/iframe-cache/page-index.vue" },
           { title: "Iframe 消息", viewUrl: "/src/views/learning/iframe-message/page-index.vue" },
+          { title: "Iframe Client", viewUrl: "/src/views/learning/iframe-client/page-index.vue" },
           { title: "Iframe 导航同步", viewUrl: "/src/views/learning/iframe-navigation/page-index.vue" },
         ],
       },

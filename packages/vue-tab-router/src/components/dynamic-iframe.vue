@@ -15,8 +15,8 @@ import {
   isIframeMessageOriginAllowed,
   resolveIframeMessageTargetOrigin,
   type IframeMessageOriginValidator,
-} from "../iframe-message";
-import type { Tab } from "../tab";
+} from "../iframe/iframe-message";
+import type { Tab } from "../tabs/tab";
 import { DefaultLoadingComponent } from "./default-state";
 
 defineOptions({

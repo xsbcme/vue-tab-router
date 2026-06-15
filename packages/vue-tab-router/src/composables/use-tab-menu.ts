@@ -1,7 +1,7 @@
 import { computed, MaybeRefOrGetter, toValue, type ComputedRef } from "vue";
-import type { Tab } from "./tab";
-import type { IOpenTabOptions, TabViewMeta } from "./types";
-import { jsonToObject, stableStringify } from "./utils";
+import type { Tab } from "../tabs/tab";
+import type { IOpenTabOptions, TabViewMeta } from "../types";
+import { jsonToObject, stableStringify } from "../shared";
 import { useTabsManager } from "./use-tabs-manager";
 
 export type TabMenuProps = Record<string, unknown> | string | null | undefined;

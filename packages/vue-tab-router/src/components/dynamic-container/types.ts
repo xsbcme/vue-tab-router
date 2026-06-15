@@ -1,7 +1,7 @@
 import type { ComponentPublicInstance } from "vue";
-import type { DynamicIframeExpose } from "@/iframe-message";
-import type { Tab } from "@/tab";
-import { TabViewUrl } from "@/utils";
+import type { DynamicIframeExpose } from "@/iframe/iframe-message";
+import type { Tab } from "@/tabs/tab";
+import { TabViewUrl } from "@/shared";
 
 export type IframeRefValue = Element | ComponentPublicInstance | DynamicIframeExpose | null;
 

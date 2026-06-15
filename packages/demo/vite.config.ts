@@ -7,6 +7,9 @@ import pluginPkg from "../vue-tab-router/package.json";
 const demoSrc = resolve(__dirname, "src/");
 const pluginSrc = resolve(__dirname, "../vue-tab-router/src/");
 const pluginEntry = resolve(pluginSrc, "index.ts");
+const pluginIframeClientEntry = resolve(pluginSrc, "iframe-client.ts");
+const demoIndexEntry = resolve(__dirname, "index.html");
+const iframeClientEntry = resolve(__dirname, "iframe-client.html");
 const normalizePath = (path: string) => path.replace(/\\/g, "/");
 
 const workspacePluginAlias = () => ({
@@ -15,6 +18,10 @@ const workspacePluginAlias = () => ({
   async resolveId(id: string, importer?: string) {
     if (id === "@xsbcme/vue-tab-router") {
       return pluginEntry;
+    }
+
+    if (id === "@xsbcme/vue-tab-router/iframe-client") {
+      return pluginIframeClientEntry;
     }
 
     const normalizedImporter = importer ? normalizePath(importer) : "";
@@ -33,6 +40,7 @@ const workspacePluginAlias = () => ({
 
 export default defineConfig(() => {
   return {
+    root: __dirname,
     base: "./",
     resolve: {
       alias: [{ find: /^@\/assets\//, replacement: `${resolve(demoSrc, "assets")}/` }],
@@ -40,6 +48,14 @@ export default defineConfig(() => {
     plugins: [workspacePluginAlias(), Vue()],
     define: {
       __PLUGIN_VERSION__: JSON.stringify(pluginPkg.version),
+    },
+    build: {
+      rollupOptions: {
+        input: {
+          index: demoIndexEntry,
+          "iframe-client": iframeClientEntry,
+        },
+      },
     },
   };
 });

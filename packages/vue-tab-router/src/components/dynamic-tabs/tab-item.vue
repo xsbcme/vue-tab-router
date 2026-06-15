@@ -33,7 +33,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Tab } from "@/tab";
+import { Tab } from "@/tabs/tab";
 import TruncatedText from "./truncated-text.vue";
 import DynamicIcon from "../dynamic-icon.vue";
 import IconClose from "../icons/icon-close.vue";
