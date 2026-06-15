@@ -154,6 +154,116 @@ window.addEventListener("beforeunload", () => {
 
 注意：`iframe client` 不是用来让宿主页面调用的，也不是必须替代 `iframe.onMessage`。主包只负责内置协议和宿主能力，`createIframeTabClient()` 只从 `@xsbcme/vue-tab-router/iframe-client` 子入口导入。如果你的需求是“宿主统一接收所有 iframe 消息并集中处理”，继续使用上一节的 `postMessage` 方式更合适。Demo 中同时保留了 `Iframe 消息` 和 `Iframe Client` 两个案例，分别对应这两种模式。
 
+## Iframe Controller
+
+如果希望 iframe 的业务配置跟随某个 Vue 页面组件维护，可以使用 iframe controller。它解决的是“iframe 页面的宿主侧逻辑不想都写在全局 `iframe.onMessage` 里”的问题：每个 iframe tab 可以有自己的隐藏 controller 组件，局部声明 iframe 地址、样式、加载回调和消息处理。
+
+这个模式有两个运行层：
+
+| 层级 | 说明 |
+| --- | --- |
+| controller 组件 | 一个已注册的 Vue 页面组件，隐藏挂载在当前 tab 内，用 `defineIframeOptions()` 声明局部 iframe 配置。 |
+| iframe 内容 | 用户真正看到的 iframe 页面，地址来自 `createIframeController(controllerUrl, iframeSrc)` 的第二个参数，或 controller 内部的 `defineIframeOptions({ src })`。 |
+
+也就是说，打开的是一个 controller tab，但显示的是 iframe 内容。controller 不是运行在 iframe 里面的代码，而是宿主应用里的 Vue 控制层。
+
+```ts
+import { TabViewUrl, useTabsManager } from "@xsbcme/vue-tab-router";
+
+const tabsManager = useTabsManager();
+
+tabsManager.openTab(
+  TabViewUrl.createIframeController(
+    "/src/views/report/controller/page-index.vue",
+    TabViewUrl.createRelative("./iframe-tests/message.html")
+  ),
+  {
+    _viewName: "报表 Iframe",
+    reportId: 1001,
+  }
+);
+```
+
+参数归属需要明确区分：
+
+| 参数 | 归属 |
+| --- | --- |
+| `controllerUrl` | controller 组件路径，必须存在于 `views.modules` 注册表中。 |
+| `iframeSrc` | 默认 iframe 地址，会被 `TabViewUrl.resolveIframe()` 解析后传给 iframe。 |
+| `openTab` 第二个参数 | 当前 tab 的 `viewProps`，会保存在 tab 上，不会自动拼接到 iframe URL。 |
+| `defineIframeOptions({ src })` | controller 内部覆盖 iframe 地址，优先级高于 `iframeSrc`。 |
+| `defineIframeOptions({ messageOrigins })` | 当前 controller tab 的局部消息来源校验；不传时使用全局 `iframe.messageOrigins`。 |
+
+如果 iframe 页面需要通过 URL 收到业务参数，需要显式把参数拼进 `iframeSrc` 或 `src`：
+
+```ts
+const iframeSrc = TabViewUrl.createRelative(`./iframe-tests/message.html?reportId=${reportId}`);
+
+tabsManager.openTab(TabViewUrl.createIframeController(controllerUrl, iframeSrc), {
+  _viewName: "报表 Iframe",
+  reportId,
+});
+```
+
+`reportId` 同时可以作为 tab 参数留给宿主侧 controller 使用，但它不会自动进入 iframe 页面地址。
+
+controller 组件内部：
+
+```vue
+<template></template>
+
+<script setup lang="ts">
+import { defineIframeOptions } from "@xsbcme/vue-tab-router";
+
+defineIframeOptions({
+  styles: "body { outline: 4px solid rgba(22, 93, 255, .18); }",
+  onLoad({ tab }) {
+    console.log("iframe loaded", tab.viewName);
+  },
+  onMessage(message) {
+    if (message.data?.type === "page:message") {
+      message.reply({ type: "controller:received" });
+      return false;
+    }
+  },
+});
+</script>
+```
+
+也可以把 iframe 地址完全写在 controller 组件里，打开时只传 controller 路径：
+
+```ts
+tabsManager.openTab(TabViewUrl.createIframeController("/src/views/report/baidu/page-index.vue"), {
+  _viewName: "百度 Iframe",
+});
+```
+
+```ts
+defineIframeOptions({
+  src: "https://www.baidu.com",
+});
+```
+
+设计边界：
+
+- `defineIframeOptions()` 只在 iframe controller tab 的控制组件内生效。
+- controller 组件需要像普通页面一样注册到 `views.modules`，推荐使用 `page-index.vue` 作为入口。
+- 无界面的 controller 组件也建议保留空 `<template></template>`，避免 Vue 报缺少 render/template 的警告。
+- `styles` 在 iframe 真实 `load` 后注入；同源 iframe 可以注入，跨域 iframe 会跳过内部 `document` 操作。
+- controller `onLoad` 在局部样式注入后执行，然后才执行全局 `iframe.onLoad` 和 `iframe:load` hook。
+- controller `messageOrigins` 只影响当前 iframe controller tab；未配置时继续使用全局 `iframe.messageOrigins`，全局也未配置时只允许同源消息。
+- controller `onMessage` 先于全局 `iframe.onMessage` 执行；返回 `false` 会阻止全局处理和 `iframe:message` hook。
+- 宿主向 iframe 发消息仍然使用 `postIframeMessage()`、`postActiveIframeMessage()` 或 `postCurrentIframeMessage()`；controller `onMessage` 处理的是 iframe 发给宿主的消息。
+- 普通切换不会清理 controller 配置；关闭 tab、刷新 iframe tab 或清空全部 tab 会释放 iframe 引用和 controller 配置。
+
+适用选择：
+
+| 场景 | 推荐方式 |
+| --- | --- |
+| iframe 页面自己控制当前 tab，例如刷新、关闭、打开子页 | iframe client。 |
+| 宿主统一处理所有 iframe 消息 | 全局 `iframe.onMessage`。 |
+| 某个 iframe tab 有独立样式、加载和消息处理逻辑 | iframe controller。 |
+
 ## 加载后修改样式
 
 `onIframeLoad` 会暴露 iframe 元素。跨域时只能操作 iframe 元素本身；同源时可以访问内部 `document`。

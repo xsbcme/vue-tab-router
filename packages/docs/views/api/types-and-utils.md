@@ -134,10 +134,26 @@ const relativeUrl = TabViewUrl.createRelative("./iframe-tests/message.html");
 常见用途：
 
 - `TabViewUrl.createRelative(url)`：创建相对 iframe 地址。
+- `TabViewUrl.createIframeController(controllerUrl, iframeSrc?)`：创建 iframe controller 地址，`controllerUrl` 是隐藏挂载的 Vue 控制组件，`iframeSrc` 是默认 iframe 地址。
 - `TabViewUrl.isRelative(url)`：判断是否为相对 iframe 地址。
 - `TabViewUrl.isHttp(url)`：判断是否为 http/https 地址。
+- `TabViewUrl.isIframeController(url)`：判断是否为 iframe controller 地址。
 - `TabViewUrl.isIframe(url)`：判断是否为 iframe/link 类型页面。
+- `TabViewUrl.resolveIframeController(url)`：解析 iframe controller 的控制组件路径和默认 iframe 地址。
 - `TabViewUrl.resolveIframe(url)`：解析 iframe 实际加载地址。
+
+iframe controller 示例：
+
+```ts
+const viewUrl = TabViewUrl.createIframeController(
+  "/src/views/report/controller/page-index.vue",
+  TabViewUrl.createRelative("./iframe-tests/message.html")
+);
+```
+
+`createIframeController(controllerUrl, iframeSrc?)` 只把 controller 路径和默认 iframe 地址编码到 `viewUrl` 中。`openTab(viewUrl, options)` 的 `options` 会成为 tab 的 `viewProps`，不会自动拼到 `iframeSrc`。如果 iframe 页面需要读取业务参数，应在创建 `iframeSrc` 时显式写入 URL 查询参数，或在 controller 组件内根据当前 tab 参数计算 `defineIframeOptions({ src })`。
+
+controller 组件可以通过 `defineIframeOptions({ messageOrigins })` 为当前 tab 单独声明消息来源。未声明时使用全局 `iframe.messageOrigins`，全局也未声明时默认只允许同源消息。
 
 ## StorageAdapter
 

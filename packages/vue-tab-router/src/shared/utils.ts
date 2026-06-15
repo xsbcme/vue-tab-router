@@ -1,8 +1,11 @@
 import { Component, ComponentInternalInstance } from "vue";
 
 const TAB_VIEW_URL_RELATIVE_PREFIX = "relative:";
+const TAB_VIEW_URL_IFRAME_CONTROLLER_PREFIX = "iframe-controller:";
+const TAB_VIEW_URL_IFRAME_CONTROLLER_SRC_SEPARATOR = "::";
 
 export type TabViewUrlRelative = `${typeof TAB_VIEW_URL_RELATIVE_PREFIX}${string}`;
+export type TabViewUrlIframeController = `${typeof TAB_VIEW_URL_IFRAME_CONTROLLER_PREFIX}${string}`;
 
 function isTabViewHttpUrl(url: string | undefined) {
   try {
@@ -18,8 +21,12 @@ function isTabViewRelativeUrl(url: string | undefined): url is TabViewUrlRelativ
   return Boolean(url?.startsWith(TAB_VIEW_URL_RELATIVE_PREFIX));
 }
 
+function isTabViewIframeControllerUrl(url: string | undefined): url is TabViewUrlIframeController {
+  return Boolean(url?.startsWith(TAB_VIEW_URL_IFRAME_CONTROLLER_PREFIX));
+}
+
 function isTabViewIframeUrl(url: string | undefined) {
-  return isTabViewRelativeUrl(url) || isTabViewHttpUrl(url);
+  return isTabViewIframeControllerUrl(url) || isTabViewRelativeUrl(url) || isTabViewHttpUrl(url);
 }
 
 function createRelativeTabViewUrl(url: string): TabViewUrlRelative {
@@ -28,17 +35,43 @@ function createRelativeTabViewUrl(url: string): TabViewUrlRelative {
 }
 
 function resolveIframeTabViewUrl(url: string) {
+  if (isTabViewIframeControllerUrl(url)) {
+    const src = resolveIframeControllerTabViewUrl(url).src || "";
+    return src ? resolveIframeTabViewUrl(src) : "";
+  }
   if (isTabViewRelativeUrl(url)) {
     return url.slice(TAB_VIEW_URL_RELATIVE_PREFIX.length);
   }
   return url;
 }
 
+function createIframeControllerTabViewUrl(controllerUrl: string, iframeSrc = ""): TabViewUrlIframeController {
+  const encodedControllerUrl = encodeURIComponent(controllerUrl);
+  const encodedIframeSrc = iframeSrc ? encodeURIComponent(iframeSrc) : "";
+  return `${TAB_VIEW_URL_IFRAME_CONTROLLER_PREFIX}${encodedControllerUrl}${TAB_VIEW_URL_IFRAME_CONTROLLER_SRC_SEPARATOR}${encodedIframeSrc}`;
+}
+
+function resolveIframeControllerTabViewUrl(url: string) {
+  if (!isTabViewIframeControllerUrl(url)) {
+    return { controllerUrl: url, src: "" };
+  }
+
+  const raw = url.slice(TAB_VIEW_URL_IFRAME_CONTROLLER_PREFIX.length);
+  const [controllerUrl = "", src = ""] = raw.split(TAB_VIEW_URL_IFRAME_CONTROLLER_SRC_SEPARATOR);
+  return {
+    controllerUrl: decodeURIComponent(controllerUrl),
+    src: src ? decodeURIComponent(src) : "",
+  };
+}
+
 export const TabViewUrl = {
+  createIframeController: createIframeControllerTabViewUrl,
   createRelative: createRelativeTabViewUrl,
   isHttp: isTabViewHttpUrl,
+  isIframeController: isTabViewIframeControllerUrl,
   isIframe: isTabViewIframeUrl,
   isRelative: isTabViewRelativeUrl,
+  resolveIframeController: resolveIframeControllerTabViewUrl,
   resolveIframe: resolveIframeTabViewUrl,
 };
 

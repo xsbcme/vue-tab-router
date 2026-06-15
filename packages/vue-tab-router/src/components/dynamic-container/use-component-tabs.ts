@@ -2,9 +2,9 @@ import { Component, computed, createVNode, defineComponent, provide } from "vue"
 import { INJECT_CURRENT_TAB_KEY } from "@/shared";
 import type { TabsManager } from "@/tabs/tabs-manager";
 import type { ITabsManagerOptions } from "@/types";
-import { clone } from "@/shared";
+import { clone, TabViewUrl } from "@/shared";
 import { DefaultNotFoundComponent } from "@/components/default-state";
-import { getTabCacheName } from "./types";
+import { getTabCacheName, isIframeControllerTab } from "./types";
 
 export function useComponentTabs(tabsManager: TabsManager, managerOptions: ITabsManagerOptions | null) {
   const tabWrapperMap = new Map<string, Component>();
@@ -35,7 +35,10 @@ export function useComponentTabs(tabsManager: TabsManager, managerOptions: ITabs
           const currentTab = tabsManager.getTabById(tabId);
           if (!currentTab || currentTab._isRefresh) return null;
 
-          const comp = tabsManager.resolveComponent(currentTab.viewUrl);
+          const componentUrl = isIframeControllerTab(currentTab)
+            ? TabViewUrl.resolveIframeController(currentTab.viewUrl).controllerUrl
+            : currentTab.viewUrl;
+          const comp = tabsManager.resolveComponent(componentUrl);
           if (!comp) {
             return createVNode(noExistComponent || DefaultNotFoundComponent);
           }

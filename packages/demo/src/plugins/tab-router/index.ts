@@ -48,6 +48,7 @@ const tabsManager = createTabsManager({
           { title: "链接打开方式", viewUrl: "/src/views/learning/iframe-links/page-index.vue" },
           { title: "Iframe 缓存", viewUrl: "/src/views/learning/iframe-cache/page-index.vue" },
           { title: "Iframe 消息", viewUrl: "/src/views/learning/iframe-message/page-index.vue" },
+          { title: "Iframe Controller", viewUrl: "/src/views/learning/iframe-controller/page-index.vue" },
           { title: "Iframe Client", viewUrl: "/src/views/learning/iframe-client/page-index.vue" },
           { title: "Iframe 导航同步", viewUrl: "/src/views/learning/iframe-navigation/page-index.vue" },
         ],
@@ -170,35 +171,11 @@ const tabsManager = createTabsManager({
   },
   iframe: {
     messageOrigins: ["self"],
-    onLoad: ({ iframe, tab }) => {
+    onLoad: ({ tab }) => {
       pushLog(iframeLogs, `load ${tab.viewName || tab.viewUrl}`);
-      iframe.style.backgroundColor = tab.viewProps?.iframeDemo ? "#f7f8fa" : "#fff";
-      try {
-        if (tab.viewProps?.iframeDemo && iframe.contentDocument) {
-          const style = iframe.contentDocument.createElement("style");
-          style.textContent = `
-            body { outline: 4px solid rgba(22, 93, 255, 0.18); outline-offset: -4px; }
-            h2::after { content: ' - injected style'; color: #165dff; font-size: 14px; }
-          `;
-          iframe.contentDocument.head.appendChild(style);
-        }
-      } catch {
-        pushLog(iframeLogs, `无法访问 iframe 内部文档 ${tab.viewUrl}`);
-      }
     },
-    onMessage: async message => {
+    onMessage: message => {
       pushLog(iframeLogs, `message ${JSON.stringify(message.data)}`);
-      const data = message.data;
-      if (!data || typeof data !== "object") return;
-      const payload = data as Record<string, unknown>;
-      if (payload.type === "iframe:refresh-current") {
-        await tabsManager.refreshTab(message.tabId);
-        message.reply({ type: "host:refreshed" });
-      }
-      if (payload.type === "iframe:close-current") {
-        await tabsManager.closeTab(message.tabId);
-        message.reply({ type: "host:close-requested" });
-      }
     },
   },
   plugins: [

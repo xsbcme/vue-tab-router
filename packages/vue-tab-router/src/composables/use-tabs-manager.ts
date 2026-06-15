@@ -1,10 +1,11 @@
-import { inject, markRaw } from "vue";
+import { inject, markRaw, onBeforeUnmount, toValue, watchEffect } from "vue";
 import type { IframePostMessageOptions } from "../iframe";
 import { TabsManager } from "../tabs";
 import { INJECT_CURRENT_TAB_KEY } from "../shared";
 import {
   DefineEvents,
   IDefineTabOptions,
+  IframeControllerOptions,
   ITabsManagerOptions,
   TabsManagerOptions,
   TabCloseGuard,
@@ -137,6 +138,33 @@ export function defineTabEvents(events: DefineEvents) {
       eventManager.on(_key, events[eventName]);
     });
   }
+}
+
+/**
+ * 定义 iframe controller tab 的局部 iframe 配置。
+ * 仅在 TabViewUrl.createIframeController 打开的控制组件内生效。
+ */
+export function defineIframeOptions(options: IframeControllerOptions) {
+  const tab = inject(INJECT_CURRENT_TAB_KEY)?.value;
+  if (!tab?._id) return;
+
+  const tabsManager = useTabsManager();
+  const stop = watchEffect(() => {
+    tabsManager._setIframeControllerOptions(tab._id, {
+      src: toValue(options.src),
+      styles: toValue(options.styles),
+      messageOrigins: toValue(options.messageOrigins),
+      onLoad: options.onLoad,
+      onMessage: options.onMessage,
+    });
+  });
+
+  onBeforeUnmount(() => {
+    stop();
+    if (!tabsManager.getTabById(tab._id)) {
+      tabsManager._clearIframeControllerOptions(tab._id);
+    }
+  });
 }
 
 /**

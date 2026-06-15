@@ -27,6 +27,10 @@ export const iframeUrls = {
   relativeHome: TabViewUrl.createRelative("./"),
   cache: TabViewUrl.createRelative("./iframe-tests/cache.html"),
   message: TabViewUrl.createRelative("./iframe-tests/message.html"),
+  controller: TabViewUrl.createIframeController(
+    "/src/views/learning/iframe-controller/controller/page-index.vue",
+    TabViewUrl.createRelative("./iframe-tests/message.html")
+  ),
   client: TabViewUrl.createRelative("./iframe-client.html"),
   links: TabViewUrl.createRelative("./iframe-tests/links.html"),
   navigationOverview: TabViewUrl.createRelative("./iframe-tests/navigation.html?from=learning#overview"),

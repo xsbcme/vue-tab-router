@@ -3,7 +3,7 @@ import { INJECT_ACTIVE_TAB_KEY } from "@/shared";
 import { useTabsManager } from "@/composables";
 import type { ITabsManagerOptions } from "@/types";
 import { DefaultEmptyComponent } from "@/components/default-state";
-import { getTabCacheName, isIframeTab, shouldCacheComponentTab } from "./types";
+import { getTabCacheName, isIframeControllerTab, isIframeTab, shouldCacheComponentTab } from "./types";
 import { useComponentTabs } from "./use-component-tabs";
 import { useIframeTabs } from "./use-iframe-tabs";
 import { useScrollRestore } from "./use-scroll-restore";
@@ -42,16 +42,30 @@ export default defineComponent({
         return null;
       }
 
-      if (iframeTabs.activeCachedIframeTabId.value === tabId) {
+      if (iframeTabs.activeCachedIframeTabId.value === tabId && !isIframeControllerTab(activeTab)) {
         return null;
       }
 
       if (isIframeTab(activeTab)) {
+        if (isIframeControllerTab(activeTab)) return null;
         return iframeTabs.renderIframe(activeTab);
       }
 
       return createVNode(componentTabs.getTabWrapper(tabId), { key: tabId });
     };
+
+    const activeIframeControllerRender = () => {
+      const tabId = activeTabId.value;
+      const activeTab = tabsManager.activeTab;
+      if (!tabId || !activeTab || activeTab._isRefresh || !isIframeControllerTab(activeTab)) return null;
+
+      return createVNode(componentTabs.getTabWrapper(tabId), { key: tabId });
+    };
+
+    const hasActiveIframeController = computed(() => {
+      const activeTab = tabsManager.activeTab;
+      return Boolean(activeTab && !activeTab._isRefresh && isIframeControllerTab(activeTab));
+    });
 
     const keepAliveRender = () => {
       componentTabs.pruneStaleWrappers();
@@ -91,7 +105,28 @@ export default defineComponent({
           },
         },
         [
-          iframeTabs.cachedIframeRender(),
+          iframeTabs.hasCachedIframeTabs.value ? iframeTabs.cachedIframeRender() : null,
+          hasActiveIframeController.value
+            ? createVNode(
+                "div",
+                {
+                  class: "dynamic-container__controller-layer",
+                  style: {
+                    display: "none",
+                  },
+                },
+                [
+                  createVNode(
+                    KeepAlive,
+                    {
+                      ...keepAliveProps,
+                      include: keepAliveIncludes.value,
+                    },
+                    activeIframeControllerRender
+                  ),
+                ]
+              )
+            : null,
           createVNode(
             "div",
             {

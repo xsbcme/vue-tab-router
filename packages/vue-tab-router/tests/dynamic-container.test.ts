@@ -8,11 +8,14 @@ import { AbstractStorageAdapter } from "../src/storage";
 import { createIframeTabClient } from "../src/iframe-client";
 import { createIframeTabClientRequest, createIframeTabClientResponse } from "../src/iframe-client";
 import { createTabsManager, useTabsManager } from "../src/composables";
+import { defineIframeOptions } from "../src/composables";
 import { TabViewUrl } from "../src/shared";
 import type { TabsManager } from "../src/tabs";
 import type { TabsManagerOptions } from "../src/types";
 
 const iframeViewUrl = TabViewUrl.createRelative("/iframe-test.html");
+const iframeControllerViewUrl = "/iframe-controller.vue";
+const iframeControllerSrc = "/iframe-controller.html";
 const missingViewUrl = "/missing-view.vue";
 const missingTabState = [
   {
@@ -43,6 +46,41 @@ const LongScrollView = defineComponent({
 const OtherView = defineComponent({
   setup() {
     return () => h("div", "其他页面");
+  },
+});
+
+const IframeControllerView = defineComponent({
+  setup() {
+    const tabsManager = useTabsManager();
+    defineIframeOptions({
+      src: iframeControllerSrc,
+      styles: "body { margin: 0; color: rgb(22, 93, 255); }",
+      onLoad: ({ tab }) => {
+        tabsManager.updateTabOptions({ controllerLoaded: tab.viewName }, tab._id);
+      },
+      onMessage: async ({ data, reply }) => {
+        if ((data as { type?: string })?.type === "controller:open") {
+          const viewUrl = (data as { viewUrl?: string }).viewUrl;
+          if (viewUrl) await tabsManager.openTab(viewUrl, { _viewName: "controller 打开" });
+          reply({ type: "controller:done" });
+        }
+      },
+    });
+
+    return () => h("div", "控制组件不直接展示");
+  },
+});
+
+const BlockingIframeControllerView = defineComponent({
+  setup() {
+    defineIframeOptions({
+      src: iframeControllerSrc,
+      onMessage: message => {
+        if ((message.data as { type?: string })?.type === "controller:block-global") return false;
+      },
+    });
+
+    return () => null;
   },
 });
 
@@ -128,7 +166,7 @@ function mountDynamicIframe(initialLink: string) {
 }
 
 describe("DynamicContainer iframe rendering", () => {
-  it("uses the default empty component and lets render override it", async () => {
+  it("使用默认空状态组件，并允许 render 配置覆盖", async () => {
     const CustomEmpty = defineComponent({
       setup() {
         return () => h("div", "自定义空状态");
@@ -152,7 +190,18 @@ describe("DynamicContainer iframe rendering", () => {
     customEmpty.host.remove();
   });
 
-  it("uses the default not-found component and lets render override it", async () => {
+  it("没有 iframe 或 controller 内容时不渲染空层", async () => {
+    const { app, host } = mountDynamicContainer();
+    await flushTicks(2);
+
+    expect(host.querySelector(".dynamic-container__iframe-layer")).toBeNull();
+    expect(host.querySelector(".dynamic-container__controller-layer")).toBeNull();
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("使用默认未找到组件，并允许 render 配置覆盖", async () => {
     const CustomNotFound = defineComponent({
       setup() {
         return () => h("div", "自定义未找到");
@@ -179,7 +228,27 @@ describe("DynamicContainer iframe rendering", () => {
     customNotFound.host.remove();
   });
 
-  it("uses the default error component and lets render override it", async () => {
+  it("普通组件页不渲染 iframe 和 controller 空层", async () => {
+    const viewUrl = "/normal-view.vue";
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [viewUrl]: OtherView,
+        },
+      },
+    });
+
+    await tabsManager.openTab(viewUrl, { _viewName: "普通页面" });
+    await flushTicks(3);
+
+    expect(host.querySelector(".dynamic-container__iframe-layer")).toBeNull();
+    expect(host.querySelector(".dynamic-container__controller-layer")).toBeNull();
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("使用默认错误组件，并允许 render 配置覆盖", async () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const failingViewUrl = "/failing-view.vue";
@@ -228,7 +297,7 @@ describe("DynamicContainer iframe rendering", () => {
     }
   });
 
-  it("shows component loading immediately on first open", async () => {
+  it("首次打开异步组件时立即显示加载状态", async () => {
     const pendingViewUrl = "/pending-view.vue";
     const { app, host, tabsManager } = mountDynamicContainer({
       views: {
@@ -247,7 +316,7 @@ describe("DynamicContainer iframe rendering", () => {
     host.remove();
   });
 
-  it("keeps same-document iframe hash updates out of the loading state while emitting load", async () => {
+  it("同文档 iframe hash 变化不会进入加载状态，但会触发 load", async () => {
     const { app, host, link, loadEvents } = mountDynamicIframe("/iframe-test.html#overview");
     await flushTicks(2);
 
@@ -271,7 +340,7 @@ describe("DynamicContainer iframe rendering", () => {
     host.remove();
   });
 
-  it("uses render loading as the iframe default and lets iframe override it", async () => {
+  it("iframe 默认使用 render loading，并允许 iframe 配置覆盖", async () => {
     const RenderLoading = defineComponent({
       setup() {
         return () => h("div", "统一加载中");
@@ -305,7 +374,7 @@ describe("DynamicContainer iframe rendering", () => {
     iframeOverride.host.remove();
   });
 
-  it("allows component views to scroll while keeping the iframe layer clipped", async () => {
+  it("组件视图允许滚动，同时保持 iframe 层裁剪", async () => {
     const { app, host, tabsManager } = mountDynamicContainer();
 
     await tabsManager.openTab(iframeViewUrl, { _viewName: "Iframe 测试" });
@@ -318,7 +387,7 @@ describe("DynamicContainer iframe rendering", () => {
     host.remove();
   });
 
-  it("restores component view scroll position when switching cached tabs", async () => {
+  it("切换缓存组件 tab 时恢复滚动位置", async () => {
     const firstViewUrl = "/long-view.vue";
     const secondViewUrl = "/other-view.vue";
     const { app, host, tabsManager } = mountDynamicContainer({
@@ -356,7 +425,7 @@ describe("DynamicContainer iframe rendering", () => {
     host.remove();
   });
 
-  it("does not restore component view scroll position for non-cached tabs", async () => {
+  it("非缓存组件 tab 不恢复滚动位置", async () => {
     const firstViewUrl = "/no-cache-long-view.vue";
     const secondViewUrl = "/no-cache-other-view.vue";
     const { app, host, tabsManager } = mountDynamicContainer({
@@ -392,7 +461,7 @@ describe("DynamicContainer iframe rendering", () => {
     host.remove();
   });
 
-  it("rebuilds cached iframe tabs when the manager refreshes them", async () => {
+  it("管理器刷新 iframe tab 时重建缓存 iframe", async () => {
     const { app, host, tabsManager } = mountDynamicContainer();
 
     const tabId = await tabsManager.openTab(iframeViewUrl, { _viewName: "Iframe 测试" });
@@ -414,7 +483,7 @@ describe("DynamicContainer iframe rendering", () => {
     host.remove();
   });
 
-  it("removes cached iframe tabs and messenger refs when the manager closes them", async () => {
+  it("关闭 iframe tab 时移除缓存 iframe 和消息引用", async () => {
     const { app, host, tabsManager } = mountDynamicContainer();
 
     const tabId = await tabsManager.openTab(iframeViewUrl, { _viewName: "Iframe 测试" });
@@ -434,7 +503,7 @@ describe("DynamicContainer iframe rendering", () => {
     host.remove();
   });
 
-  it("updates the rendered iframe layer when the root manager instance closes a tab", async () => {
+  it("根管理器关闭 tab 时同步更新 iframe 渲染层", async () => {
     const { app, host, rootTabsManager, tabsManager } = mountDynamicContainer();
 
     const tabId = await rootTabsManager.openTab(iframeViewUrl, { _viewName: "Iframe 测试" });
@@ -453,7 +522,7 @@ describe("DynamicContainer iframe rendering", () => {
     host.remove();
   });
 
-  it("handles iframe tab client requests without global message branching", async () => {
+  it("处理 iframe tab client 请求时不进入全局消息分支", async () => {
     const globalMessageHandler = vi.fn();
     const { app, host, tabsManager } = mountDynamicContainer({ iframe: { onMessage: globalMessageHandler } });
 
@@ -499,6 +568,393 @@ describe("DynamicContainer iframe rendering", () => {
     );
 
     postMessageSpy.mockRestore();
+    app.unmount();
+    host.remove();
+  });
+
+  it("iframe controller 会隐藏挂载控制组件，并使用局部 src、样式和回调", async () => {
+    const globalLoadHandler = vi.fn();
+    const globalMessageHandler = vi.fn();
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [iframeControllerViewUrl]: IframeControllerView,
+        },
+      },
+      iframe: {
+        onLoad: globalLoadHandler,
+        onMessage: globalMessageHandler,
+      },
+    });
+
+    const tabId = await tabsManager.openTab(
+      TabViewUrl.createIframeController(iframeControllerViewUrl, "/fallback.html"),
+      { _viewName: "Iframe 控制器" }
+    );
+    await flushTicks(4);
+
+    const iframe = host.querySelector<HTMLIFrameElement>("iframe");
+    expect(iframe).toBeInstanceOf(HTMLIFrameElement);
+    expect(iframe?.getAttribute("src")).toBe(iframeControllerSrc);
+    expect(host.querySelector(".dynamic-container__iframe-item")?.firstElementChild?.className).toBe("dynamic-iframe");
+    expect(host.querySelector<HTMLElement>(".dynamic-container__controller-layer")?.style.display).toBe("none");
+
+    iframe!.dispatchEvent(new Event("load"));
+    await flushTicks(3);
+
+    expect(tabsManager.getTabById(tabId)?.viewProps?.controllerLoaded).toBe("Iframe 控制器");
+    expect(globalLoadHandler).toHaveBeenCalled();
+
+    await expect.poll(() => host.querySelector<HTMLIFrameElement>("iframe")?.contentWindow).toBeDefined();
+    const currentIframe = host.querySelector<HTMLIFrameElement>("iframe");
+    expect(currentIframe?.contentWindow).toBeDefined();
+
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: { type: "controller:open", viewUrl: TabViewUrl.createRelative("/controller-child.html") },
+        origin: window.location.origin,
+        source: currentIframe!.contentWindow,
+      })
+    );
+    await expect.poll(() => tabsManager.tabs.map(tab => tab.viewName)).toContain("controller 打开");
+
+    expect(globalMessageHandler).toHaveBeenCalled();
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("iframe controller 可以把内嵌 relative src 解析为真实 iframe 地址", async () => {
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [iframeControllerViewUrl]: defineComponent({
+            setup() {
+              defineIframeOptions({});
+              return () => null;
+            },
+          }),
+        },
+      },
+    });
+
+    await tabsManager.openTab(
+      TabViewUrl.createIframeController(iframeControllerViewUrl, TabViewUrl.createRelative("./iframe-tests/message.html")),
+      { _viewName: "Iframe 控制器" }
+    );
+    await flushTicks(4);
+
+    expect(host.querySelector<HTMLIFrameElement>("iframe")?.getAttribute("src")).toBe("./iframe-tests/message.html");
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("iframe controller onMessage 返回 false 时阻止全局 iframe onMessage", async () => {
+    const globalMessageHandler = vi.fn();
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [iframeControllerViewUrl]: BlockingIframeControllerView,
+        },
+      },
+      iframe: {
+        onMessage: globalMessageHandler,
+      },
+    });
+
+    await tabsManager.openTab(TabViewUrl.createIframeController(iframeControllerViewUrl, iframeControllerSrc), {
+      _viewName: "Iframe 控制器",
+    });
+    await flushTicks(4);
+
+    await expect.poll(() => host.querySelector<HTMLIFrameElement>("iframe")?.contentWindow).toBeDefined();
+    const iframe = host.querySelector<HTMLIFrameElement>("iframe");
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: { type: "controller:block-global" },
+        origin: window.location.origin,
+        source: iframe!.contentWindow,
+      })
+    );
+    await flushTicks(3);
+
+    expect(globalMessageHandler).not.toHaveBeenCalled();
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("iframe controller 可以配置局部消息来源", async () => {
+    const controllerMessageHandler = vi.fn();
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [iframeControllerViewUrl]: defineComponent({
+            setup() {
+              defineIframeOptions({
+                src: iframeControllerSrc,
+                messageOrigins: ["https://iframe.example.com"],
+                onMessage: controllerMessageHandler,
+              });
+              return () => null;
+            },
+          }),
+        },
+      },
+    });
+
+    await tabsManager.openTab(TabViewUrl.createIframeController(iframeControllerViewUrl, iframeControllerSrc), {
+      _viewName: "Iframe 控制器",
+    });
+    await flushTicks(4);
+
+    const iframe = host.querySelector<HTMLIFrameElement>("iframe");
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: { type: "controller:allowed-origin" },
+        origin: "https://iframe.example.com",
+        source: iframe!.contentWindow,
+      })
+    );
+    await flushTicks(3);
+
+    expect(controllerMessageHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { type: "controller:allowed-origin" },
+        origin: "https://iframe.example.com",
+      })
+    );
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("iframe controller 未配置局部消息来源时仍使用全局来源校验", async () => {
+    const controllerMessageHandler = vi.fn();
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [iframeControllerViewUrl]: defineComponent({
+            setup() {
+              defineIframeOptions({
+                src: iframeControllerSrc,
+                onMessage: controllerMessageHandler,
+              });
+              return () => null;
+            },
+          }),
+        },
+      },
+    });
+
+    await tabsManager.openTab(TabViewUrl.createIframeController(iframeControllerViewUrl, iframeControllerSrc), {
+      _viewName: "Iframe 控制器",
+    });
+    await flushTicks(4);
+
+    const iframe = host.querySelector<HTMLIFrameElement>("iframe");
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: { type: "controller:blocked-origin" },
+        origin: "https://iframe.example.com",
+        source: iframe!.contentWindow,
+      })
+    );
+    await flushTicks(3);
+
+    expect(controllerMessageHandler).not.toHaveBeenCalled();
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("更新 iframe controller 配置时不会重建 iframe 节点", async () => {
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [iframeControllerViewUrl]: defineComponent({
+            setup() {
+              const tabs = useTabsManager();
+              defineIframeOptions({
+                src: iframeControllerSrc,
+                onMessage: async message => {
+                  if ((message.data as { type?: string })?.type === "controller:update-src") {
+                    tabs.updateTabOptions({ controllerFlag: Date.now() }, message.tabId);
+                  }
+                },
+              });
+              return () => null;
+            },
+          }),
+        },
+      },
+    });
+
+    const tabId = await tabsManager.openTab(TabViewUrl.createIframeController(iframeControllerViewUrl, "about:blank"), {
+      _viewName: "Iframe 控制器",
+    });
+    await flushTicks(4);
+
+    const firstIframe = host.querySelector("iframe");
+    expect(firstIframe).toBeInstanceOf(HTMLIFrameElement);
+
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: { type: "controller:update-src" },
+        origin: window.location.origin,
+        source: firstIframe!.contentWindow,
+      })
+    );
+    await flushTicks(4);
+
+    expect(host.querySelector("iframe")).toBe(firstIframe);
+    expect(tabsManager.getTabById(tabId)?.viewProps?.controllerFlag).toBeTypeOf("number");
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("iframe controller 配置更新 src 时不会重建 iframe 节点", async () => {
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [iframeControllerViewUrl]: defineComponent({
+            setup() {
+              return () => null;
+            },
+          }),
+        },
+      },
+    });
+
+    const tabId = await tabsManager.openTab(
+      TabViewUrl.createIframeController(iframeControllerViewUrl, "/fallback.html"),
+      { _viewName: "Iframe 控制器" }
+    );
+    await flushTicks(4);
+
+    const firstIframe = host.querySelector<HTMLIFrameElement>("iframe");
+    expect(firstIframe).toBeInstanceOf(HTMLIFrameElement);
+    expect(firstIframe?.getAttribute("src")).toBe("/fallback.html");
+
+    firstIframe!.dispatchEvent(new Event("load"));
+    await flushTicks(2);
+
+    tabsManager._setIframeControllerOptions(tabId, {
+      src: iframeControllerSrc,
+    });
+    await flushTicks(4);
+
+    expect(host.querySelector("iframe")).toBe(firstIframe);
+    expect(firstIframe?.getAttribute("src")).toBe(iframeControllerSrc);
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("iframe controller 样式晚注册时会补注入已加载 iframe", async () => {
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [iframeControllerViewUrl]: defineComponent({
+            setup() {
+              return () => null;
+            },
+          }),
+        },
+      },
+    });
+
+    const tabId = await tabsManager.openTab(TabViewUrl.createIframeController(iframeControllerViewUrl, iframeControllerSrc), {
+      _viewName: "Iframe 控制器",
+    });
+    await flushTicks(4);
+
+    const firstIframe = host.querySelector<HTMLIFrameElement>("iframe");
+    expect(firstIframe).toBeInstanceOf(HTMLIFrameElement);
+    firstIframe!.dispatchEvent(new Event("load"));
+    await flushTicks(2);
+
+    tabsManager._setIframeControllerOptions(tabId, {
+      src: "about:blank",
+      styles: "body { margin: 0; color: rgb(22, 93, 255); }",
+    });
+    await flushTicks(4);
+
+    expect(host.querySelector("iframe")).toBe(firstIframe);
+    expect(firstIframe?.contentDocument?.head.querySelector("style[data-tab-router-iframe-controller]")?.textContent).toBe(
+      "body { margin: 0; color: rgb(22, 93, 255); }"
+    );
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("切回缓存的 iframe controller tab 时保留局部配置和消息处理", async () => {
+    const otherViewUrl = "/other-view.vue";
+    const controllerStyles = "body { margin: 0; color: rgb(22, 93, 255); }";
+    const controllerMessageHandler = vi.fn(() => false);
+    const globalMessageHandler = vi.fn();
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [iframeControllerViewUrl]: defineComponent({
+            setup() {
+              defineIframeOptions({
+                src: "about:blank",
+                styles: controllerStyles,
+                onMessage: controllerMessageHandler,
+              });
+              return () => null;
+            },
+          }),
+          [otherViewUrl]: OtherView,
+        },
+      },
+      iframe: {
+        onMessage: globalMessageHandler,
+      },
+    });
+
+    const controllerTabId = await tabsManager.openTab(TabViewUrl.createIframeController(iframeControllerViewUrl, "about:blank"), {
+      _viewName: "Iframe 控制器",
+    });
+    await flushTicks(4);
+
+    const iframe = host.querySelector<HTMLIFrameElement>("iframe");
+    expect(iframe).toBeInstanceOf(HTMLIFrameElement);
+    iframe!.dispatchEvent(new Event("load"));
+    await flushTicks(2);
+    expect(iframe?.contentDocument?.head.querySelector("style[data-tab-router-iframe-controller]")?.textContent).toBe(
+      controllerStyles
+    );
+
+    await tabsManager.openTab(otherViewUrl, { _viewName: "其他页面" });
+    await flushTicks(2);
+    expect(tabsManager._getIframeControllerOptions(controllerTabId)?.styles).toBe(controllerStyles);
+    await tabsManager.changeActiveTab(controllerTabId);
+    await flushTicks(4);
+    expect(tabsManager._getIframeControllerOptions(controllerTabId)?.styles).toBe(controllerStyles);
+
+    expect(host.querySelector("iframe")).toBe(iframe);
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: { type: "controller:after-active" },
+        origin: window.location.origin,
+        source: iframe!.contentWindow,
+      })
+    );
+    await flushTicks(3);
+
+    expect(controllerMessageHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { type: "controller:after-active" },
+        tabId: controllerTabId,
+      })
+    );
+    expect(globalMessageHandler).not.toHaveBeenCalled();
+
     app.unmount();
     host.remove();
   });

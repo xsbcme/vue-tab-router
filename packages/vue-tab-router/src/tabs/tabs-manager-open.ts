@@ -50,6 +50,13 @@ export async function openTab<Url extends string>(
     ...viewProps
   } = normalizedOptions;
 
+  if (TabViewUrl.isIframeController(viewUrl)) {
+    const controllerUrl = TabViewUrl.resolveIframeController(viewUrl).controllerUrl;
+    if (!runtime.resolveComponent(controllerUrl)) {
+      return Promise.reject(new Error(`视图未注册[${controllerUrl}]`));
+    }
+  }
+
   if (TabViewUrl.isIframe(viewUrl)) {
     const newViewUrl = TabViewUrl.resolveIframe(viewUrl);
     if (_viewOutside) {

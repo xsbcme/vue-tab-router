@@ -136,7 +136,7 @@ describe("TabsManager tab moving", () => {
 });
 
 describe("TabsManager runtime safety", () => {
-  it("uses a safe default storage outside browser environments", async () => {
+  it("在浏览器环境外使用安全的默认存储", async () => {
     const tabsManager = createTabsManager({
       views: {
         modules: {},
@@ -148,13 +148,13 @@ describe("TabsManager runtime safety", () => {
     expect(tabsManager.activeTab?.viewName).toBe("首页");
   });
 
-  it("returns null for outside links when window is unavailable", async () => {
+  it("window 不可用时外部链接打开返回 null", async () => {
     const tabsManager = createTestTabsManager();
 
     await expect(tabsManager.openTab("https://example.com", { _viewOutside: true })).resolves.toBeNull();
   });
 
-  it("supports window.open options through _viewOutside", async () => {
+  it("通过 _viewOutside 支持 window.open 配置", async () => {
     const tabsManager = createTestTabsManager();
 
     await expect(
@@ -164,14 +164,14 @@ describe("TabsManager runtime safety", () => {
     ).resolves.toBeNull();
   });
 
-  it("stableStringify handles circular references", () => {
+  it("stableStringify 可以处理循环引用", () => {
     const value: Record<string, unknown> = { name: "tab" };
     value.self = value;
 
     expect(stableStringify(value)).toBe('{"name":"tab","self":"[Circular]"}');
   });
 
-  it("defers storage writes during batch close operations", async () => {
+  it("批量关闭期间延迟写入存储", async () => {
     const storageAdapter = new CountingStorageAdapter();
     const tabsManager = createTabsManager({
       views: {
@@ -193,7 +193,7 @@ describe("TabsManager runtime safety", () => {
     expect(storageAdapter.setCount).toBe(1);
   });
 
-  it("keeps non-closable tabs and redirects source links during batch close", async () => {
+  it("批量关闭时保留不可关闭 tab 并重定向来源关系", async () => {
     const tabsManager = createTestTabsManager();
     const homeTabId = await tabsManager.openFirstTab(TabViewUrl.createRelative("/home"), { _viewName: "首页" });
     const parentTabId = await tabsManager.openTab(TabViewUrl.createRelative("/parent"), { _viewName: "父标签" });
@@ -209,7 +209,7 @@ describe("TabsManager runtime safety", () => {
     expect(tabsManager.getTabById(childTabId)).toBeUndefined();
   });
 
-  it("runs tab:closed hooks for each tab after a batch close", async () => {
+  it("批量关闭后为每个 tab 执行 tab:closed hooks", async () => {
     const tabsManager = createTestTabsManager();
     await tabsManager.openTab(TabViewUrl.createRelative("/one"), { _viewName: "一" });
     await tabsManager.openTab(TabViewUrl.createRelative("/two"), { _viewName: "二" });
@@ -225,7 +225,7 @@ describe("TabsManager runtime safety", () => {
     expect(closedTabs).toEqual(["一", "二", "三"]);
   });
 
-  it("awaits tabs:cleared hooks", async () => {
+  it("等待 tabs:cleared hooks 完成", async () => {
     const tabsManager = createTestTabsManager();
     const calls: string[] = [];
 
@@ -239,7 +239,7 @@ describe("TabsManager runtime safety", () => {
     expect(calls).toEqual(["cleared"]);
   });
 
-  it("closes detached view only when its owner tab is closed", async () => {
+  it("仅在所属 tab 关闭时关闭弹窗视图", async () => {
     const tabsManager = createTestTabsManager();
     const ownerTabId = await tabsManager.openTab(TabViewUrl.createRelative("/owner"), { _viewName: "宿主页" });
     const otherTabId = await tabsManager.openTab(TabViewUrl.createRelative("/other"), { _viewName: "其他页" });
@@ -253,10 +253,31 @@ describe("TabsManager runtime safety", () => {
     await tabsManager.closeTab(ownerTabId);
     expect(tabsManager.detachedTab).toBeNull();
   });
+
+  it("打开未注册的 iframe controller 组件时会返回明确错误", async () => {
+    const tabsManager = createTestTabsManager();
+
+    await expect(tabsManager.openTab(TabViewUrl.createIframeController("/missing-controller.vue", "/iframe.html"))).rejects.toThrow(
+      "视图未注册[/missing-controller.vue]"
+    );
+  });
+
+  it("清空全部标签时会释放 iframe controller 配置", async () => {
+    const tabsManager = createTestTabsManager();
+    await tabsManager.openTab(TabViewUrl.createRelative("/iframe.html"), { _viewName: "Iframe" });
+    const tabId = tabsManager.activeTab?._id;
+
+    tabsManager._setIframeControllerOptions(tabId!, { styles: "body { margin: 0; }" });
+    expect(tabsManager._getIframeControllerOptions(tabId)?.styles).toBe("body { margin: 0; }");
+
+    await tabsManager.clear();
+
+    expect(tabsManager._getIframeControllerOptions(tabId)).toBeUndefined();
+  });
 });
 
 describe("TabsManager view meta", () => {
-  it("uses view meta as default openTab options when explicit options are missing", async () => {
+  it("未显式传参时使用 view meta 作为默认 openTab 选项", async () => {
     const tabsManager = createMetaTabsManager();
 
     await tabsManager.openTab(TabViewUrl.createRelative("/practice"));
@@ -267,7 +288,7 @@ describe("TabsManager view meta", () => {
     expect(tabsManager.activeTab?.viewProps).toEqual({ source: "view-meta" });
   });
 
-  it("lets explicit openTab options override view meta defaults", async () => {
+  it("显式 openTab 选项可以覆盖 view meta 默认值", async () => {
     const tabsManager = createMetaTabsManager();
 
     await tabsManager.openTab(TabViewUrl.createRelative("/practice"), {

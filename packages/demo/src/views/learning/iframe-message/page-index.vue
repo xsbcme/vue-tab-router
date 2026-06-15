@@ -1,9 +1,9 @@
 <template>
   <a-card :style="{ height: '100%', overflow: 'auto' }" title="Iframe 消息">
     <a-space direction="vertical" fill>
-      <a-alert type="info"
-        >这一页只演示宿主和 iframe 的 postMessage 通信。先打开通信 iframe，再用宿主按钮发送消息。</a-alert
-      >
+      <a-alert type="info">
+        这一页只保留全局 iframe load/message 日志和宿主主动发消息。刷新、关闭、打开 tab 这类业务处理请看 Iframe Controller 演示。
+      </a-alert>
 
       <a-space wrap>
         <a-button type="primary" @click="openMessageIframe">打开通信 iframe</a-button>

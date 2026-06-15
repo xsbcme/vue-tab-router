@@ -11,6 +11,7 @@ import { IframeRefValue, isIframeTab, shouldCacheIframeTab } from "./types";
 export function useIframeTabs(tabsManager: TabsManager, managerOptions: ITabsManagerOptions | null) {
   const { onIframeLoad, onIframeMessage } = managerOptions || {};
   const iframeRefs = new Map<string, DynamicIframeExpose>();
+  const loadedIframes = new Map<string, HTMLIFrameElement>();
   const iframeRefreshKeys = reactive(new Map<string, number>());
 
   tabsManager._setIframeMessenger((tabId, data, targetOrigin, transfer) => {
@@ -34,18 +35,26 @@ export function useIframeTabs(tabsManager: TabsManager, managerOptions: ITabsMan
   const cleanupIframeTab = (tabId: string | undefined) => {
     if (!tabId) return;
     iframeRefs.delete(tabId);
+    loadedIframes.delete(tabId);
     iframeRefreshKeys.delete(tabId);
+    tabsManager._clearIframeControllerOptions(tabId);
   };
 
   const hookCleanups = [
     tabsManager.hooks.on("tab:before-refresh", tab => {
       if (!tab._id || !isIframeTab(tab)) return;
       iframeRefs.delete(tab._id);
+      loadedIframes.delete(tab._id);
       iframeRefreshKeys.set(tab._id, (iframeRefreshKeys.get(tab._id) || 0) + 1);
     }),
     tabsManager.hooks.on("tab:closed", tab => cleanupIframeTab(tab._id)),
+    tabsManager.hooks.on("iframe:controller-options-updated", tab => {
+      if (!tab?._id) return;
+      syncLoadedIframeControllerStyles(tab as Tab);
+    }),
     tabsManager.hooks.on("tabs:cleared", () => {
       iframeRefs.clear();
+      loadedIframes.clear();
       iframeRefreshKeys.clear();
     }),
   ];
@@ -54,6 +63,7 @@ export function useIframeTabs(tabsManager: TabsManager, managerOptions: ITabsMan
     hookCleanups.forEach(cleanup => cleanup());
     tabsManager._setIframeMessenger(undefined);
     iframeRefs.clear();
+    loadedIframes.clear();
     iframeRefreshKeys.clear();
   });
 
@@ -135,11 +145,42 @@ export function useIframeTabs(tabsManager: TabsManager, managerOptions: ITabsMan
 
     if (await handleIframeTabClientRequest(payload)) return;
 
+    const controllerOptions = tabsManager._getIframeControllerOptions(latestTab._id);
+    if (controllerOptions?.onMessage) {
+      const result = await controllerOptions.onMessage(payload);
+      if (result === false) return;
+    }
     onIframeMessage && onIframeMessage(payload);
     await tabsManager.hooks.call("iframe:message", payload);
   };
 
+  function injectIframeControllerStyles(iframe: HTMLIFrameElement, styles: string | undefined) {
+    if (!styles) return;
+    try {
+      const iframeDocument = iframe.contentDocument;
+      if (!iframeDocument) return;
+      iframeDocument.head.querySelector("style[data-tab-router-iframe-controller]")?.remove();
+      const style = iframeDocument.createElement("style");
+      style.dataset.tabRouterIframeController = "";
+      style.textContent = styles;
+      iframeDocument.head.appendChild(style);
+    } catch (error) {
+      // 跨域 iframe 无法访问 contentDocument，局部样式注入会被跳过。
+    }
+  }
+
+  function syncLoadedIframeControllerStyles(tab: Pick<Tab, "_id">) {
+    const tabId = tab._id;
+    const iframe = loadedIframes.get(tabId);
+    if (!iframe) return;
+
+    const controllerOptions = tabsManager._getIframeControllerOptions(tabId);
+    injectIframeControllerStyles(iframe, controllerOptions?.styles);
+  }
+
   const cachedIframeTabs = computed(() => tabsManager.tabs.filter(shouldCacheIframeTab));
+
+  const hasCachedIframeTabs = computed(() => cachedIframeTabs.value.length > 0);
 
   const activeCachedIframeTabId = computed(() => {
     const activeTab = tabsManager.activeTab;
@@ -149,17 +190,22 @@ export function useIframeTabs(tabsManager: TabsManager, managerOptions: ITabsMan
   const hasActiveCachedIframe = computed(() => Boolean(activeCachedIframeTabId.value));
 
   const renderIframe = (currentTab: Tab) => {
-    const viewUrl = TabViewUrl.resolveIframe(currentTab.viewUrl);
+    const controllerOptions = tabsManager._getIframeControllerOptions(currentTab._id);
+    const viewUrl = controllerOptions?.src || TabViewUrl.resolveIframe(currentTab.viewUrl);
     return createVNode(DynamicIframeComponent, {
       ref: (exposed: IframeRefValue) => setIframeRef(currentTab._id, exposed),
       link: viewUrl,
       linkProps: currentTab.viewProps,
       loadingComponent: managerOptions?.iframeLoadingComponent || managerOptions?.loadingComponent,
-      allowedOrigins: managerOptions?.iframeMessageOrigins,
+      allowedOrigins: controllerOptions?.messageOrigins || managerOptions?.iframeMessageOrigins,
       messageTab: clone(currentTab),
       onLoad: (e: Event, iframe: HTMLIFrameElement) => {
         const latestTab = tabsManager.getTabById(currentTab._id) || currentTab;
+        loadedIframes.set(latestTab._id, iframe);
         const payload = { event: e, iframe, tab: clone(latestTab) };
+        const latestControllerOptions = tabsManager._getIframeControllerOptions(latestTab._id);
+        injectIframeControllerStyles(iframe, latestControllerOptions?.styles);
+        latestControllerOptions?.onLoad?.(payload);
         onIframeLoad && onIframeLoad(payload);
         tabsManager.hooks.call("iframe:load", payload);
       },
@@ -209,6 +255,7 @@ export function useIframeTabs(tabsManager: TabsManager, managerOptions: ITabsMan
     cachedIframeRender,
     getIframeRenderKey,
     hasActiveCachedIframe,
+    hasCachedIframeTabs,
     renderIframe,
   };
 }

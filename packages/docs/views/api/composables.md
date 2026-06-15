@@ -178,3 +178,42 @@ postCurrentIframeMessage({ type: "reload" });
 ```
 
 通常用于被容器渲染的页面组件内部，不需要手动传 tabId。
+
+## defineIframeOptions(options)
+
+在 iframe controller 组件内定义当前 iframe tab 的局部配置。
+
+```ts
+import { defineIframeOptions } from "@xsbcme/vue-tab-router";
+
+defineIframeOptions({
+  src: "https://example.com/report",
+  styles: "body { outline: 4px solid rgba(22, 93, 255, .18); }",
+  onLoad({ iframe, tab }) {
+    console.log("loaded", tab.viewName, iframe.src);
+  },
+  onMessage(message) {
+    if (message.data?.type === "report:ready") return false;
+  },
+});
+```
+
+参数：
+
+| 字段 | 说明 |
+| --- | --- |
+| `src` | 当前 iframe 的实际加载地址。传入后会覆盖 `TabViewUrl.createIframeController(controllerUrl, iframeSrc)` 的 `iframeSrc`。 |
+| `styles` | 注入到同源 iframe 文档里的 CSS 文本，在 iframe `load` 后执行。 |
+| `messageOrigins` | 当前 iframe controller tab 允许接收消息的来源。不传时使用全局 `iframe.messageOrigins`。 |
+| `onLoad` | 当前 iframe 加载完成后的局部回调，执行顺序早于全局 `iframe.onLoad`。 |
+| `onMessage` | 当前 iframe 发送 `postMessage` 后的局部回调，执行顺序早于全局 `iframe.onMessage`。返回 `false` 会中断后续全局处理。 |
+
+说明：
+
+- 仅在 `TabViewUrl.createIframeController()` 打开的 controller 组件中使用。
+- `src` 可覆盖打开时传入的 iframe 地址；不传时使用 `createIframeController(controllerUrl, iframeSrc)` 的第二个参数。
+- `openTab` 第二个参数会保存为当前 tab 的 `viewProps`，不会自动透传或拼接到 iframe URL。
+- `styles` 会在 iframe `load` 后注入到同源 iframe 文档中，跨域 iframe 会跳过内部样式注入。
+- `messageOrigins` 是局部来源校验；如果不传，仍使用全局 `iframe.messageOrigins`，全局也不传时默认只允许同源。
+- `onMessage` 返回 `false` 会阻止全局 `iframe.onMessage` 和 `iframe:message` hook 继续处理。
+- controller 组件卸载时不会因为普通标签切换清掉配置；关闭 tab、刷新 iframe tab、清空全部 tab 时会释放配置。

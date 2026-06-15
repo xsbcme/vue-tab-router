@@ -1,4 +1,4 @@
-import { AsyncComponentLoader, AsyncComponentOptions, Component, TransitionProps } from "vue";
+import { AsyncComponentLoader, AsyncComponentOptions, Component, MaybeRefOrGetter, TransitionProps } from "vue";
 import { AbstractStorageAdapter } from "./storage/storage-adapter-base";
 import type { IframeLoadEvent, IframeMessageEvent, IframeMessageOriginValidator } from "./iframe/iframe-message";
 import { Tab } from "./tabs/tab";
@@ -342,6 +342,19 @@ export type Modules = Record<string, ModuleItem>;
  * 页面事件处理器映射。
  */
 export type DefineEvents = { [key: string]: (data: unknown) => void };
+
+export interface IframeControllerOptions {
+  /** iframe 地址。响应式变化会更新 iframe src。 */
+  src?: MaybeRefOrGetter<string | undefined>;
+  /** iframe 加载后注入的样式。仅同源 iframe 可访问内部 document。 */
+  styles?: MaybeRefOrGetter<string | undefined>;
+  /** 当前 iframe 允许接收消息的来源。不传时使用全局 iframe.messageOrigins。 */
+  messageOrigins?: MaybeRefOrGetter<IframeMessageOriginValidator | undefined>;
+  /** 当前 iframe 加载完成回调。 */
+  onLoad?: (context: IframeLoadEvent) => void;
+  /** 当前 iframe 收到 postMessage 回调。 */
+  onMessage?: (message: IframeMessageEvent) => void | boolean | Promise<void | boolean>;
+}
 
 /**
  * 在页面内部声明 tab 元信息时使用的参数。

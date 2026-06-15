@@ -5,6 +5,7 @@ import {
   CloseTabOptions,
   CloseTabsOptions,
   IOpenTabOptions,
+  IframeControllerOptions,
   ITabsManagerOptions,
   IUpdateTabOptions,
   TabCloseGuard,
@@ -34,6 +35,14 @@ import {
 } from "./tabs-order";
 import { openTab as openTabState, type TabOpenRuntime } from "./tabs-manager-open";
 
+export interface RegisteredIframeControllerOptions {
+  src?: string;
+  styles?: string;
+  messageOrigins?: IframeControllerOptions["messageOrigins"];
+  onLoad?: IframeControllerOptions["onLoad"];
+  onMessage?: IframeControllerOptions["onMessage"];
+}
+
 export class TabsManager {
   private _options: ITabsManagerOptions;
   private _app: App | null = null;
@@ -56,6 +65,7 @@ export class TabsManager {
     targetOrigin?: string,
     transfer?: Transferable[]
   ) => boolean;
+  private _iframeControllerOptions = new Map<string, RegisteredIframeControllerOptions>();
 
   public readonly events = new EventManager();
 
@@ -342,6 +352,20 @@ export class TabsManager {
    */
   public getTabById(tabId: string | undefined) {
     return tabId ? this._tabById.get(tabId) : undefined;
+  }
+
+  public _setIframeControllerOptions(tabId: string, options: RegisteredIframeControllerOptions) {
+    this._iframeControllerOptions.set(tabId, options);
+    this._hooks.call("iframe:controller-options-updated", clone(this.getTabById(tabId)));
+  }
+
+  public _getIframeControllerOptions(tabId: string | undefined) {
+    return tabId ? this._iframeControllerOptions.get(tabId) : undefined;
+  }
+
+  public _clearIframeControllerOptions(tabId: string | undefined) {
+    if (tabId) this._iframeControllerOptions.delete(tabId);
+    this._hooks.call("iframe:controller-options-updated", this.getTabById(tabId) ? clone(this.getTabById(tabId)) : undefined);
   }
 
   private getTabByViewUrl(viewUrl: string) {
@@ -873,6 +897,7 @@ export class TabsManager {
     this._activeTabId = undefined;
     this._activeTab = undefined;
     this._refreshAllTabFlag = false;
+    this._iframeControllerOptions.clear();
     this.clearPersistedTabs();
     this.events.clear();
     await this._hooks.call("tabs:cleared");

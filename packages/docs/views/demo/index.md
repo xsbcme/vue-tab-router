@@ -39,7 +39,7 @@ Demo 左侧菜单现在按学习顺序组织。建议从上往下点击，每个
 | 基础操作      | `src/views/learning/basic-open`      | 单例复用、多开、刷新、更新、关闭、缓存   |
 | 菜单与层级    | `src/views/learning/menu-breadcrumb` | 菜单入口、详情页层级、面包屑             |
 | 通信与守卫    | `src/views/learning/events`          | 父子通信、进入守卫、离开守卫、关闭守卫   |
-| 链接与 Iframe | `src/views/learning/iframe-links`    | 链接打开、iframe 缓存、消息、导航同步    |
+| 链接与 Iframe | `src/views/learning/iframe-links`    | 链接打开、iframe 缓存、消息、Controller、导航同步 |
 | 弹窗与预览    | `src/views/learning/detached`        | 弹窗显示、预览容器、独立标签组           |
 | 扩展与外观    | `src/views/learning/plugin-hooks`    | 插件 hooks、主题变量、动态图标、状态组件 |
 | 项目实践      | `src/views/practice/overview`        | 业务场景组合、列表详情、报表、客户工作台 |
@@ -88,7 +88,8 @@ Demo 左侧菜单现在按学习顺序组织。建议从上往下点击，每个
 1. 先看链接打开方式，理解内部 iframe 与外部新窗口。
 2. 再看 iframe 缓存，比较切换后的状态保留。
 3. 再看 iframe 消息，验证宿主和 iframe 双向通信。
-4. 最后看 iframe 导航同步和地址栏恢复。
+4. 再看 Iframe Controller，理解 iframe 的 src、样式、加载和消息处理如何写在局部 Vue 控制组件中。
+5. 最后看 iframe 导航同步和地址栏恢复。
 
 ### 6. 高级能力与综合实践
 

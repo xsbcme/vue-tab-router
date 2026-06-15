@@ -5,4 +5,4 @@ export * from "./storage";
 export * from "./tabs";
 export * from "./plugins";
 export * from "./types";
-export { TabViewUrl, type TabViewUrlRelative } from "./shared";
+export { TabViewUrl, type TabViewUrlIframeController, type TabViewUrlRelative } from "./shared";

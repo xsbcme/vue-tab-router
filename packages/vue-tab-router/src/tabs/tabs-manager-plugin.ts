@@ -36,6 +36,8 @@ export interface TabsManagerHookMap {
   "iframe:message": [message: IframeMessageEvent];
   /** iframe 加载完成时触发。 */
   "iframe:load": [context: IframeLoadEvent];
+  /** iframe controller 局部配置更新时触发。 */
+  "iframe:controller-options-updated": [tab?: Partial<Tab>];
   /** 全部 tab 状态被清空后触发。 */
   "tabs:cleared": [];
 }
