@@ -1,5 +1,5 @@
 ---
-"@xsbcme/vue-tab-router": major
+"@xsbcme/vue-tab-router": minor
 ---
 
 新增内置标签栏虚拟渲染能力，适配大量标签页且标签宽度不固定的场景。`DynamicTabsComponent` 现在会在标签数量达到阈值后自动启用横向虚拟列表，并通过真实宽度测量、可视范围计算和 overscan 渲染减少 DOM 数量，降低大量标签页下的渲染、滚动和拖拽卡顿。
