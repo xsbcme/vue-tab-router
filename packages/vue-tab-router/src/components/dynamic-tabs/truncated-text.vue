@@ -14,7 +14,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   text: "",
-  maxLength: 20,
+  maxLength: 28,
 });
 
 const displayText = computed(() => {

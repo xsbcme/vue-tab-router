@@ -79,25 +79,16 @@ export function useTabId() {
   return tab?.value?._id;
 }
 
-/**
- * 向当前页面所在的 iframe 标签页发送消息。
- *
- * 这个方法适合在被 `DynamicContainerComponent` 渲染的页面组件内部使用，
- * 内部会自动读取当前 tabId，使用方通常不需要感知 `useTabId()`。
- */
-export function postCurrentIframeMessage(data: unknown, options?: IframePostMessageOptions): boolean;
-export function postCurrentIframeMessage(data: unknown, targetOrigin?: string, transfer?: Transferable[]): boolean;
-export function postCurrentIframeMessage(
-  data: unknown,
-  optionsOrTargetOrigin?: IframePostMessageOptions | string,
-  transfer?: Transferable[]
-) {
+/** 在当前页面组件内部获取 iframe 消息发送器。 */
+export function useIframeMessenger() {
   const tabId = useTabId();
-  const options =
-    typeof optionsOrTargetOrigin === "string"
-      ? { targetOrigin: optionsOrTargetOrigin, transfer }
-      : optionsOrTargetOrigin;
-  return useTabsManager().postIframeMessage(tabId, data, options);
+  const tabsManager = useTabsManager();
+
+  return {
+    postMessage(data: unknown, options?: IframePostMessageOptions | null) {
+      return tabsManager.postIframeMessage(data, options, tabId);
+    },
+  };
 }
 
 /**

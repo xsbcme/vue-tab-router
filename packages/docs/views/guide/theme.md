@@ -46,7 +46,7 @@
 | `type`           | `"text" \| "line" \| "card" \| "rounded" \| "capsule"` | `"text"` | 标签栏风格                                      |
 | `showIcon`       | `boolean`                                              | `true`   | 是否显示图标；未传时使用 `render.tabs.showIcon` |
 | `defaultIcon`    | `string`                                               | -        | 未设置 `viewIcon` 时显示的图标                  |
-| `titleMaxLength` | `number`                                               | `20`     | 标签标题最大显示长度                            |
+| `titleMaxLength` | `number`                                               | `28`     | 标签标题最大显示长度                            |
 | `draggable`      | `boolean`                                              | `true`   | 是否启用拖拽排序                                |
 | `virtual`        | `boolean \| object`                                    | `{ threshold: 30 }` | 虚拟滚动配置，默认启用且标签数量达到阈值后生效 |
 | `hideFirst`      | `boolean`                                              | `false`  | 隐藏 `_isFirst` 首页标签，预览容器内部使用      |

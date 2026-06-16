@@ -46,11 +46,11 @@ defineTabEvents({
     iframeLogs.value = iframeLogs.value.slice(0, 30);
 
     if (payload.tabId) {
-      tabsManager.postIframeMessage(payload.tabId, {
+      tabsManager.postIframeMessage({
         type: "iframe-client:reply",
         message: "来源页已收到事件",
         time: new Date().toISOString(),
-      });
+      }, undefined, payload.tabId);
     }
   },
 });

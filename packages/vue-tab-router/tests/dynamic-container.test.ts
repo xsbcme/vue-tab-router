@@ -469,7 +469,7 @@ describe("DynamicContainer iframe rendering", () => {
 
     const firstIframe = host.querySelector("iframe");
     expect(firstIframe).toBeInstanceOf(HTMLIFrameElement);
-    expect(tabsManager.postIframeMessage(tabId, { type: "ping" })).toBe(true);
+    expect(tabsManager.postIframeMessage({ type: "ping" }, undefined, tabId)).toBe(true);
 
     await tabsManager.refreshTab(tabId);
     await flushTicks(3);
@@ -477,7 +477,7 @@ describe("DynamicContainer iframe rendering", () => {
     const refreshedIframe = host.querySelector("iframe");
     expect(refreshedIframe).toBeInstanceOf(HTMLIFrameElement);
     expect(refreshedIframe).not.toBe(firstIframe);
-    expect(tabsManager.postIframeMessage(tabId, { type: "ping" })).toBe(true);
+    expect(tabsManager.postIframeMessage({ type: "ping" }, undefined, tabId)).toBe(true);
 
     app.unmount();
     host.remove();
@@ -490,14 +490,15 @@ describe("DynamicContainer iframe rendering", () => {
     await flushTicks(2);
 
     expect(host.querySelector("iframe")).toBeInstanceOf(HTMLIFrameElement);
-    expect(tabsManager.postIframeMessage(tabId, { type: "ping" })).toBe(true);
+    expect(tabsManager.postIframeMessage({ type: "ping" }, undefined, tabId)).toBe(true);
+    expect(tabsManager.postIframeMessage({ type: "ping" }, null, tabId)).toBe(true);
 
     await tabsManager.closeTab(tabId);
     await flushTicks(2);
 
     expect(host.querySelector("iframe")).toBeNull();
     expect(tabsManager.getTabById(tabId)).toBeUndefined();
-    expect(tabsManager.postIframeMessage(tabId, { type: "ping" })).toBe(false);
+    expect(tabsManager.postIframeMessage({ type: "ping" }, undefined, tabId)).toBe(false);
 
     app.unmount();
     host.remove();
@@ -645,6 +646,163 @@ describe("DynamicContainer iframe rendering", () => {
     await flushTicks(4);
 
     expect(host.querySelector<HTMLIFrameElement>("iframe")?.getAttribute("src")).toBe("./iframe-tests/message.html");
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("iframe controller 会把 tab 参数透传到默认 iframe src 查询参数", async () => {
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [iframeControllerViewUrl]: defineComponent({
+            setup() {
+              defineIframeOptions({});
+              return () => null;
+            },
+          }),
+        },
+      },
+    });
+
+    await tabsManager.openTab(
+      TabViewUrl.createIframeController(
+        iframeControllerViewUrl,
+        TabViewUrl.createRelative("./iframe-tests/message.html?mode=preview#ready")
+      ),
+      { _viewName: "Iframe 控制器", reportId: 1001, tags: ["daily", "finance"], empty: undefined }
+    );
+    await flushTicks(4);
+
+    expect(host.querySelector<HTMLIFrameElement>("iframe")?.getAttribute("src")).toBe(
+      "./iframe-tests/message.html?mode=preview&reportId=1001&tags=daily&tags=finance#ready"
+    );
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("iframe controller url query 里的业务参数会进入 tab 并透传 iframe", async () => {
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [iframeControllerViewUrl]: defineComponent({
+            setup() {
+              defineIframeOptions({});
+              return () => null;
+            },
+          }),
+        },
+      },
+    });
+
+    const tabId = await tabsManager.openTab(
+      `${TabViewUrl.createIframeController(
+        iframeControllerViewUrl,
+        TabViewUrl.createRelative("./iframe-tests/message.html?mode=iframe#ready")
+      )}&reportId=1001&tags=daily&tags=finance`,
+      { _viewName: "Iframe 控制器" }
+    );
+    await flushTicks(4);
+
+    expect(tabsManager.getTabById(tabId)?.viewProps).toEqual({
+      reportId: "1001",
+      tags: ["daily", "finance"],
+    });
+    expect(host.querySelector<HTMLIFrameElement>("iframe")?.getAttribute("src")).toBe(
+      "./iframe-tests/message.html?mode=iframe&reportId=1001&tags=daily&tags=finance#ready"
+    );
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("iframe controller url query 里的 _viewName 会作为标签名称", async () => {
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [iframeControllerViewUrl]: defineComponent({
+            setup() {
+              defineIframeOptions({});
+              return () => null;
+            },
+          }),
+        },
+      },
+    });
+
+    const tabId = await tabsManager.openTab(
+      `${TabViewUrl.createIframeController(
+        iframeControllerViewUrl,
+        TabViewUrl.createRelative("./iframe-tests/message.html")
+      )}&_viewName=${encodeURIComponent("单链接 Iframe")}`
+    );
+    await flushTicks(4);
+
+    expect(typeof tabId).toBe("string");
+    if (typeof tabId !== "string") return;
+    expect(tabsManager.getTabById(tabId)?.viewName).toBe("单链接 Iframe");
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("iframe controller 局部 src 会解析 relative 地址并透传 tab 参数", async () => {
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [iframeControllerViewUrl]: defineComponent({
+            setup() {
+              defineIframeOptions({
+                src: TabViewUrl.createRelative("./iframe-tests/message.html?mode=controller"),
+              });
+              return () => null;
+            },
+          }),
+        },
+      },
+    });
+
+    await tabsManager.openTab(TabViewUrl.createIframeController(iframeControllerViewUrl, "/fallback.html"), {
+      _viewName: "Iframe 控制器",
+      reportId: 1001,
+    });
+    await flushTicks(4);
+
+    expect(host.querySelector<HTMLIFrameElement>("iframe")?.getAttribute("src")).toBe(
+      "./iframe-tests/message.html?mode=controller&reportId=1001"
+    );
+
+    app.unmount();
+    host.remove();
+  });
+
+  it("iframe controller 局部 src 查询参数优先于外部业务参数", async () => {
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [iframeControllerViewUrl]: defineComponent({
+            setup() {
+              defineIframeOptions({
+                src: TabViewUrl.createRelative("./iframe-tests/message.html?mode=controller"),
+              });
+              return () => null;
+            },
+          }),
+        },
+      },
+    });
+
+    await tabsManager.openTab(TabViewUrl.createIframeController(iframeControllerViewUrl, "/fallback.html"), {
+      _viewName: "Iframe 控制器",
+      mode: "outside",
+      reportId: 1001,
+    });
+    await flushTicks(4);
+
+    expect(host.querySelector<HTMLIFrameElement>("iframe")?.getAttribute("src")).toBe(
+      "./iframe-tests/message.html?mode=controller&reportId=1001"
+    );
 
     app.unmount();
     host.remove();

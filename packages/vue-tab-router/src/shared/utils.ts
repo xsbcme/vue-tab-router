@@ -2,7 +2,6 @@ import { Component, ComponentInternalInstance } from "vue";
 
 const TAB_VIEW_URL_RELATIVE_PREFIX = "relative:";
 const TAB_VIEW_URL_IFRAME_CONTROLLER_PREFIX = "iframe-controller:";
-const TAB_VIEW_URL_IFRAME_CONTROLLER_SRC_SEPARATOR = "::";
 
 export type TabViewUrlRelative = `${typeof TAB_VIEW_URL_RELATIVE_PREFIX}${string}`;
 export type TabViewUrlIframeController = `${typeof TAB_VIEW_URL_IFRAME_CONTROLLER_PREFIX}${string}`;
@@ -46,21 +45,56 @@ function resolveIframeTabViewUrl(url: string) {
 }
 
 function createIframeControllerTabViewUrl(controllerUrl: string, iframeSrc = ""): TabViewUrlIframeController {
-  const encodedControllerUrl = encodeURIComponent(controllerUrl);
-  const encodedIframeSrc = iframeSrc ? encodeURIComponent(iframeSrc) : "";
-  return `${TAB_VIEW_URL_IFRAME_CONTROLLER_PREFIX}${encodedControllerUrl}${TAB_VIEW_URL_IFRAME_CONTROLLER_SRC_SEPARATOR}${encodedIframeSrc}`;
+  const queryParams = new URLSearchParams();
+  if (iframeSrc) queryParams.set("src", iframeSrc);
+
+  const query = queryParams.toString();
+  return `${TAB_VIEW_URL_IFRAME_CONTROLLER_PREFIX}${controllerUrl}${query ? `?${query}` : ""}`;
+}
+
+function readSearchParams(queryString: string) {
+  const result: Record<string, string | string[]> = {};
+  const queryParams = new URLSearchParams(queryString);
+
+  queryParams.delete("src");
+  queryParams.forEach((value, key) => {
+    const currentValue = result[key];
+    if (Array.isArray(currentValue)) {
+      currentValue.push(value);
+      return;
+    }
+    if (currentValue !== undefined) {
+      result[key] = [currentValue, value];
+      return;
+    }
+    result[key] = value;
+  });
+
+  return result;
+}
+
+function decodeUrlPart(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch (error) {
+    return value;
+  }
 }
 
 function resolveIframeControllerTabViewUrl(url: string) {
   if (!isTabViewIframeControllerUrl(url)) {
-    return { controllerUrl: url, src: "" };
+    return { controllerUrl: url, src: "", props: {} };
   }
 
   const raw = url.slice(TAB_VIEW_URL_IFRAME_CONTROLLER_PREFIX.length);
-  const [controllerUrl = "", src = ""] = raw.split(TAB_VIEW_URL_IFRAME_CONTROLLER_SRC_SEPARATOR);
+  const queryIndex = raw.indexOf("?");
+  const controllerUrl = queryIndex >= 0 ? raw.slice(0, queryIndex) : raw;
+  const queryString = queryIndex >= 0 ? raw.slice(queryIndex + 1) : "";
+  const queryParams = new URLSearchParams(queryString);
   return {
-    controllerUrl: decodeURIComponent(controllerUrl),
-    src: src ? decodeURIComponent(src) : "",
+    controllerUrl: decodeUrlPart(controllerUrl),
+    src: queryParams.get("src") || "",
+    props: readSearchParams(queryString),
   };
 }
 

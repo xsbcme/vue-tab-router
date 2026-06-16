@@ -5,8 +5,8 @@ import type { Tab } from "@/tabs/tab";
 import type { TabsManager } from "@/tabs/tabs-manager";
 import type { ITabsManagerOptions } from "@/types";
 import { clone, TabViewUrl } from "@/shared";
-import DynamicIframeComponent from "@/components/dynamic-iframe.vue";
 import { IframeRefValue, isIframeTab, shouldCacheIframeTab } from "./types";
+import DynamicIframeComponent from "@/components/dynamic-iframe.vue";
 
 export function useIframeTabs(tabsManager: TabsManager, managerOptions: ITabsManagerOptions | null) {
   const { onIframeLoad, onIframeMessage } = managerOptions || {};
@@ -136,10 +136,10 @@ export function useIframeTabs(tabsManager: TabsManager, managerOptions: ITabsMan
       tab: clone(latestTab),
       tabId: latestTab._id,
       reply: (data, options = {}) => {
-        return tabsManager.postIframeMessage(latestTab._id, data, {
+        return tabsManager.postIframeMessage(data, {
           targetOrigin: options.targetOrigin ?? e.origin,
           transfer: options.transfer,
-        });
+        }, latestTab._id);
       },
     };
 
@@ -189,13 +189,32 @@ export function useIframeTabs(tabsManager: TabsManager, managerOptions: ITabsMan
 
   const hasActiveCachedIframe = computed(() => Boolean(activeCachedIframeTabId.value));
 
+  function getUrlQueryKeys(url: string) {
+    const hashIndex = url.indexOf("#");
+    const linkWithoutHash = hashIndex >= 0 ? url.slice(0, hashIndex) : url;
+    const queryIndex = linkWithoutHash.indexOf("?");
+    if (queryIndex < 0) return new Set<string>();
+
+    const queryParams = new URLSearchParams(linkWithoutHash.slice(queryIndex + 1));
+    return new Set(queryParams.keys());
+  }
+
+  function getIframeLinkProps(link: string, linkProps: Record<string, unknown> | undefined) {
+    const existingQueryKeys = getUrlQueryKeys(link);
+    if (!existingQueryKeys.size) return linkProps;
+
+    return Object.fromEntries(
+      Object.entries(linkProps || {}).filter(([key]) => !existingQueryKeys.has(key))
+    );
+  }
+
   const renderIframe = (currentTab: Tab) => {
     const controllerOptions = tabsManager._getIframeControllerOptions(currentTab._id);
-    const viewUrl = controllerOptions?.src || TabViewUrl.resolveIframe(currentTab.viewUrl);
+    const viewUrl = TabViewUrl.resolveIframe(controllerOptions?.src || currentTab.viewUrl);
     return createVNode(DynamicIframeComponent, {
       ref: (exposed: IframeRefValue) => setIframeRef(currentTab._id, exposed),
       link: viewUrl,
-      linkProps: currentTab.viewProps,
+      linkProps: getIframeLinkProps(viewUrl, currentTab.viewProps),
       loadingComponent: managerOptions?.iframeLoadingComponent || managerOptions?.loadingComponent,
       allowedOrigins: controllerOptions?.messageOrigins || managerOptions?.iframeMessageOrigins,
       messageTab: clone(currentTab),

@@ -309,8 +309,7 @@ const tabMenu = useTabMenu({
 - `refreshTab(tabId?)`：刷新单个页签
 - `refreshTabAll()`：刷新全部页签
 - `updateTabOptions(options, tabId?)`：更新页签元信息
-- `postActiveIframeMessage(data, options?)`：向当前激活 iframe 页签发送消息
-- `postIframeMessage(tabId, data, options?)`：向指定 iframe 页签发送消息
+- `postIframeMessage(data, options?, tabId?)`：向当前激活或指定 iframe 页签发送消息
 - `emit(eventName, data?, tabId?)`：向父页签发消息
 - `clear()`：清空全部状态（页签、存储、事件）
 
@@ -386,7 +385,7 @@ createTabsManager({
 
 ### iframe 通信
 
-iframe 页面可以通过 `window.parent.postMessage` 与宿主通信，宿主可以在 `iframe.onMessage` 或插件 hook 中处理消息，并通过 `reply`、`postActiveIframeMessage` 或 `postIframeMessage` 回发。
+iframe 页面可以通过 `window.parent.postMessage` 与宿主通信，宿主可以在 `iframe.onMessage` 或插件 hook 中处理消息，并通过 `reply` 或 `postIframeMessage` 回发。
 
 ```ts
 const tabsManager = createTabsManager({
@@ -417,15 +416,23 @@ const tabsManager = createTabsManager({
 布局、工具栏等外部区域通常只需要操作当前激活 iframe：
 
 ```ts
-tabsManager.postActiveIframeMessage({ type: "set-theme", theme: "dark" });
+tabsManager.postIframeMessage({ type: "set-theme", theme: "dark" });
+```
+
+需要指定 iframe tab 时，把 `tabId` 放在第三个参数：
+
+```ts
+tabsManager.postIframeMessage({ type: "set-theme", theme: "dark" }, undefined, tabId);
 ```
 
 页面组件内部需要向自己所在的 iframe 页签发消息时，可以直接使用组合式函数，不需要手动传 tabId：
 
 ```ts
-import { postCurrentIframeMessage } from "@xsbcme/vue-tab-router";
+import { useIframeMessenger } from "@xsbcme/vue-tab-router";
 
-postCurrentIframeMessage({ type: "reload-data" });
+const { postMessage } = useIframeMessenger();
+
+postMessage({ type: "reload-data" });
 ```
 
 iframe 页面中发送消息：

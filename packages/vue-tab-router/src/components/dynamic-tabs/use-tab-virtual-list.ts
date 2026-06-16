@@ -118,7 +118,7 @@ export function useTabVirtualList(options: UseTabVirtualListOptions) {
 
   const getEstimatedTabWidth = (tab: Tab) => {
     const virtualOptions = resolvedVirtualOptions.value;
-    const maxTitleLength = options.maxTitleLength.value ?? 20;
+    const maxTitleLength = options.maxTitleLength.value ?? 28;
     const rawName = tab._loading ? "加载中..." : tab.viewName || "未命名";
     const nameLength = Math.min(rawName.length, maxTitleLength);
     const iconWidth = options.showIcon.value && (tab.viewIcon || options.defaultIcon.value) ? 22 : 0;

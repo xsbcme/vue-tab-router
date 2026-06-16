@@ -34,7 +34,7 @@ export interface IframeTabClient {
   updateTabOptions(options: Record<string, unknown>): Promise<boolean>;
   /** 向来源页签发送事件，等价于宿主侧 tabsManager.emit。 */
   emit(eventName: string, data?: unknown): Promise<boolean>;
-  /** 监听宿主通过 postIframeMessage 发来的消息。传入 `*` 可监听全部非协议消息。 */
+  /** 监听宿主通过 postIframeMessage(data, options?, tabId?) 发来的消息。传入 `*` 可监听全部非协议消息。 */
   on<Data = unknown>(eventName: string, handler: IframeTabClientMessageHandler<Data>): () => void;
   /** 移除宿主消息监听。 */
   off<Data = unknown>(eventName: string, handler?: IframeTabClientMessageHandler<Data>): void;

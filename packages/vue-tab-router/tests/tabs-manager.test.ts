@@ -262,6 +262,25 @@ describe("TabsManager runtime safety", () => {
     );
   });
 
+  it("iframe controller 地址使用 url query 结构保存 controller、src 和业务参数", async () => {
+    const viewUrl = TabViewUrl.createIframeController(
+      "/src/views/report/controller/page-index.vue",
+      TabViewUrl.createRelative("./iframe-tests/message.html?theme=dark#ready")
+    );
+
+    expect(viewUrl).toBe(
+      "iframe-controller:/src/views/report/controller/page-index.vue?src=relative%3A.%2Fiframe-tests%2Fmessage.html%3Ftheme%3Ddark%23ready"
+    );
+    expect(TabViewUrl.resolveIframeController(`${viewUrl}&reportId=1001&tags=daily&tags=finance`)).toEqual({
+      controllerUrl: "/src/views/report/controller/page-index.vue",
+      src: TabViewUrl.createRelative("./iframe-tests/message.html?theme=dark#ready"),
+      props: {
+        reportId: "1001",
+        tags: ["daily", "finance"],
+      },
+    });
+  });
+
   it("清空全部标签时会释放 iframe controller 配置", async () => {
     const tabsManager = createTestTabsManager();
     await tabsManager.openTab(TabViewUrl.createRelative("/iframe.html"), { _viewName: "Iframe" });

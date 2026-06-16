@@ -205,8 +205,8 @@ document.addEventListener("click", event => {
 宿主发送消息：
 
 ```ts
-tabsManager.postActiveIframeMessage({ type: "set-theme", theme: "dark" });
-tabsManager.postIframeMessage(tabId, { type: "reload" });
+tabsManager.postIframeMessage({ type: "set-theme", theme: "dark" });
+tabsManager.postIframeMessage({ type: "reload" }, undefined, tabId);
 ```
 
 默认只接收同源消息。跨域 iframe 需要显式配置 `messageOrigins`，生产环境不建议使用 `"*"`。

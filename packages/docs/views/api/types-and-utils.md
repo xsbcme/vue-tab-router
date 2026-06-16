@@ -151,7 +151,37 @@ const viewUrl = TabViewUrl.createIframeController(
 );
 ```
 
-`createIframeController(controllerUrl, iframeSrc?)` 只把 controller 路径和默认 iframe 地址编码到 `viewUrl` 中。`openTab(viewUrl, options)` 的 `options` 会成为 tab 的 `viewProps`，不会自动拼到 `iframeSrc`。如果 iframe 页面需要读取业务参数，应在创建 `iframeSrc` 时显式写入 URL 查询参数，或在 controller 组件内根据当前 tab 参数计算 `defineIframeOptions({ src })`。
+生成的 `viewUrl` 使用普通 URL 查询参数结构：
+
+```txt
+iframe-controller:/src/views/report/controller/page-index.vue?src=relative%3A.%2Fiframe-tests%2Fmessage.html
+```
+
+也可以直接在外部菜单或第三方系统里手写同样的单链接：
+
+```txt
+iframe-controller:/src/views/report/controller/page-index.vue?src=relative%3A.%2Fiframe-tests%2Fmessage.html&reportId=1001&mode=preview
+```
+
+规则：
+
+- `iframe-controller:` 后面的路径是 controller 组件路径，需要存在于 `views.modules`。
+- `src` 是默认 iframe 地址，会被 `TabViewUrl.resolveIframe()` 解析；如果 `src` 自身包含 `?`、`&`、`#`，需要按 URL query 参数规则编码。
+- 除 `src` 外的 query 参数会合并进 tab `viewProps`，controller 可以读取，也会作为默认查询参数透传给 iframe。
+- `openTab(viewUrl, options)` 显式传入的 `options` 优先级高于 `viewUrl` query 中的同名参数。
+- controller 内部 `defineIframeOptions({ src })` 可以覆盖 iframe 地址；如果最终 `src` 中已有同名查询参数，`src` 中的值优先于默认透传参数。
+
+例如：
+
+```txt
+iframe-controller:/src/views/report/controller/page-index.vue?src=relative%3A.%2Fiframe-tests%2Fmessage.html%3Ftheme%3Ddark%23ready&reportId=1001
+```
+
+最终 iframe 地址类似：
+
+```txt
+./iframe-tests/message.html?theme=dark&reportId=1001#ready
+```
 
 controller 组件可以通过 `defineIframeOptions({ messageOrigins })` 为当前 tab 单独声明消息来源。未声明时使用全局 `iframe.messageOrigins`，全局也未声明时默认只允许同源消息。
 

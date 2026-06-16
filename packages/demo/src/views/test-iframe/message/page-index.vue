@@ -175,17 +175,17 @@ const openComponentTab = () => {
 };
 
 const sendToActiveIframe = () => {
-  tabsManager.postActiveIframeMessage({
+  tabsManager.postIframeMessage({
     type: "host:active-message",
     time: new Date().toLocaleTimeString(),
   });
 };
 
 const sendToCachedIframeById = () => {
-  tabsManager.postIframeMessage(cachedIframeTabId.value, {
+  tabsManager.postIframeMessage({
     type: "host:tab-id-message",
     time: new Date().toLocaleTimeString(),
-  });
+  }, undefined, cachedIframeTabId.value);
 };
 
 const copySyncedUrl = async () => {

@@ -544,48 +544,17 @@ export class TabsManager {
     await this._hooks.call("tab:detached-closed", detachedTab);
   }
 
-  private getIframePostOptions(optionsOrTargetOrigin?: IframePostMessageOptions | string, transfer?: Transferable[]) {
-    return typeof optionsOrTargetOrigin === "string"
-      ? { targetOrigin: optionsOrTargetOrigin, transfer }
-      : optionsOrTargetOrigin || {};
-  }
-
   /**
-   * 向指定 iframe 标签页发送消息。适合插件或需要精确指定目标 tab 的场景。
+   * 向 iframe 标签页发送消息。不传 tabId 时发送给当前激活 iframe。
    */
-  public postIframeMessage(tabId: string | undefined, data: unknown, options?: IframePostMessageOptions): boolean;
   public postIframeMessage(
-    tabId: string | undefined,
     data: unknown,
-    targetOrigin?: string,
-    transfer?: Transferable[]
-  ): boolean;
-  public postIframeMessage(
-    tabId: string | undefined,
-    data: unknown,
-    optionsOrTargetOrigin?: IframePostMessageOptions | string,
-    transfer?: Transferable[]
+    options: IframePostMessageOptions | null = {},
+    tabId = this.activeTab?._id
   ) {
     if (!tabId) return false;
-    const options = this.getIframePostOptions(optionsOrTargetOrigin, transfer);
-    return Boolean(this._iframeMessenger?.(tabId, data, options.targetOrigin, options.transfer));
-  }
-
-  /**
-   * 向当前激活的 iframe 标签页发送消息。布局、工具栏等外部区域通常使用此方法。
-   */
-  public postActiveIframeMessage(data: unknown, options?: IframePostMessageOptions): boolean;
-  public postActiveIframeMessage(data: unknown, targetOrigin?: string, transfer?: Transferable[]): boolean;
-  public postActiveIframeMessage(
-    data: unknown,
-    optionsOrTargetOrigin?: IframePostMessageOptions | string,
-    transfer?: Transferable[]
-  ) {
-    return this.postIframeMessage(
-      this.activeTab?._id,
-      data,
-      this.getIframePostOptions(optionsOrTargetOrigin, transfer)
-    );
+    const postOptions = options || {};
+    return Boolean(this._iframeMessenger?.(tabId, data, postOptions.targetOrigin, postOptions.transfer));
   }
 
   private async runChangeActiveTabGuards(toTab: Partial<Tab>, fromTab = this.activeTab) {

@@ -33,10 +33,14 @@ export async function openTab<Url extends string>(
   tabOptions?: IOpenTabOptions
 ) {
   const viewMeta = runtime.getViewMeta(viewUrl);
+  const iframeController = TabViewUrl.isIframeController(viewUrl)
+    ? TabViewUrl.resolveIframeController(viewUrl)
+    : undefined;
   const normalizedOptions = {
     ...(viewMeta?.props || {}),
-    _viewName: viewMeta?.props?._viewName ?? viewMeta?.title,
-    _viewIcon: viewMeta?.props?._viewIcon ?? viewMeta?.icon,
+    ...(iframeController?.props || {}),
+    _viewName: viewMeta?.props?._viewName ?? iframeController?.props?._viewName ?? viewMeta?.title,
+    _viewIcon: viewMeta?.props?._viewIcon ?? iframeController?.props?._viewIcon ?? viewMeta?.icon,
     ...jsonToObject(tabOptions || {}, {}),
   } as IOpenTabOptions;
   const {
@@ -50,8 +54,8 @@ export async function openTab<Url extends string>(
     ...viewProps
   } = normalizedOptions;
 
-  if (TabViewUrl.isIframeController(viewUrl)) {
-    const controllerUrl = TabViewUrl.resolveIframeController(viewUrl).controllerUrl;
+  if (iframeController) {
+    const controllerUrl = iframeController.controllerUrl;
     if (!runtime.resolveComponent(controllerUrl)) {
       return Promise.reject(new Error(`视图未注册[${controllerUrl}]`));
     }

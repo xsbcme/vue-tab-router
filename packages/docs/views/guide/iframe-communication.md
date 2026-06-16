@@ -71,21 +71,23 @@ const tabsManager = createTabsManager({
 向当前激活 iframe 发送：
 
 ```ts
-tabsManager.postActiveIframeMessage({ type: "host:active-message" });
+tabsManager.postIframeMessage({ type: "host:active-message" });
 ```
 
 向指定 iframe tab 发送：
 
 ```ts
-tabsManager.postIframeMessage(tabId, { type: "host:tab-id-message" });
+tabsManager.postIframeMessage({ type: "host:tab-id-message" }, undefined, tabId);
 ```
 
-在当前页面组件内部免 tabId 发送：
+在当前页面组件内部发送：
 
 ```ts
-import { postCurrentIframeMessage } from "@xsbcme/vue-tab-router";
+import { useIframeMessenger } from "@xsbcme/vue-tab-router";
 
-postCurrentIframeMessage({ type: "page:message" });
+const iframeMessenger = useIframeMessenger();
+
+iframeMessenger.postMessage({ type: "page:message" });
 ```
 
 ## iframe 页面发送消息
@@ -190,22 +192,112 @@ tabsManager.openTab(
 | --- | --- |
 | `controllerUrl` | controller 组件路径，必须存在于 `views.modules` 注册表中。 |
 | `iframeSrc` | 默认 iframe 地址，会被 `TabViewUrl.resolveIframe()` 解析后传给 iframe。 |
-| `openTab` 第二个参数 | 当前 tab 的 `viewProps`，会保存在 tab 上，不会自动拼接到 iframe URL。 |
-| `defineIframeOptions({ src })` | controller 内部覆盖 iframe 地址，优先级高于 `iframeSrc`。 |
+| `viewUrl` query | `iframe-controller:<controllerUrl>?src=<iframeSrc>&...` 中除 `src` 以外的查询参数，会作为打开参数合并进当前 tab。 |
+| `openTab` 第二个参数 | 当前 tab 的打开参数；优先级高于 `viewUrl` query，去掉 `_viewName` 等内置字段后保存为 `viewProps`，并作为 iframe 查询参数透传。 |
+| `defineIframeOptions({ src })` | controller 内部覆盖 iframe 地址，也会被 `TabViewUrl.resolveIframe()` 解析，优先级高于 `iframeSrc`。 |
 | `defineIframeOptions({ messageOrigins })` | 当前 controller tab 的局部消息来源校验；不传时使用全局 `iframe.messageOrigins`。 |
 
-如果 iframe 页面需要通过 URL 收到业务参数，需要显式把参数拼进 `iframeSrc` 或 `src`：
+`createIframeController(controllerUrl, iframeSrc?)` 会生成普通 URL 查询参数结构：
+
+```txt
+iframe-controller:/src/views/report/controller/page-index.vue?src=relative%3A.%2Fiframe-tests%2Fmessage.html
+```
+
+如果第三方系统或外部菜单只能配置一个链接，也可以直接手写这个结构：
+
+```txt
+iframe-controller:/src/views/report/controller/page-index.vue?src=relative%3A.%2Fiframe-tests%2Fmessage.html&reportId=1001&mode=preview
+```
+
+解码后的含义是：
+
+| 片段 | 含义 |
+| --- | --- |
+| `iframe-controller:` | 声明这是 iframe controller tab。 |
+| `/src/views/report/controller/page-index.vue` | 宿主侧隐藏挂载的 controller 组件。 |
+| `src=relative:./iframe-tests/message.html` | 默认 iframe 地址。 |
+| `reportId=1001&mode=preview` | 业务参数，会进入 `viewProps`，controller 可读，也会透传给 iframe。 |
+
+因此，如果 iframe 页面需要通过 URL 收到业务参数，可以把业务参数传给 `openTab`：
 
 ```ts
-const iframeSrc = TabViewUrl.createRelative(`./iframe-tests/message.html?reportId=${reportId}`);
+const iframeSrc = TabViewUrl.createRelative("./iframe-tests/message.html");
 
 tabsManager.openTab(TabViewUrl.createIframeController(controllerUrl, iframeSrc), {
   _viewName: "报表 Iframe",
-  reportId,
+  reportId: 1001,
 });
 ```
 
-`reportId` 同时可以作为 tab 参数留给宿主侧 controller 使用，但它不会自动进入 iframe 页面地址。
+最终传给 iframe 的地址类似：
+
+```txt
+./iframe-tests/message.html?reportId=1001
+```
+
+也可以把业务参数直接写进单链接，适合后端菜单或第三方系统配置：
+
+```txt
+iframe-controller:/src/views/report/controller/page-index.vue?src=relative%3A.%2Fiframe-tests%2Fmessage.html&reportId=1001
+```
+
+如果 `iframeSrc` 或 controller 内部 `src` 本身已经带有查询参数，`viewProps` 会作为默认参数合并进去；同名参数以 `src` 中已有值为准，数组会展开为多个同名查询参数，`null` 和 `undefined` 不会写入 URL：
+
+```ts
+tabsManager.openTab(
+  TabViewUrl.createIframeController(
+    controllerUrl,
+    TabViewUrl.createRelative("./iframe-tests/message.html?mode=preview#ready")
+  ),
+  {
+    _viewName: "报表 Iframe",
+    reportId: 1001,
+    tags: ["daily", "finance"],
+  }
+);
+```
+
+最终 iframe 地址类似：
+
+```txt
+./iframe-tests/message.html?mode=preview&reportId=1001&tags=daily&tags=finance#ready
+```
+
+如果 `src` 自身包含 `?`、`&`、`#`，写在单链接里时需要按标准 URL query 参数编码：
+
+```txt
+iframe-controller:/src/views/report/controller/page-index.vue?src=relative%3A.%2Fiframe-tests%2Fmessage.html%3Fmode%3Dpreview%23ready&reportId=1001
+```
+
+最终 iframe 地址类似：
+
+```txt
+./iframe-tests/message.html?mode=preview&reportId=1001#ready
+```
+
+如果 controller 需要根据业务参数修改 iframe 地址，可以在 controller 组件中读取当前 tab，然后用 `defineIframeOptions({ src })` 计算最终地址：
+
+```vue
+<script setup lang="ts">
+import { computed } from "vue";
+import { defineIframeOptions, useTabId, useTabsManager } from "@xsbcme/vue-tab-router";
+
+const tabId = useTabId();
+const tabsManager = useTabsManager();
+
+defineIframeOptions({
+  src: computed(() => {
+    const reportId = tabsManager.getTabById(tabId)?.viewProps?.reportId;
+    const url = new URL("./iframe-tests/message.html", window.location.href);
+    url.searchParams.set("mode", "readonly");
+    if (reportId) url.searchParams.set("reportId", String(reportId));
+    return `relative:${url.pathname}${url.search}${url.hash}`;
+  }),
+});
+</script>
+```
+
+controller 计算出的 `src` 优先级最高。同名参数已经写在最终 `src` 里时，外层 `viewProps` 不会覆盖它；外层参数只会补充 `src` 中不存在的查询参数。
 
 controller 组件内部：
 
@@ -253,7 +345,7 @@ defineIframeOptions({
 - controller `onLoad` 在局部样式注入后执行，然后才执行全局 `iframe.onLoad` 和 `iframe:load` hook。
 - controller `messageOrigins` 只影响当前 iframe controller tab；未配置时继续使用全局 `iframe.messageOrigins`，全局也未配置时只允许同源消息。
 - controller `onMessage` 先于全局 `iframe.onMessage` 执行；返回 `false` 会阻止全局处理和 `iframe:message` hook。
-- 宿主向 iframe 发消息仍然使用 `postIframeMessage()`、`postActiveIframeMessage()` 或 `postCurrentIframeMessage()`；controller `onMessage` 处理的是 iframe 发给宿主的消息。
+- 宿主向 iframe 发消息统一使用 `postIframeMessage(data, options?, tabId?)`；页面组件内部可用 `useIframeMessenger()` 自动绑定当前 tab，controller `onMessage` 处理的是 iframe 发给宿主的消息。
 - 普通切换不会清理 controller 配置；关闭 tab、刷新 iframe tab 或清空全部 tab 会释放 iframe 引用和 controller 配置。
 
 适用选择：

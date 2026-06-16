@@ -162,7 +162,7 @@ const tabsManager = createTabsManager({
       () => "视图未注册或已失效"
     ),
     tabs: {
-      titleMaxLength: 12,
+      titleMaxLength: 28,
     },
   },
   detached: {

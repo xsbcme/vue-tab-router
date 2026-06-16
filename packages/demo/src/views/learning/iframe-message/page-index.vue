@@ -36,16 +36,16 @@ const openMessageIframe = async () => {
 };
 
 const sendToActiveIframe = () => {
-  tabsManager.postActiveIframeMessage({
+  tabsManager.postIframeMessage({
     type: "host:active-message",
     time: new Date().toLocaleTimeString(),
   });
 };
 
 const sendToSavedIframe = () => {
-  tabsManager.postIframeMessage(messageIframeTabId.value, {
+  tabsManager.postIframeMessage({
     type: "host:tab-id-message",
     time: new Date().toLocaleTimeString(),
-  });
+  }, undefined, messageIframeTabId.value);
 };
 </script>

@@ -169,15 +169,26 @@ onBeforeTabClose((closingTab, sourceTab) => {
 
 返回 `false`、抛错或返回 rejected Promise 会中断当前流程。
 
-## postCurrentIframeMessage(data, options?)
+## useIframeMessenger()
 
-向当前页面所在 tab 的 iframe 发送消息。
+在当前页面组件内部获取发送当前 iframe 消息的工具。
 
 ```ts
-postCurrentIframeMessage({ type: "reload" });
+import { useIframeMessenger } from "@xsbcme/vue-tab-router";
+
+const iframeMessenger = useIframeMessenger();
+iframeMessenger.postMessage({ type: "reload" });
 ```
 
 通常用于被容器渲染的页面组件内部，不需要手动传 tabId。
+
+`useIframeMessenger()` 返回：
+
+```ts
+interface IframeMessenger {
+  postMessage(data: unknown, options?: IframePostMessageOptions): boolean;
+}
+```
 
 ## defineIframeOptions(options)
 
@@ -212,7 +223,8 @@ defineIframeOptions({
 
 - 仅在 `TabViewUrl.createIframeController()` 打开的 controller 组件中使用。
 - `src` 可覆盖打开时传入的 iframe 地址；不传时使用 `createIframeController(controllerUrl, iframeSrc)` 的第二个参数。
-- `openTab` 第二个参数会保存为当前 tab 的 `viewProps`，不会自动透传或拼接到 iframe URL。
+- `openTab` 第二个参数会保存为当前 tab 的 `viewProps`，并作为默认查询参数透传给 iframe。
+- 如果 `src` 自身已有同名查询参数，`src` 中的值优先；controller 可以借此重写外部传入的 iframe 参数。
 - `styles` 会在 iframe `load` 后注入到同源 iframe 文档中，跨域 iframe 会跳过内部样式注入。
 - `messageOrigins` 是局部来源校验；如果不传，仍使用全局 `iframe.messageOrigins`，全局也不传时默认只允许同源。
 - `onMessage` 返回 `false` 会阻止全局 `iframe.onMessage` 和 `iframe:message` hook 继续处理。

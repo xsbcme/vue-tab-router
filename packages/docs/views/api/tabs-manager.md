@@ -200,8 +200,8 @@ await tabsManager.closeDetachedTab();
 ## iframe 消息
 
 ```ts
-tabsManager.postActiveIframeMessage({ type: "reload" });
-tabsManager.postIframeMessage(tabId, { type: "set-theme", theme: "dark" });
+tabsManager.postIframeMessage({ type: "reload" });
+tabsManager.postIframeMessage({ type: "set-theme", theme: "dark" }, undefined, tabId);
 ```
 
 适合从布局工具栏向当前 iframe 或指定 iframe 发送消息。

@@ -7,12 +7,14 @@
 
       <a-space wrap>
         <a-button type="primary" @click="openControllerIframe">打开 Controller Iframe</a-button>
+        <a-button @click="openSingleLinkControllerIframe">打开单链接 Controller Iframe</a-button>
         <a-button @click="openBaiduControllerIframe">打开百度 Controller Iframe</a-button>
         <a-button @click="sendToControllerIframe">向 Controller Iframe 发送消息</a-button>
       </a-space>
 
       <a-descriptions :column="1" bordered>
         <a-descriptions-item label="Controller tabId">{{ controllerTabId || "-" }}</a-descriptions-item>
+        <a-descriptions-item label="单链接 viewUrl">{{ singleLinkControllerViewUrl }}</a-descriptions-item>
       </a-descriptions>
 
       <a-list bordered :data="iframeLogs">
@@ -34,6 +36,9 @@ const { tabsManager } = useLearningTabs();
 const controllerTabId = ref<string>();
 const controllerViewUrl = "/src/views/learning/iframe-controller/controller/page-index.vue";
 const baiduControllerViewUrl = "/src/views/learning/iframe-controller/baidu/page-index.vue";
+const singleLinkControllerViewUrl = `iframe-controller:${controllerViewUrl}?src=${encodeURIComponent(
+  iframeUrls.message
+)}&_viewName=${encodeURIComponent("单链接 Controller Iframe")}&controllerDemo=true&source=single-link`;
 
 const pushIframeLog = (message: string) => {
   iframeLogs.value.unshift(`[${new Date().toLocaleTimeString()}] ${message}`);
@@ -61,6 +66,11 @@ const openControllerIframe = async () => {
   );
 };
 
+const openSingleLinkControllerIframe = async () => {
+  const tabId = await tabsManager.openTab(singleLinkControllerViewUrl);
+  controllerTabId.value = typeof tabId === "string" ? tabId : undefined;
+};
+
 const openBaiduControllerIframe = () => {
   tabsManager.openTab(TabViewUrl.createIframeController(baiduControllerViewUrl), {
     _viewName: "百度 Controller Iframe",
@@ -70,10 +80,14 @@ const openBaiduControllerIframe = () => {
 
 const sendToControllerIframe = () => {
   const tabId = resolveControllerTabId();
-  const sent = tabsManager.postIframeMessage(tabId, {
-    type: "host:controller-message",
-    time: new Date().toLocaleTimeString(),
-  });
+  const sent = tabsManager.postIframeMessage(
+    {
+      type: "host:controller-message",
+      time: new Date().toLocaleTimeString(),
+    },
+    undefined,
+    tabId,
+  );
   pushIframeLog(sent ? `host message sent ${tabId}` : "host message failed：请先打开 Controller Iframe");
 };
 </script>
