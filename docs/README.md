@@ -25,9 +25,15 @@ pnpm --filter @xsbcme/docs preview
 
 构建产物位于 `.vitepress/dist`，VitePress 缓存位于 `.vitepress/cache` 和 `.vitepress/.temp`。这些目录属于本地产物，不应提交。
 
-## 部署域名
+## 部署方式
 
-文档站部署到独立域名根路径时，不需要配置 `VITEPRESS_BASE`，默认 `/` 即可。需要从文档站跳转到独立 Demo 站点时，通过环境变量注入在线 Demo 地址，避免换域名时改源码：
+仓库默认通过根目录脚本合并构建 GitHub Pages：文档站输出到 `/doc/`，核心 Demo 输出到 `/demo/`，Vue Router 适配 Demo 输出到 `/router-tab-demo/`。
+
+```bash
+pnpm build:pages -- --base /vue-tab-router/
+```
+
+只构建文档站时，如果部署到独立域名根路径，不需要配置 `VITEPRESS_BASE`，默认 `/` 即可。需要从文档站跳转到独立 Demo 站点时，通过环境变量注入在线 Demo 地址，避免换域名时改源码：
 
 PowerShell：
 
@@ -55,10 +61,16 @@ Linux / 宝塔终端：
 VITEPRESS_BASE=/vue-tab-router/ DOCS_DEMO_URL=https://demo.vtr.xsbcme.cn pnpm --filter @xsbcme/docs build
 ```
 
-Demo 站点独立部署时执行：
+核心 Demo 站点独立部署时执行：
 
 ```bash
 pnpm --filter @xsbcme/demo build
+```
+
+Vue Router 适配 Demo 站点独立部署时执行：
+
+```bash
+pnpm --filter @xsbcme/demo-router-tab build
 ```
 
 ## 目录结构
@@ -66,7 +78,8 @@ pnpm --filter @xsbcme/demo build
 ```txt
 docs
 ├─.vitepress/config.ts      # VitePress 配置、导航和侧边栏
-├─images/                   # 文档静态图片
+├─public/                   # 文档静态资源
+│  └─images/                # 文档图片
 ├─views/
 │  ├─api/                   # API 参考
 │  ├─demo/                  # 本地 demo 说明

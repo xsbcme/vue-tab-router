@@ -13,10 +13,11 @@
 
 ## 文档与示例
 
-- 文档站：https://xsbcme.github.io/vue-tab-router/doc
-- 在线 Demo：https://xsbcme.github.io/vue-tab-router/demo
-- 核心示例源码：https://gitee.com/xsbcme/vue-tab-router/tree/master/examples/vue-tab-router
-- Vue Router 适配示例源码：https://gitee.com/xsbcme/vue-tab-router/tree/master/examples/vue-router-tab
+- 文档站：https://xsbcme.github.io/vue-tab-router/doc/
+- 在线 Demo：https://xsbcme.github.io/vue-tab-router/demo/
+- Vue Router 适配 Demo：https://xsbcme.github.io/vue-tab-router/router-tab-demo/
+- 核心示例源码：https://github.com/xsbcme/vue-tab-router/tree/master/examples/vue-tab-router
+- Vue Router 适配示例源码：https://github.com/xsbcme/vue-tab-router/tree/master/examples/vue-router-tab
 
 ## 应用优势
 

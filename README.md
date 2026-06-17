@@ -36,8 +36,9 @@ vue-tab-router/
 - 文档站源码：[docs](docs)
 - 核心包示例：[examples/vue-tab-router](examples/vue-tab-router)
 - Vue Router 适配示例：[examples/vue-router-tab](examples/vue-router-tab)
-- 在线文档：https://xsbcme.github.io/vue-tab-router/doc
-- 在线 Demo：https://xsbcme.github.io/vue-tab-router/demo
+- 在线文档：https://xsbcme.github.io/vue-tab-router/doc/
+- 在线 Demo：https://xsbcme.github.io/vue-tab-router/demo/
+- Vue Router 适配 Demo：https://xsbcme.github.io/vue-tab-router/router-tab-demo/
 - NPM 包：https://www.npmjs.com/package/@xsbcme/vue-tab-router
 
 ## 核心能力概览
