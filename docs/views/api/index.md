@@ -29,7 +29,7 @@ export * from "./types";
 export { TabViewUrl, type TabViewUrlRelative } from "./utils";
 ```
 
-URL 同步插件是独立入口，未导入时不会进入主入口依赖图：
+内置插件使用插件域独立入口，未导入时不会进入主入口依赖图。当前内置插件包括 URL 同步插件：
 
 ```ts
 import { createTabUrlSyncPlugin } from "@xsbcme/vue-tab-router/plugins/tab-url-sync";
@@ -95,5 +95,6 @@ createTabUrlSyncPlugin(router, {
 
 - 想查 `openTab` 参数：看 [TabsManager](/views/api/tabs-manager)。
 - 想查菜单和面包屑返回值：看 [组合式 API](/views/api/composables)。
-- 想查 URL 同步参数：看 [插件与 hooks](/views/api/plugins)。
+- 想了解内置插件：看 [内置插件](/views/guide/built-in-plugins)。
+- 想查 URL 同步完整 API：看 [插件与 hooks](/views/api/plugins)。
 - 想查配置类型：看 [类型与工具](/views/api/types-and-utils)。

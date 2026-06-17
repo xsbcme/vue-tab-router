@@ -104,6 +104,7 @@ export default defineConfig({
               link: "/views/guide/vue-router-integration",
             },
             { text: "地址栏同步与浏览器历史", link: "/views/guide/url-sync" },
+            { text: "内置插件", link: "/views/guide/built-in-plugins" },
             { text: "插件扩展", link: "/views/guide/plugins" },
             {
               text: "首页与预览容器方案",
