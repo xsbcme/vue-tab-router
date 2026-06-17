@@ -1,0 +1,25 @@
+{
+  "name": "@xsbcme/demo-router-tab",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vue-tsc --noEmit && vite",
+    "build": "vue-tsc --noEmit && vite build --emptyOutDir",
+    "type-check": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@xsbcme/vue-router-tab": "workspace:*",
+    "vue": "catalog:",
+    "vue-router": "catalog:"
+  },
+  "devDependencies": {
+    "@arco-design/web-vue": "2.56.3",
+    "@types/node": "catalog:",
+    "@vitejs/plugin-vue": "catalog:",
+    "typescript": "catalog:",
+    "sass": "catalog:",
+    "vite": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

@@ -2,7 +2,7 @@
 
 VueTabRouter 是一个面向 Vue 3 的多标签页路由插件，适用于后台管理系统、业务工作台、多文档编辑、报表平台和 iframe 集成等场景。
 
-![VueTabRouter 多标签页工作台演示](assets/vue-tab-router-demo.gif)
+![VueTabRouter 多标签页工作台演示](media/vue-tab-router-demo.gif)
 
 它解决的不是“渲染一排 Tabs”这么简单的问题，而是把页面打开、复用、缓存、刷新、关闭、守卫、iframe 承载、菜单联动、URL 同步和页面通信收敛到统一的 `TabsManager` 中。
 
@@ -12,12 +12,15 @@ VueTabRouter 是一个面向 Vue 3 的多标签页路由插件，适用于后台
 
 ```txt
 vue-tab-router/
+├── docs/                 # VitePress 文档站点
+├── examples/
+│   ├── vue-tab-router/   # 核心包本地演示项目
+│   └── vue-router-tab/   # Vue Router 适配包演示项目
 ├── packages/
 │   ├── vue-tab-router/   # 核心插件包 @xsbcme/vue-tab-router
-│   ├── docs/             # VitePress 文档站点
-│   └── demo/             # 本地演示项目
+│   └── vue-router-tab/   # Vue Router 适配包 @xsbcme/vue-router-tab
 ├── scripts/              # 发布、部署、日志同步脚本
-├── assets/               # README 展示素材
+├── media/                # README 与包页面展示素材
 ├── pnpm-workspace.yaml
 ├── turbo.json
 └── package.json
@@ -30,8 +33,9 @@ vue-tab-router/
 更细的插件使用说明请看：
 
 - 插件包 README：[packages/vue-tab-router/README.md](packages/vue-tab-router/README.md)
-- 文档站源码：[packages/docs](packages/docs)
-- 本地 demo：[packages/demo](packages/demo)
+- 文档站源码：[docs](docs)
+- 核心包示例：[examples/vue-tab-router](examples/vue-tab-router)
+- Vue Router 适配示例：[examples/vue-router-tab](examples/vue-router-tab)
 - 在线文档：https://xsbcme.github.io/vue-tab-router/doc
 - 在线 Demo：https://xsbcme.github.io/vue-tab-router/demo
 - NPM 包：https://www.npmjs.com/package/@xsbcme/vue-tab-router
@@ -59,6 +63,12 @@ VueTabRouter 不是完整后台模板，也不替代 Vue Router。它更关注�
 pnpm add @xsbcme/vue-tab-router
 ```
 
+如果项目以 Vue Router 路由表为标签页来源，可以安装适配包；它会自动带入底层核心包：
+
+```bash
+pnpm add @xsbcme/vue-router-tab vue-router
+```
+
 完整接入示例、`import.meta.glob` 页面入口约定、`openTab(viewUrl)` key 规则、Vue Router 协同方式和 API 说明，请阅读 [packages/vue-tab-router/README.md](packages/vue-tab-router/README.md) 或在线文档。
 
 ## 开发指南
@@ -70,18 +80,20 @@ pnpm add @xsbcme/vue-tab-router
 
 ### 常用命令
 
-| 命令                  | 说明                     |
-| --------------------- | ------------------------ |
-| `pnpm install`        | 安装依赖                 |
-| `pnpm build`          | 构建所有包               |
-| `pnpm dev`            | 启动所有开发任务         |
-| `pnpm dev:demo`       | 启动本地 demo            |
-| `pnpm build:demo`     | 构建本地 demo            |
-| `pnpm type-check`     | 运行类型检查             |
-| `pnpm test`           | 运行测试                 |
-| `pnpm release:change` | 编写发布变更日志         |
-| `pnpm release:beta`   | 准备 beta 版本与文档日志 |
-| `pnpm release:latest` | 准备正式版本与文档日志   |
+| 命令                         | 说明                      |
+| ---------------------------- | ------------------------- |
+| `pnpm install`               | 安装依赖                  |
+| `pnpm build`                 | 构建所有包                |
+| `pnpm dev`                   | 启动所有开发任务          |
+| `pnpm dev:demo`              | 启动核心包 demo           |
+| `pnpm build:demo`            | 构建核心包 demo           |
+| `pnpm dev:router-tab-demo`   | 启动 Vue Router 适配 demo |
+| `pnpm build:router-tab-demo` | 构建 Vue Router 适配 demo |
+| `pnpm type-check`            | 运行类型检查              |
+| `pnpm test`                  | 运行测试                  |
+| `pnpm release:change`        | 编写发布变更日志          |
+| `pnpm release:beta`          | 准备 beta 版本与文档日志  |
+| `pnpm release:latest`        | 准备正式版本与文档日志    |
 
 ### 本地文档与 Demo
 
@@ -155,6 +167,7 @@ git push
 - 入口页：`https://xsbcme.github.io/vue-tab-router/`
 - 文档首页：`https://xsbcme.github.io/vue-tab-router/doc/`
 - 在线 Demo：`https://xsbcme.github.io/vue-tab-router/demo/`
+- Vue Router 适配 Demo：`https://xsbcme.github.io/vue-tab-router/router-tab-demo/`
 
 本地构建 Pages 产物：
 
@@ -168,4 +181,5 @@ pnpm build:pages -- --base /vue-tab-router/
 
 - **NPM 包**：[@xsbcme/vue-tab-router](https://www.npmjs.com/package/@xsbcme/vue-tab-router)
 - **插件 README**：[packages/vue-tab-router/README.md](packages/vue-tab-router/README.md)
-- **Demo 案例**：[packages/demo](packages/demo)
+- **核心示例**：[examples/vue-tab-router](examples/vue-tab-router)
+- **Vue Router 适配示例**：[examples/vue-router-tab](examples/vue-router-tab)

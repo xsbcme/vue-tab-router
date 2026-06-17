@@ -5,8 +5,8 @@ import { describe, expect, it, vi } from "vitest";
 import DynamicIframeComponent from "../src/components/dynamic-iframe.vue";
 import DynamicContainerComponent from "../src/components/dynamic-container";
 import { AbstractStorageAdapter } from "../src/storage";
-import { createIframeTabClient } from "../src/iframe-client";
-import { createIframeTabClientRequest, createIframeTabClientResponse } from "../src/iframe-client";
+import { createIframeTabClient } from "../src/iframe/client";
+import { createIframeTabClientRequest, createIframeTabClientResponse } from "../src/iframe/client";
 import { createTabsManager, useTabsManager } from "../src/composables";
 import { defineIframeOptions } from "../src/composables";
 import { TabViewUrl } from "../src/shared";
@@ -640,7 +640,10 @@ describe("DynamicContainer iframe rendering", () => {
     });
 
     await tabsManager.openTab(
-      TabViewUrl.createIframeController(iframeControllerViewUrl, TabViewUrl.createRelative("./iframe-tests/message.html")),
+      TabViewUrl.createIframeController(
+        iframeControllerViewUrl,
+        TabViewUrl.createRelative("./iframe-tests/message.html")
+      ),
       { _viewName: "Iframe 控制器" }
     );
     await flushTicks(4);
@@ -1024,9 +1027,12 @@ describe("DynamicContainer iframe rendering", () => {
       },
     });
 
-    const tabId = await tabsManager.openTab(TabViewUrl.createIframeController(iframeControllerViewUrl, iframeControllerSrc), {
-      _viewName: "Iframe 控制器",
-    });
+    const tabId = await tabsManager.openTab(
+      TabViewUrl.createIframeController(iframeControllerViewUrl, iframeControllerSrc),
+      {
+        _viewName: "Iframe 控制器",
+      }
+    );
     await flushTicks(4);
 
     const firstIframe = host.querySelector<HTMLIFrameElement>("iframe");
@@ -1041,9 +1047,9 @@ describe("DynamicContainer iframe rendering", () => {
     await flushTicks(4);
 
     expect(host.querySelector("iframe")).toBe(firstIframe);
-    expect(firstIframe?.contentDocument?.head.querySelector("style[data-tab-router-iframe-controller]")?.textContent).toBe(
-      "body { margin: 0; color: rgb(22, 93, 255); }"
-    );
+    expect(
+      firstIframe?.contentDocument?.head.querySelector("style[data-tab-router-iframe-controller]")?.textContent
+    ).toBe("body { margin: 0; color: rgb(22, 93, 255); }");
 
     app.unmount();
     host.remove();
@@ -1075,9 +1081,12 @@ describe("DynamicContainer iframe rendering", () => {
       },
     });
 
-    const controllerTabId = await tabsManager.openTab(TabViewUrl.createIframeController(iframeControllerViewUrl, "about:blank"), {
-      _viewName: "Iframe 控制器",
-    });
+    const controllerTabId = await tabsManager.openTab(
+      TabViewUrl.createIframeController(iframeControllerViewUrl, "about:blank"),
+      {
+        _viewName: "Iframe 控制器",
+      }
+    );
     await flushTicks(4);
 
     const iframe = host.querySelector<HTMLIFrameElement>("iframe");

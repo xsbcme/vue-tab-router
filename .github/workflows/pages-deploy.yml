@@ -7,9 +7,10 @@ on:
       - main
     paths:
       - .github/workflows/pages-deploy.yml
-      - packages/docs/**
-      - packages/demo/**
+      - docs/**
+      - examples/**
       - packages/vue-tab-router/**
+      - packages/vue-router-tab/**
       - scripts/build-pages.mjs
       - package.json
       - pnpm-lock.yaml

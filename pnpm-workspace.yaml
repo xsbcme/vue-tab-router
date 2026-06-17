@@ -1,8 +1,10 @@
 packages:
   - packages/**
+  - examples/**
+  - docs
 catalog:
-  '@types/node': ^20.11.24
-  '@changesets/cli': ^2.27.1
+  "@types/node": ^20.11.24
+  "@changesets/cli": ^2.27.1
   typescript: ^5.4.5
   turbo: 2.9.5
   prettier: 3.7.0
@@ -12,14 +14,14 @@ catalog:
   vite-plugin-css-injected-by-js: ^4.0.1
   vite-plugin-externalize-deps: ^0.10.0
   sass: 1.59.3
-  '@vitejs/plugin-vue': ^5.0.4
+  "@vitejs/plugin-vue": ^5.0.4
   vue: ^3.4.21
-  '@vue/runtime-core': ^3.4.21
-  '@vue/shared': ^3.4.21
+  "@vue/runtime-core": ^3.4.21
+  "@vue/shared": ^3.4.21
   vitepress: 1.6.4
   vitest: ^2.1.9
   jsdom: ^25.0.1
-  '@arco-design/web-vue': 2.56.3
+  "@arco-design/web-vue": 2.56.3
   pinia: 2.1.7
   vue-router: 4.4.3
 onlyBuiltDependencies:

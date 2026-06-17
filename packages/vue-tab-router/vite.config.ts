@@ -30,7 +30,8 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(__dirname, "src/index.ts"),
-        "iframe-client": resolve(__dirname, "src/iframe-client.ts"),
+        "iframe/client": resolve(__dirname, "src/iframe/client.ts"),
+        "plugins/tab-url-sync": resolve(__dirname, "src/plugins/tab-url-sync/index.ts"),
       },
       formats: ["es", "cjs"],
       fileName: (format, entryName) => `${entryName}.${format === "es" ? "js" : "cjs"}`,

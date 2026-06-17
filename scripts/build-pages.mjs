@@ -4,11 +4,13 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const docsDist = resolve(rootDir, "packages/docs/.vitepress/dist");
+const docsDist = resolve(rootDir, "docs/.vitepress/dist");
 const pagesDist = resolve(rootDir, "dist/pages");
-const demoDist = resolve(rootDir, "packages/demo/dist");
+const demoDist = resolve(rootDir, "examples/vue-tab-router/dist");
+const routerTabDemoDist = resolve(rootDir, "examples/vue-router-tab/dist");
 const docTarget = resolve(pagesDist, "doc");
 const demoTarget = resolve(pagesDist, "demo");
+const routerTabDemoTarget = resolve(pagesDist, "router-tab-demo");
 
 const getArgValue = name => {
   const inlineArg = process.argv.find(arg => arg.startsWith(`${name}=`));
@@ -86,6 +88,7 @@ const writeHtmlRedirect = async (targetDir, targetUrl, title) => {
 const base = normalizeBase(getArgValue("--base") ?? process.env.PAGES_BASE ?? process.env.VITEPRESS_BASE);
 const docsBase = joinUrl(base, "doc");
 const demoBase = joinUrl(base, "demo");
+const routerTabDemoBase = joinUrl(base, "router-tab-demo");
 const demoUrl = `https://xsbcme.github.io${demoBase}`;
 
 console.log(`Building docs with VITEPRESS_BASE=${docsBase}`);
@@ -104,6 +107,13 @@ console.log("Copying demo into Pages output");
 await rm(demoTarget, { recursive: true, force: true });
 await cp(demoDist, demoTarget, { recursive: true });
 
+console.log("Building router-tab demo");
+await run(["--filter", "@xsbcme/demo-router-tab", "build"]);
+
+console.log("Copying router-tab demo into Pages output");
+await rm(routerTabDemoTarget, { recursive: true, force: true });
+await cp(routerTabDemoDist, routerTabDemoTarget, { recursive: true });
+
 console.log("Creating Pages root redirect");
 await writeHtmlRedirect(pagesDist, docsBase, "VueTabRouter 文档");
 await writeFile(resolve(pagesDist, ".nojekyll"), "");
@@ -112,3 +122,4 @@ console.log(`Pages output is ready: ${pagesDist}`);
 console.log(`Root path: ${base}`);
 console.log(`Docs path: ${docsBase}`);
 console.log(`Demo path: ${demoBase}`);
+console.log(`Router tab demo path: ${routerTabDemoBase}`);

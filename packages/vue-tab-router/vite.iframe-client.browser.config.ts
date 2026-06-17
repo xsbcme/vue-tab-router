@@ -6,7 +6,7 @@ export default defineConfig({
     emptyOutDir: false,
     outDir: "dist/browser",
     lib: {
-      entry: resolve(__dirname, "src/iframe-client.ts"),
+      entry: resolve(__dirname, "src/iframe/client.ts"),
       name: "VueTabRouterIframeClient",
       formats: ["iife"],
       fileName: () => "iframe-client.global.js",

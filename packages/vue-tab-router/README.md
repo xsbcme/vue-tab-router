@@ -15,7 +15,8 @@
 
 - 文档站：https://xsbcme.github.io/vue-tab-router/doc
 - 在线 Demo：https://xsbcme.github.io/vue-tab-router/demo
-- 示例源码：https://gitee.com/xsbcme/vue-tab-router/tree/master/packages/demo
+- 核心示例源码：https://gitee.com/xsbcme/vue-tab-router/tree/master/examples/vue-tab-router
+- Vue Router 适配示例源码：https://gitee.com/xsbcme/vue-tab-router/tree/master/examples/vue-router-tab
 
 ## 应用优势
 
@@ -457,7 +458,7 @@ window.parent.postMessage(
 iframe 子项目只需要轻量 client 能力，必须从子入口导入，避免引入宿主侧组件、TabsManager 和存储等完整插件能力：
 
 ```ts
-import { createIframeTabClient } from "@xsbcme/vue-tab-router/iframe-client";
+import { createIframeTabClient } from "@xsbcme/vue-tab-router/iframe/client";
 
 const tabClient = createIframeTabClient();
 

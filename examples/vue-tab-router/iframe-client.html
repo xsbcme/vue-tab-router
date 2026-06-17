@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iframe Client 演示页</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f7f8fa;
+        color: #1d2129;
+      }
+      .page {
+        padding: 24px;
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+      button {
+        height: 32px;
+        border: 1px solid #165dff;
+        border-radius: 4px;
+        color: #165dff;
+        background: #fff;
+        cursor: pointer;
+        padding: 0 12px;
+      }
+      button.primary {
+        background: #165dff;
+        color: #fff;
+      }
+      pre {
+        min-height: 220px;
+        padding: 12px;
+        background: #fff;
+        border: 1px solid #e5e6eb;
+        border-radius: 4px;
+        white-space: pre-wrap;
+      }
+      .hint {
+        margin: 8px 0 16px;
+        color: #86909c;
+      }
+      code {
+        background: rgba(22, 93, 255, 0.08);
+        padding: 0 4px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h2>Iframe Client 演示页</h2>
+      <p class="hint">
+        这个页面不再手写 <code>postMessage</code> 协议，而是直接使用 <code>@xsbcme/vue-tab-router/iframe/client</code>。
+      </p>
+      <div class="actions">
+        <button class="primary" id="inspect">读取当前 tab</button>
+        <button id="update">更新标题</button>
+        <button id="open">打开子标签</button>
+        <button id="refresh">刷新当前 iframe 标签</button>
+        <button id="close">关闭当前 iframe 标签</button>
+        <button id="emit">向来源标签发送事件</button>
+      </div>
+      <p>加载标识：<strong id="loadId"></strong></p>
+      <pre id="log"></pre>
+    </div>
+    <script type="module" src="/src/views/learning/iframe-client/client-page.ts"></script>
+  </body>
+</html>

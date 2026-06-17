@@ -17,6 +17,8 @@
     "changelog:check": "node scripts/sync-changelog.mjs --check",
     "changeset:check": "node scripts/check-release-changesets.mjs",
     "deploy:pages": "node scripts/deploy-pages.mjs",
+    "dev:router-tab-demo": "pnpm --filter @xsbcme/demo-router-tab dev",
+    "build:router-tab-demo": "pnpm --filter @xsbcme/demo-router-tab build",
     "release:change": "changeset",
     "release:beta": "node scripts/prepare-release.mjs beta",
     "release:latest": "node scripts/prepare-release.mjs latest",

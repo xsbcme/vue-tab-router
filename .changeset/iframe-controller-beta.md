@@ -6,7 +6,7 @@
 
 iframe controller 地址改为普通 URL query 结构：`iframe-controller:<controllerUrl>?src=<iframeSrc>&<业务参数>`。外部菜单或第三方系统可以直接配置单链接；除 `src` 外的 query 参数会合并进 tab `viewProps`，controller 可读取，也会作为默认查询参数透传给真实 iframe。`openTab(viewUrl, options)` 的显式参数优先于 URL query，controller 内 `defineIframeOptions({ src })` 可覆盖最终 iframe 地址，且最终 `src` 自身已有的同名 query 参数优先。
 
-新增 iframe client 子入口和浏览器全局包。受控 iframe 页面可以从 `@xsbcme/vue-tab-router/iframe-client` 或 `dist/browser/iframe-client.global.js` 使用 `createIframeTabClient()`，通过内置协议请求获取当前 tab、更新当前 tab、打开子 tab、刷新、关闭和发送事件；浏览器全局包不依赖 Vue。
+新增 iframe client 子入口和浏览器全局包。受控 iframe 页面可以从 `@xsbcme/vue-tab-router/iframe/client` 或 `dist/browser/iframe-client.global.js` 使用 `createIframeTabClient()`，通过内置协议请求获取当前 tab、更新当前 tab、打开子 tab、刷新、关闭和发送事件；浏览器全局包不依赖 Vue。
 
 统一宿主向 iframe 发送消息的 API：`tabsManager.postIframeMessage(data, options?, tabId?)`。不传 `tabId` 时默认发送给当前激活 iframe，指定 tab 时把 `tabId` 放在第三个参数；第二个参数支持 `undefined` 或 `null` 表示无额外发送配置。页面组件内部新增 `useIframeMessenger().postMessage(data, options?)`，用于自动绑定当前 tab。
 

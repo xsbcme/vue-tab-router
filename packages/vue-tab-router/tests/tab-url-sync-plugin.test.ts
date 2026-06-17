@@ -8,7 +8,7 @@ import {
   type CreateTabUrlSyncPluginOptions,
   type TabUrlSyncRoute,
   type TabUrlSyncRouter,
-} from "../src/plugins";
+} from "../src/plugins/tab-url-sync";
 import { TabViewUrl } from "../src/shared";
 
 type RouteQuery = NonNullable<TabUrlSyncRoute["query"]>;
@@ -272,9 +272,9 @@ describe("createTabUrlSyncPlugin", () => {
 
     const targetRouter = createRouterStub({ path: "/dashboard", query: { tab: queryValue as string } });
     const { tabsManager: targetManager } = createSyncedTabsManager(targetRouter);
-    await expect.poll(() => targetManager.activeTab?.viewUrl).toBe(
-      TabViewUrl.createRelative("/iframe/detail.html?id=2#section")
-    );
+    await expect
+      .poll(() => targetManager.activeTab?.viewUrl)
+      .toBe(TabViewUrl.createRelative("/iframe/detail.html?id=2#section"));
   });
 
   it("does not fail when iframe navigation cannot be inspected", async () => {

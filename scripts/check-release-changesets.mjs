@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const changesetDir = resolve(rootDir, ".changeset");
-const allowedPackageName = "@xsbcme/vue-tab-router";
+const allowedPackageNames = ["@xsbcme/vue-tab-router", "@xsbcme/vue-router-tab"];
 
 const logStep = message => console.log(`\n[变更日志范围] ${message}`);
 
@@ -27,7 +27,7 @@ const parsePackages = content => {
 const files = (await readdir(changesetDir)).filter(file => file.endsWith(".md") && file !== "README.md");
 
 logStep("检查待发布 changeset 是否只归属插件包。");
-logStep(`允许写入发布日志的包：${allowedPackageName}`);
+logStep(`允许写入发布日志的包：${allowedPackageNames.join(", ")}`);
 
 const invalidEntries = [];
 
@@ -40,7 +40,7 @@ for (const file of files) {
     continue;
   }
 
-  const disallowedPackages = packages.filter(packageName => packageName !== allowedPackageName);
+  const disallowedPackages = packages.filter(packageName => !allowedPackageNames.includes(packageName));
   if (disallowedPackages.length > 0) {
     invalidEntries.push(`${file}：包含非插件包 ${disallowedPackages.join(", ")}`);
   }
@@ -51,7 +51,9 @@ if (invalidEntries.length > 0) {
   for (const entry of invalidEntries) {
     console.error(`[变更日志范围] ${entry}`);
   }
-  console.error(`[变更日志范围] 请只在 changeset 中声明 ${allowedPackageName}，docs/demo/构建流程等外层变更不要写入插件发布日志。`);
+  console.error(
+    `[变更日志范围] 请只在 changeset 中声明 ${allowedPackageNames.join(", ")}，docs/demo/构建流程等外层变更不要写入插件发布日志。`
+  );
   process.exit(1);
 }
 

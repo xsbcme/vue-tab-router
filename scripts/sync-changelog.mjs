@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const sourcePath = resolve(rootDir, "packages/vue-tab-router/CHANGELOG.md");
-const targetPath = resolve(rootDir, "packages/docs/views/log/index.md");
+const targetPath = resolve(rootDir, "docs/views/log/index.md");
 const startMarker = "<!-- VUE_TAB_ROUTER_CHANGELOG_START -->";
 const endMarker = "<!-- VUE_TAB_ROUTER_CHANGELOG_END -->";
 
@@ -123,7 +123,7 @@ if (checkOnly) {
 
   if (targetChangelog !== normalizeContent(nextTargetChangelog)) {
     console.error("\n[日志同步] 文档日志未同步，已停止发布流程。");
-    console.error("[日志同步] 请先执行 `pnpm changelog:sync`，确认 `packages/docs/views/log/index.md` 的变化后一起提交。");
+    console.error("[日志同步] 请先执行 `pnpm changelog:sync`，确认 `docs/views/log/index.md` 的变化后一起提交。");
     process.exit(1);
   }
 
@@ -133,6 +133,6 @@ if (checkOnly) {
 
 logStep("开始同步更新日志。");
 logStep("来源：packages/vue-tab-router/CHANGELOG.md");
-logStep("目标：packages/docs/views/log/index.md");
+logStep("目标：docs/views/log/index.md");
 await writeFile(targetPath, normalizeContent(nextTargetChangelog));
 logStep("同步完成：请检查并提交文档日志页的变化。");

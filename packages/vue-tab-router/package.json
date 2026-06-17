@@ -14,10 +14,15 @@
       "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
     },
-    "./iframe-client": {
-      "import": "./dist/iframe-client.js",
-      "require": "./dist/iframe-client.cjs",
-      "types": "./dist/iframe-client.d.ts"
+    "./iframe/client": {
+      "import": "./dist/iframe/client.js",
+      "require": "./dist/iframe/client.cjs",
+      "types": "./dist/iframe/client.d.ts"
+    },
+    "./plugins/tab-url-sync": {
+      "import": "./dist/plugins/tab-url-sync.js",
+      "require": "./dist/plugins/tab-url-sync.cjs",
+      "types": "./dist/plugins/tab-url-sync.d.ts"
     }
   },
   "files": [

@@ -15,6 +15,7 @@ export interface NormalizedOpenTabOptions {
   viewNoCache?: boolean;
   viewSingle?: boolean;
   viewPinned?: boolean;
+  viewNoClose?: boolean;
   viewNoDrag?: boolean;
   viewProps: Record<string, unknown>;
 }
@@ -41,6 +42,7 @@ export function normalizeOpenTabOptions(
     _viewNoCache,
     _viewSingle,
     _viewPinned,
+    _viewNoClose,
     _viewNoDrag,
     ...viewProps
   } = normalizedOptions;
@@ -52,6 +54,7 @@ export function normalizeOpenTabOptions(
     viewNoCache: _viewNoCache,
     viewSingle: _viewSingle,
     viewPinned: _viewPinned,
+    viewNoClose: _viewNoClose,
     viewNoDrag: _viewNoDrag,
     viewProps,
   };
@@ -66,6 +69,7 @@ export function normalizeUpdateTabOptions(tab: Tab, options: IUpdateTabOptions |
     _viewNoCache,
     _viewSingle,
     _viewPinned,
+    _viewNoClose,
     _viewNoDrag,
     ...viewProps
   } = parsedOptions;
@@ -78,6 +82,7 @@ export function normalizeUpdateTabOptions(tab: Tab, options: IUpdateTabOptions |
     _noCache: _viewNoCache ?? tab._noCache,
     _single: _viewSingle ?? tab._single,
     _pinned: tab._isFirst ? tab._pinned : (_viewPinned ?? tab._pinned),
+    _noClose: tab._isFirst ? true : (_viewNoClose ?? tab._noClose),
     _noDrag: tab._isFirst ? true : (_viewNoDrag ?? tab._noDrag),
   } satisfies Partial<Tab>;
 }

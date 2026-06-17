@@ -432,10 +432,14 @@ export interface IUpdateTabOptions extends Record<string, unknown> {
   _viewPinned?: boolean;
 
   /**
+   * 更新是否禁止关闭。
+   */
+  _viewNoClose?: boolean;
+
+  /**
    * 更新是否禁止拖拽排序。
    */
   _viewNoDrag?: boolean;
-
 }
 
 /**
@@ -466,6 +470,11 @@ export interface IOpenTabOptions extends Record<string, unknown> {
    * 是否置顶。置顶标签排序时位于首页之后、普通标签之前。
    */
   _viewPinned?: boolean;
+
+  /**
+   * 是否禁止关闭。
+   */
+  _viewNoClose?: boolean;
 
   /**
    * 是否禁止拖拽排序。首页标签默认禁止拖拽。

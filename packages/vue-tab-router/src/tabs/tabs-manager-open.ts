@@ -5,11 +5,7 @@ import { runBeforeOpenGuards } from "./guards";
 import { normalizeOpenTabOptions } from "./services";
 import type { TabOpenRuntime } from "./runtime/types";
 
-function getTabByViewUrlAndProps(
-  tabs: Tab[],
-  viewUrl: string,
-  props: Record<string, unknown> | undefined
-) {
+function getTabByViewUrlAndProps(tabs: Tab[], viewUrl: string, props: Record<string, unknown> | undefined) {
   const propsKey = stableStringify(props);
   return tabs.find(tab => tab.viewUrl === viewUrl && stableStringify(tab.viewProps) === propsKey);
 }
@@ -36,7 +32,8 @@ export async function openTab<Url extends string>(
     const newViewUrl = TabViewUrl.resolveIframe(viewUrl);
     if (normalizedOptions.viewOutside) {
       if (typeof window === "undefined") return null;
-      const { target, features } = typeof normalizedOptions.viewOutside === "object" ? normalizedOptions.viewOutside : {};
+      const { target, features } =
+        typeof normalizedOptions.viewOutside === "object" ? normalizedOptions.viewOutside : {};
       return window.open(newViewUrl, target, features);
     }
   } else if (!runtime.resolveComponent(viewUrl)) {
@@ -52,6 +49,7 @@ export async function openTab<Url extends string>(
     _sourceId: runtime.activeTab?._id,
     _noCache: normalizedOptions.viewNoCache,
     _pinned: normalizedOptions.viewPinned,
+    _noClose: normalizedOptions.viewNoClose,
     _noDrag: normalizedOptions.viewNoDrag,
     _single: normalizedOptions.viewSingle,
     _id: createRandomString(),
@@ -89,6 +87,7 @@ export async function openTab<Url extends string>(
       viewProps: newTab.viewProps,
       _noCache: newTab._noCache,
       _pinned: newTab._pinned,
+      _noClose: newTab._noClose,
       _noDrag: newTab._noDrag,
       _single: newTab._single,
     });
@@ -102,6 +101,7 @@ export async function openTab<Url extends string>(
       viewProps: nextTab.viewProps,
       _noCache: nextTab._noCache,
       _pinned: nextTab._pinned,
+      _noClose: nextTab._noClose,
       _noDrag: nextTab._noDrag,
       _single: nextTab._single,
     });

@@ -240,7 +240,7 @@ const emit = defineEmits<{
   cursor: pointer;
   z-index: 3;
   opacity: 0;
-  pointer-events: none;
+  pointer-events: auto;
   transform: translateY(-50%);
   transition:
     opacity var(--tab-transition-duration, 0.15s) var(--tab-transition-timing, ease),
@@ -256,7 +256,6 @@ const emit = defineEmits<{
 
   &:focus-visible {
     opacity: 1;
-    pointer-events: auto;
     outline: 2px solid var(--tab-color-primary, #165dff);
     outline-offset: 1px;
   }
