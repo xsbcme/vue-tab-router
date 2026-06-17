@@ -8,6 +8,7 @@ const demoSrc = resolve(__dirname, "src/");
 const pluginSrc = resolve(__dirname, "../../packages/vue-tab-router/src/");
 const pluginEntry = resolve(pluginSrc, "index.ts");
 const pluginIframeClientEntry = resolve(pluginSrc, "iframe/client.ts");
+const pluginTabUrlSyncEntry = resolve(pluginSrc, "plugins/tab-url-sync/index.ts");
 const demoIndexEntry = resolve(__dirname, "index.html");
 const iframeClientEntry = resolve(__dirname, "iframe-client.html");
 const normalizePath = (path: string) => path.replace(/\\/g, "/");
@@ -30,6 +31,10 @@ const workspacePluginAlias = (): Plugin => ({
 
     if (id === "@xsbcme/vue-tab-router/iframe/client") {
       return pluginIframeClientEntry;
+    }
+
+    if (id === "@xsbcme/vue-tab-router/plugins/tab-url-sync") {
+      return pluginTabUrlSyncEntry;
     }
 
     const normalizedImporter = importer ? normalizePath(importer) : "";
