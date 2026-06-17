@@ -15,16 +15,15 @@ import {
   TabLeaveGuard,
   ViewOutsideOptions,
 } from "../types";
-import { jsonToObject, clone, findParentPathsByPath } from "../shared";
+import { clone, createTabNotFoundError, findParentPathsByPath } from "../shared";
 import { TabsManagerHooks, TabsManagerPluginCleanup } from "./tabs-manager-plugin";
 import { EventManager } from "../shared";
 import { provideTabsManager, TabsSharedContext } from "./tabs-manager-context";
-import { closeSingleTab, closeTabsInBatch, type TabCloseRuntime } from "./tabs-manager-close";
+import { closeSingleTab, closeTabsInBatch } from "./tabs-manager-close";
 import { TabsPersistence } from "./tabs-persistence";
 import {
   changeActiveTab as changeActiveTabState,
   runChangeActiveTabGuards as runActiveTabGuards,
-  type TabActiveRuntime,
 } from "./tabs-manager-active";
 import {
   getMoveTabState,
@@ -33,7 +32,11 @@ import {
   sortPinnedTabs as sortTabsByPinned,
   swapTabByIndex as swapTabsByIndex,
 } from "./tabs-order";
-import { openTab as openTabState, type TabOpenRuntime } from "./tabs-manager-open";
+import { openTab as openTabState } from "./tabs-manager-open";
+import { createTabsManagerRuntime } from "./runtime";
+import { normalizeUpdateTabOptions } from "./services";
+import { getCloseTabIds } from "./strategies";
+import type { TabActiveRuntime, TabCloseRuntime, TabOpenRuntime } from "./runtime/types";
 
 export interface RegisteredIframeControllerOptions {
   src?: string;
@@ -182,7 +185,7 @@ export class TabsManager {
     return tabs;
   }
 
-  private persistTabs() {
+  public persistTabs() {
     this._persistence.persist(this._tabs);
   }
 
@@ -229,122 +232,20 @@ export class TabsManager {
     return this._reactiveManager || this;
   }
 
+  private getRuntime() {
+    return createTabsManagerRuntime(this);
+  }
+
   private getCloseRuntime(): TabCloseRuntime {
-    const manager = this;
-    return {
-      get tabs() {
-        return manager._tabs;
-      },
-      get activeTab() {
-        return manager.activeTab;
-      },
-      get detachedTab() {
-        return manager._detachedTab;
-      },
-      get options() {
-        return manager._options;
-      },
-      get hooks() {
-        return manager._hooks;
-      },
-      get events() {
-        return manager.events;
-      },
-      setTabs(tabs) {
-        manager.setTabs(tabs);
-      },
-      setActiveTabId(tabId) {
-        manager.setActiveTabId(tabId);
-      },
-      syncTabs() {
-        manager.rebuildTabIndexes();
-        manager.syncActiveTabId();
-      },
-      getTabById(tabId) {
-        return manager.getTabById(tabId);
-      },
-      getNoCloseTabCloseHandler() {
-        return manager._noCloseTabCloseHandler;
-      },
-      runChangeActiveTabGuards(toTab, fromTab) {
-        return manager.runChangeActiveTabGuards(toTab, fromTab);
-      },
-      closeDetachedTab() {
-        return manager.closeDetachedTab();
-      },
-      persistTabs() {
-        manager.persistTabs();
-      },
-    };
+    return this.getRuntime();
   }
 
   private getActiveRuntime(): TabActiveRuntime {
-    const manager = this;
-    return {
-      get tabs() {
-        return manager._tabs;
-      },
-      get activeTab() {
-        return manager.activeTab;
-      },
-      get options() {
-        return manager._options;
-      },
-      get hooks() {
-        return manager._hooks;
-      },
-      getTabById(tabId) {
-        return manager.getTabById(tabId);
-      },
-      setActiveTabId(tabId) {
-        manager.setActiveTabId(tabId);
-      },
-      persistTabs() {
-        manager.persistTabs();
-      },
-    };
+    return this.getRuntime();
   }
 
   private getOpenRuntime(): TabOpenRuntime & { readonly tabs: Tab[] } {
-    const manager = this;
-    return {
-      get tabs() {
-        return manager._tabs;
-      },
-      get activeTab() {
-        return manager.activeTab;
-      },
-      get options() {
-        return manager._options;
-      },
-      get hooks() {
-        return manager._hooks;
-      },
-      getViewMeta(viewUrl) {
-        return manager.getViewMeta(viewUrl);
-      },
-      getTabById(tabId) {
-        return manager.getTabById(tabId);
-      },
-      getTabByViewUrl(viewUrl) {
-        return manager.getTabByViewUrl(viewUrl);
-      },
-      resolveComponent(name) {
-        return manager.resolveComponent(name);
-      },
-      insertTab(tab) {
-        manager.insertTab(tab);
-      },
-      runChangeActiveTabGuards(toTab, fromTab) {
-        return manager.runChangeActiveTabGuards(toTab, fromTab);
-      },
-      changeActiveTab(tabId, triggerHook) {
-        return manager.changeActiveTab(tabId, triggerHook);
-      },
-      refreshTab(tabId) {
-        return manager.refreshTab(tabId);
-      },
-    };
+    return this.getRuntime();
   }
 
   /**
@@ -368,7 +269,7 @@ export class TabsManager {
     this._hooks.call("iframe:controller-options-updated", this.getTabById(tabId) ? clone(this.getTabById(tabId)) : undefined);
   }
 
-  private getTabByViewUrl(viewUrl: string) {
+  public getTabByViewUrl(viewUrl: string) {
     return this._firstTabByViewUrl.get(viewUrl);
   }
 
@@ -376,7 +277,7 @@ export class TabsManager {
     return this.sharedContext.resolveComponent(name);
   }
 
-  private insertTab(tab: Tab) {
+  public insertTab(tab: Tab) {
     insertTabByOrder(this._tabs, tab);
     this.rebuildTabIndexes();
   }
@@ -385,8 +286,13 @@ export class TabsManager {
     this.setTabs(sortTabsByPinned(this._tabs));
   }
 
-  private setTabs(tabs: Tab[]) {
+  public setTabs(tabs: Tab[]) {
     this._tabs = tabs;
+    this.rebuildTabIndexes();
+    this.syncActiveTabId();
+  }
+
+  public syncTabs() {
     this.rebuildTabIndexes();
     this.syncActiveTabId();
   }
@@ -408,16 +314,20 @@ export class TabsManager {
     this._activeTab = activeTab;
   }
 
-  private setActiveTabId(tabId: string | undefined) {
+  public setActiveTabId(tabId: string | undefined) {
     this._activeTabId = tabId;
     this._activeTab = tabId ? this.getTabById(tabId) : undefined;
+  }
+
+  public getNoCloseTabCloseHandler() {
+    return this._noCloseTabCloseHandler;
   }
 
   private setTabNoAllowClose(noAllow: boolean = true, tabId?: string) {
     return nextTick<void>(() => {
       const findTab = this.getTabById(tabId || this.activeTab?._id);
       if (!findTab) {
-        return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
+        return Promise.reject(createTabNotFoundError(tabId));
       }
       Object.assign<Tab, Partial<Tab>>(findTab, { _noClose: noAllow });
       this.rebuildTabIndexes();
@@ -429,7 +339,7 @@ export class TabsManager {
     return nextTick<void>(async () => {
       const findIndex = this._tabs.findIndex(tab => tab._id === tabId);
       if (findIndex < 0) {
-        return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
+        return Promise.reject(createTabNotFoundError(tabId));
       }
       this._tabs.forEach(tab => (tab._isFirst = undefined));
       this._tabs[findIndex]._isFirst = true;
@@ -520,7 +430,7 @@ export class TabsManager {
 
     const findTab = this.getTabById(tabId || this.activeTab?._id);
     if (!findTab) {
-      return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
+      return Promise.reject(createTabNotFoundError(tabId));
     }
     this._detachedTab = clone({
       _id: findTab._id,
@@ -557,7 +467,7 @@ export class TabsManager {
     return Boolean(this._iframeMessenger?.(tabId, data, postOptions.targetOrigin, postOptions.transfer));
   }
 
-  private async runChangeActiveTabGuards(toTab: Partial<Tab>, fromTab = this.activeTab) {
+  public async runChangeActiveTabGuards(toTab: Partial<Tab>, fromTab = this.activeTab) {
     return runActiveTabGuards(this.getActiveRuntime(), toTab, fromTab);
   }
 
@@ -585,32 +495,9 @@ export class TabsManager {
       const findTab = tabId ? this.getTabById(tabId) : this.activeTab;
       if (!findTab) return;
 
-      const parsedOptions = jsonToObject(options, {}) as IUpdateTabOptions;
-      const {
-        _viewName,
-        _viewIcon,
-        _viewUrl,
-        _viewNoCache,
-        _viewSingle,
-        _viewPinned,
-        _viewNoDrag,
-        ...viewProps
-      } = parsedOptions;
-
-      // viewProps 采用浅合并，保证未覆盖字段仍然保留。
-      const mergedViewProps = { ...findTab.viewProps, ...viewProps };
       const previousPinned = findTab._pinned;
 
-      Object.assign<Tab, Partial<Tab>>(findTab, {
-        viewName: _viewName ?? findTab.viewName,
-        viewIcon: _viewIcon ?? findTab.viewIcon,
-        viewUrl: _viewUrl ?? findTab.viewUrl,
-        viewProps: mergedViewProps,
-        _noCache: _viewNoCache ?? findTab._noCache,
-        _single: _viewSingle ?? findTab._single,
-        _pinned: findTab._isFirst ? findTab._pinned : (_viewPinned ?? findTab._pinned),
-        _noDrag: findTab._isFirst ? true : (_viewNoDrag ?? findTab._noDrag),
-      });
+      Object.assign<Tab, Partial<Tab>>(findTab, normalizeUpdateTabOptions(findTab, options));
 
       if (previousPinned !== findTab._pinned) {
         this.sortPinnedTabs();
@@ -669,7 +556,7 @@ export class TabsManager {
       await this.deferPersist(async () => {
         await closeTabsInBatch(
           this.getCloseRuntime(),
-          this._tabs.map(tab => tab._id),
+          getCloseTabIds(this._tabs, undefined, this.activeTab?._id, "all"),
           options
         );
       });
@@ -686,7 +573,7 @@ export class TabsManager {
     return nextTick(() => {
       const findTab = this.getTabById(tabId || this.activeTab?._id);
       if (!findTab) {
-        return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
+        return Promise.reject(createTabNotFoundError(tabId));
       }
       return this._hooks.call("tab:before-refresh", clone(findTab)).then(() => {
         Object.assign<Tab, Partial<Tab>>(findTab, { _isRefresh: true });
@@ -792,13 +679,12 @@ export class TabsManager {
       await this.deferPersist(async () => {
         const findTab = this.getTabById(tabId || this.activeTab?._id);
         if (!findTab) {
-          return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
+          return Promise.reject(createTabNotFoundError(tabId));
         }
-        const findTabIndex = this._tabs.indexOf(findTab);
         await this.changeActiveTab(findTab._id);
         await closeTabsInBatch(
           this.getCloseRuntime(),
-          this._tabs.slice(0, findTabIndex).map(tab => tab._id),
+          getCloseTabIds(this._tabs, findTab._id, this.activeTab?._id, "left"),
           options
         );
       });
@@ -817,13 +703,12 @@ export class TabsManager {
       await this.deferPersist(async () => {
         const findTab = this.getTabById(tabId || this.activeTab?._id);
         if (!findTab) {
-          return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
+          return Promise.reject(createTabNotFoundError(tabId));
         }
-        const findTabIndex = this._tabs.indexOf(findTab);
         await this.changeActiveTab(findTab._id);
         await closeTabsInBatch(
           this.getCloseRuntime(),
-          this._tabs.slice(findTabIndex + 1).map(tab => tab._id),
+          getCloseTabIds(this._tabs, findTab._id, this.activeTab?._id, "right"),
           options
         );
       });
@@ -842,12 +727,12 @@ export class TabsManager {
       await this.deferPersist(async () => {
         const findTab = this.getTabById(tabId || this.activeTab?._id);
         if (!findTab) {
-          return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
+          return Promise.reject(createTabNotFoundError(tabId));
         }
         await this.changeActiveTab(findTab._id);
         await closeTabsInBatch(
           this.getCloseRuntime(),
-          this._tabs.filter(tab => tab._id !== findTab._id).map(tab => tab._id),
+          getCloseTabIds(this._tabs, findTab._id, this.activeTab?._id, "other"),
           options
         );
       });

@@ -36,6 +36,7 @@ function normalizeTabsManagerOptions(options: TabsManagerOptions): ITabsManagerO
     storageKey: storage?.key,
     storageEnabled: storage?.enabled,
     plugins: options.plugins,
+    logger: options.logger,
     transitionProps: render?.transition,
     keepAliveProps: render?.keepAlive,
     noActiveComponent,

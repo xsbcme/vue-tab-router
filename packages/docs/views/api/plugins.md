@@ -131,7 +131,7 @@ createTabUrlSyncPlugin(router, {
 | `serialize` | base64url JSON | 写入 URL 前自定义序列化。 |
 | `deserialize` | base64url JSON | 从 URL 读取后自定义反序列化。 |
 | `validate` | 无 | 从 URL 打开 tab 前校验。 |
-| `onError` | `console.error` | 同步失败回调。 |
+| `onError` | 无 | 同步失败回调。未配置时会使用 `TabsManagerOptions.logger` 的 `error` 方法输出 `URL_SYNC_FAILED` 错误。 |
 
 自定义标题：
 

@@ -1,69 +1,18 @@
 import { EventManager } from "../shared";
 import { Tab } from "./tab";
-import { runTabGuard } from "./tab-guard";
-import { TabsManagerHooks } from "./tabs-manager-plugin";
-import type { CloseTabOptions, CloseTabsOptions, ITabsManagerOptions } from "../types";
-import { clone } from "../shared";
+import type { CloseTabOptions, CloseTabsOptions } from "../types";
+import { clone, createTabNotFoundError } from "../shared";
+import { runBeforeCloseGuards } from "./guards";
+import { getFallbackTabAfterBatchClose, getFallbackTabAfterSingleClose, resolveRemainingSourceId } from "./services";
+import type { TabCloseRuntime } from "./runtime/types";
 
 type ClosedTabRecord = {
   tab: Tab;
   fallbackTab?: Tab;
 };
 
-export interface TabCloseRuntime {
-  readonly tabs: Tab[];
-  readonly activeTab: Tab | undefined;
-  readonly detachedTab: Partial<Tab> | null;
-  readonly options: ITabsManagerOptions;
-  readonly hooks: TabsManagerHooks;
-  readonly events: EventManager;
-  setTabs(tabs: Tab[]): void;
-  setActiveTabId(tabId: string | undefined): void;
-  syncTabs(): void;
-  getTabById(tabId: string | undefined): Tab | undefined;
-  getNoCloseTabCloseHandler(): ((tab: Partial<Tab>) => boolean | Promise<boolean>) | undefined;
-  runChangeActiveTabGuards(toTab: Partial<Tab>, fromTab?: Tab): Promise<void>;
-  closeDetachedTab(): Promise<unknown>;
-  persistTabs(): void;
-}
-
-function setTabsSourceIdById(tabs: Tab[], id: string, newId: string | undefined) {
-  tabs.filter(item => item._sourceId == id).forEach(item => (item._sourceId = newId));
-}
-
 function offTabEvents(events: EventManager, tabId: string) {
   events.offByPrefix(`${tabId}_`);
-}
-
-function resolveRemainingSourceId(sourceId: string | undefined, closingSourceIds: Map<string, string | undefined>) {
-  const seen = new Set<string>();
-  let nextSourceId = sourceId;
-  while (nextSourceId && closingSourceIds.has(nextSourceId) && !seen.has(nextSourceId)) {
-    seen.add(nextSourceId);
-    nextSourceId = closingSourceIds.get(nextSourceId);
-  }
-  return nextSourceId;
-}
-
-function getFallbackTabAfterBatchClose(
-  tabs: Tab[],
-  getTabById: (tabId: string | undefined) => Tab | undefined,
-  closingTab: Tab,
-  closingIds: Set<string>,
-  closingSourceIds: Map<string, string | undefined>
-) {
-  const parentTab = getTabById(resolveRemainingSourceId(closingTab._sourceId, closingSourceIds));
-  if (parentTab && !closingIds.has(parentTab._id)) return parentTab;
-
-  const closingIndex = tabs.indexOf(closingTab);
-  for (let index = closingIndex - 1; index >= 0; index--) {
-    const tab = tabs[index];
-    if (!closingIds.has(tab._id)) return tab;
-  }
-  for (let index = closingIndex + 1; index < tabs.length; index++) {
-    const tab = tabs[index];
-    if (!closingIds.has(tab._id)) return tab;
-  }
 }
 
 async function collectTabsToClose(runtime: TabCloseRuntime, tabIds: string[], options: CloseTabsOptions) {
@@ -88,9 +37,7 @@ async function collectTabsToClose(runtime: TabCloseRuntime, tabIds: string[], op
     if (!options.skipGuard) {
       try {
         const sourceTab = getTabById(findTab._sourceId);
-        await runTabGuard(findTab._onBeforeTabClose, clone(findTab), clone(sourceTab));
-        await runTabGuard(runtime.options?.onBeforeTabClose, clone(findTab), clone(sourceTab));
-        await runtime.hooks.call("tab:before-close", clone(findTab), clone(sourceTab));
+        await runBeforeCloseGuards(runtime, findTab, sourceTab);
       } catch (error) {
         if (!options.continueOnRejected) return Promise.reject(error);
         continue;
@@ -185,7 +132,7 @@ export async function closeTabsInBatch(runtime: TabCloseRuntime, tabIds: string[
 export async function closeSingleTab(runtime: TabCloseRuntime, tabId: string | undefined, options: CloseTabOptions = {}) {
   const findTab = runtime.getTabById(tabId || runtime.activeTab?._id);
   if (!findTab) {
-    return Promise.reject(new Error(`标签页不存在[${tabId || ""}]`));
+    return Promise.reject(createTabNotFoundError(tabId));
   }
   const findTabIndex = runtime.tabs.indexOf(findTab);
   if (findTabIndex < 0) return;
@@ -200,9 +147,7 @@ export async function closeSingleTab(runtime: TabCloseRuntime, tabId: string | u
   if (!options.skipGuard) {
     try {
       const sourceTab = runtime.getTabById(findTab._sourceId);
-      await runTabGuard(findTab._onBeforeTabClose, clone(findTab), clone(sourceTab));
-      await runTabGuard(runtime.options?.onBeforeTabClose, clone(findTab), clone(sourceTab));
-      await runtime.hooks.call("tab:before-close", clone(findTab), clone(sourceTab));
+      await runBeforeCloseGuards(runtime, findTab, sourceTab);
     } catch (error) {
       return Promise.reject(error);
     }
@@ -211,8 +156,7 @@ export async function closeSingleTab(runtime: TabCloseRuntime, tabId: string | u
   offTabEvents(runtime.events, findTab._id);
 
   const shouldActivateFallback = runtime.activeTab?._id === findTab._id;
-  const parentTab = runtime.getTabById(findTab._sourceId);
-  const fallbackTab = parentTab || runtime.tabs[findTabIndex - 1] || runtime.tabs[findTabIndex + 1];
+  const fallbackTab = getFallbackTabAfterSingleClose(runtime.tabs, runtime.getTabById, findTab, findTabIndex);
   if (!options.skipGuard && shouldActivateFallback && fallbackTab) {
     try {
       await runtime.runChangeActiveTabGuards(fallbackTab, findTab);
@@ -222,7 +166,7 @@ export async function closeSingleTab(runtime: TabCloseRuntime, tabId: string | u
   }
 
   runtime.tabs.splice(findTabIndex, 1);
-  setTabsSourceIdById(runtime.tabs, findTab._id, findTab._sourceId);
+  runtime.tabs.filter(item => item._sourceId == findTab._id).forEach(item => (item._sourceId = findTab._sourceId));
   runtime.syncTabs();
   if (shouldActivateFallback) {
     runtime.setActiveTabId(fallbackTab?._id);

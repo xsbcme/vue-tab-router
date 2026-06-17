@@ -3,7 +3,7 @@ import { INJECT_ACTIVE_TAB_KEY } from "@/shared";
 import { useTabsManager } from "@/composables";
 import type { ITabsManagerOptions } from "@/types";
 import { DefaultEmptyComponent } from "@/components/default-state";
-import { getTabCacheName, isIframeControllerTab, isIframeTab, shouldCacheComponentTab } from "./types";
+import { getTabCacheName, isIframeControllerTab, isIframeTab, shouldCacheComponentTab } from "./tab-cache";
 import { useComponentTabs } from "./use-component-tabs";
 import { useIframeTabs } from "./use-iframe-tabs";
 import { useScrollRestore } from "./use-scroll-restore";

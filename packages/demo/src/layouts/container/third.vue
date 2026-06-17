@@ -1,6 +1,9 @@
 <template>
   <div class="third">
     <div class="third-item">
+      <a-link href="https://xsbcme.github.io/vue-tab-router/doc" target="_blank" icon>Doc</a-link>
+    </div>
+    <div class="third-item">
       <a-link href="https://www.npmjs.com/package/@xsbcme/vue-tab-router" target="_blank" icon>Npm</a-link>
     </div>
     <div class="third-item">

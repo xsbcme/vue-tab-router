@@ -1,22 +1,9 @@
 import { Tab } from "./tab";
-import { runTabGuard } from "./tab-guard";
-import { TabsManagerHooks } from "./tabs-manager-plugin";
-import type { IOpenTabOptions, ITabsManagerOptions } from "../types";
-import { clone, createRandomString, jsonToObject, stableStringify, TabViewUrl } from "../shared";
-
-export interface TabOpenRuntime {
-  readonly activeTab: Tab | undefined;
-  readonly options: ITabsManagerOptions;
-  readonly hooks: TabsManagerHooks;
-  getViewMeta(viewUrl: string | undefined): { title?: string; icon?: string; props?: Record<string, unknown> } | undefined;
-  getTabById(tabId: string | undefined): Tab | undefined;
-  getTabByViewUrl(viewUrl: string): Tab | undefined;
-  resolveComponent(name: string): unknown;
-  insertTab(tab: Tab): void;
-  runChangeActiveTabGuards(toTab: Partial<Tab>, fromTab?: Tab): Promise<void>;
-  changeActiveTab(tabId: string, triggerHook?: boolean): Promise<string>;
-  refreshTab(tabId?: string): Promise<unknown>;
-}
+import type { IOpenTabOptions } from "../types";
+import { clone, createRandomString, createViewNotRegisteredError, stableStringify, TabViewUrl } from "../shared";
+import { runBeforeOpenGuards } from "./guards";
+import { normalizeOpenTabOptions } from "./services";
+import type { TabOpenRuntime } from "./runtime/types";
 
 function getTabByViewUrlAndProps(
   tabs: Tab[],
@@ -36,53 +23,37 @@ export async function openTab<Url extends string>(
   const iframeController = TabViewUrl.isIframeController(viewUrl)
     ? TabViewUrl.resolveIframeController(viewUrl)
     : undefined;
-  const normalizedOptions = {
-    ...(viewMeta?.props || {}),
-    ...(iframeController?.props || {}),
-    _viewName: viewMeta?.props?._viewName ?? iframeController?.props?._viewName ?? viewMeta?.title,
-    _viewIcon: viewMeta?.props?._viewIcon ?? iframeController?.props?._viewIcon ?? viewMeta?.icon,
-    ...jsonToObject(tabOptions || {}, {}),
-  } as IOpenTabOptions;
-  const {
-    _viewOutside,
-    _viewName,
-    _viewIcon,
-    _viewNoCache,
-    _viewSingle,
-    _viewPinned,
-    _viewNoDrag,
-    ...viewProps
-  } = normalizedOptions;
+  const normalizedOptions = normalizeOpenTabOptions(viewUrl, viewMeta, tabOptions);
 
   if (iframeController) {
     const controllerUrl = iframeController.controllerUrl;
     if (!runtime.resolveComponent(controllerUrl)) {
-      return Promise.reject(new Error(`视图未注册[${controllerUrl}]`));
+      return Promise.reject(createViewNotRegisteredError(controllerUrl));
     }
   }
 
   if (TabViewUrl.isIframe(viewUrl)) {
     const newViewUrl = TabViewUrl.resolveIframe(viewUrl);
-    if (_viewOutside) {
+    if (normalizedOptions.viewOutside) {
       if (typeof window === "undefined") return null;
-      const { target, features } = typeof _viewOutside === "object" ? _viewOutside : {};
+      const { target, features } = typeof normalizedOptions.viewOutside === "object" ? normalizedOptions.viewOutside : {};
       return window.open(newViewUrl, target, features);
     }
   } else if (!runtime.resolveComponent(viewUrl)) {
-    return Promise.reject(new Error(`视图未注册[${viewUrl}]`));
+    return Promise.reject(createViewNotRegisteredError(viewUrl));
   }
 
   const newTab = new Tab({
     viewUrl,
-    viewName: _viewName,
-    viewIcon: _viewIcon,
-    viewProps,
+    viewName: normalizedOptions.viewName,
+    viewIcon: normalizedOptions.viewIcon,
+    viewProps: normalizedOptions.viewProps,
 
     _sourceId: runtime.activeTab?._id,
-    _noCache: _viewNoCache,
-    _pinned: _viewPinned,
-    _noDrag: _viewNoDrag,
-    _single: _viewSingle,
+    _noCache: normalizedOptions.viewNoCache,
+    _pinned: normalizedOptions.viewPinned,
+    _noDrag: normalizedOptions.viewNoDrag,
+    _single: normalizedOptions.viewSingle,
     _id: createRandomString(),
   });
 
@@ -98,8 +69,7 @@ export async function openTab<Url extends string>(
   const findTabByViewUrl = runtime.getTabByViewUrl(viewUrl);
   if (!findTabByViewUrl || (findTabByViewUrl && !newTab._single)) {
     const sourceTab = runtime.getTabById(newTab._sourceId);
-    await runTabGuard(runtime.options?.onBeforeTabOpen, clone(newTab), clone(sourceTab));
-    await runtime.hooks.call("tab:before-open", clone(newTab), clone(sourceTab));
+    await runBeforeOpenGuards(runtime, newTab, sourceTab);
     await runtime.runChangeActiveTabGuards(newTab);
 
     runtime.insertTab(newTab);

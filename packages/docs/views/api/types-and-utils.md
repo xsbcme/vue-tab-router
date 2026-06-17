@@ -11,6 +11,7 @@ interface TabsManagerOptions {
   views: TabsManagerViewsOptions;
   storage?: TabsManagerStorageOptions;
   plugins?: TabsManagerPlugin[];
+  logger?: TabRouterLogger | false;
   render?: TabsManagerRenderOptions;
   iframe?: TabsManagerIframeOptions;
   guards?: TabsManagerGuardsOptions;
@@ -201,6 +202,54 @@ createTabsManager({
   },
 });
 ```
+
+## 错误与日志类型
+
+### TabRouterError
+
+插件内部可预期错误会使用 `TabRouterError`，业务可以通过 `code` 区分错误类型。
+
+```ts
+import { TabRouterError } from "@xsbcme/vue-tab-router";
+
+try {
+  await tabsManager.openTab("/missing/page-index.vue");
+} catch (error) {
+  if (error instanceof TabRouterError && error.code === "VIEW_NOT_REGISTERED") {
+    // 处理未注册页面
+  }
+}
+```
+
+当前错误码：
+
+| 错误码 | 说明 |
+| --- | --- |
+| `TAB_NOT_FOUND` | 目标 tab 不存在。 |
+| `VIEW_NOT_REGISTERED` | 目标组件页面未注册。 |
+| `GUARD_REJECTED` | 守卫阻止当前流程。 |
+| `URL_SYNC_FAILED` | URL 同步插件执行失败。 |
+| `IFRAME_MESSAGE_FAILED` | iframe 消息处理失败。 |
+
+### TabRouterLogger
+
+`TabsManagerOptions.logger` 用于接收插件内部 fallback 日志。传入 `false` 可关闭 fallback 日志。
+
+```ts
+createTabsManager({
+  views: { modules },
+  logger: {
+    error(message, context) {
+      console.error(message, context);
+    },
+    warn(message, context) {
+      console.warn(message, context);
+    },
+  },
+});
+```
+
+未配置时，内部默认 logger 只输出 `warn` 和 `error`；如果某个插件提供了自己的 `onError`，会优先调用插件的错误回调。
 
 ## AbstractStorageAdapter
 

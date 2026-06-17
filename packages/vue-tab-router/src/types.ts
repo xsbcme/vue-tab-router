@@ -1,6 +1,7 @@
 import { AsyncComponentLoader, AsyncComponentOptions, Component, MaybeRefOrGetter, TransitionProps } from "vue";
 import { AbstractStorageAdapter } from "./storage/storage-adapter-base";
 import type { IframeLoadEvent, IframeMessageEvent, IframeMessageOriginValidator } from "./iframe/iframe-message";
+import type { TabRouterLogger } from "./shared/logger";
 import { Tab } from "./tabs/tab";
 import type { TabsManagerPlugin } from "./tabs/tabs-manager-plugin";
 
@@ -37,6 +38,9 @@ export interface ITabsManagerOptions {
    * 扩展插件。插件会在 `app.use(tabsManager)` 时安装。
    */
   plugins?: TabsManagerPlugin[];
+
+  /** 轻量日志接口。传 false 可关闭插件内部 fallback 日志。 */
+  logger?: TabRouterLogger | false;
 
   /**
    * 异步组件默认配置，会合并到 `defineAsyncComponent`。
@@ -278,6 +282,8 @@ export interface TabsManagerOptions {
   storage?: TabsManagerStorageOptions;
   /** 扩展插件。插件会在 `app.use(tabsManager)` 时安装。 */
   plugins?: TabsManagerPlugin[];
+  /** 轻量日志接口。传 false 可关闭插件内部 fallback 日志。 */
+  logger?: TabRouterLogger | false;
   /** 容器渲染、缓存与内置标签栏显示配置。 */
   render?: TabsManagerRenderOptions;
   /** iframe 页面配置。 */

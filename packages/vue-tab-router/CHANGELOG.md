@@ -9,6 +9,11 @@
 - 完善 iframe controller 的缓存、刷新和释放行为：controller 局部配置不会因为普通标签切换丢失；iframe 真实 `load` 后再注入局部样式并触发 controller `onLoad`；关闭、刷新或清空标签时会释放 iframe 引用和 controller 配置；controller `onMessage` 返回 `false` 时会阻止全局 iframe 消息处理。
 - 优化 `DynamicContainer` 渲染结构，没有缓存 iframe 或激活 iframe controller 时不再渲染空的 iframe/controller 层，减少无意义 DOM 并避免后续样式或层级扩展时产生遮挡风险。
 - 补充 iframe 通信与样式、iframe client、iframe controller 和百度直链 controller 演示，并在文档中说明 controller 的两层模型、参数归属、消息来源校验、生命周期顺序和释放边界。
+- 重构 `TabsManager` 内部运行时边界，将打开、激活、关闭流程依赖的上下文收敛到 runtime 契约，并拆分守卫 pipeline、关闭目标解析、关闭范围选择和 tab 选项归一化逻辑，降低核心管理器的维护复杂度。
+- 拆分 `createTabUrlSyncPlugin` 的状态编解码、路由同步控制器、iframe 导航同步和类型契约，保持插件入口聚焦 hook 编排，并补充 URL 同步失败时的轻量错误与日志边界。
+- 拆分 `DynamicContainer` 的 iframe 注册、消息分发、样式注入、渲染和生命周期管理逻辑，并将 tab 缓存判断工具从类型文件迁移到运行时工具模块，避免类型文件承载运行时行为。
+- 新增轻量 `TabRouterError`、错误码和 `TabRouterLogger` 配置。`TabsManagerOptions.logger` 可接收自定义日志适配器，传入 `false` 可关闭插件内部 fallback 日志；URL 同步失败会优先走 `onError`，未配置时输出 `URL_SYNC_FAILED` 错误。
+- 同步组合式 API、URL 同步、错误与日志类型文档，并在 Demo 顶部增加文档入口，方便从示例直接跳转到文档站。
 
 ## 1.2.0-beta.0
 

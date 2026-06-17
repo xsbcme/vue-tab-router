@@ -1,9 +1,10 @@
 import { Tab } from "./tab";
 import { MaybeGuardReturn } from "../types";
+import { TabRouterError } from "../shared";
 
-export class TabGuardRejectError extends Error {
+export class TabGuardRejectError extends TabRouterError {
   constructor(message = "Tab guard rejected") {
-    super(message);
+    super("GUARD_REJECTED", message);
     this.name = "TabGuardRejectError";
   }
 }

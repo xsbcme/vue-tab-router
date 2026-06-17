@@ -47,7 +47,7 @@ const tabsManager = createTabsManager({
 | `syncIframeNavigation`      | `true`          | 是否同步同源 iframe 内部链接导航后的当前地址。                         |
 | `validate`                  | 无              | 从 URL 打开 tab 前的自定义校验。                                       |
 | `serialize` / `deserialize` | base64url JSON  | 自定义 URL 状态序列化方式。                                            |
-| `onError`                   | `console.error` | 同步失败、反序列化失败、目标页面未注册等错误回调。                     |
+| `onError`                   | 无              | 同步失败、反序列化失败、目标页面未注册等错误回调；未配置时使用 `TabsManagerOptions.logger` 的 `error` 方法输出 `URL_SYNC_FAILED` 错误。 |
 
 ## 登录后进入工作台
 

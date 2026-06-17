@@ -1,6 +1,6 @@
 import { nextTick, onBeforeUnmount, type ComputedRef, type Ref, watch } from "vue";
 import type { TabsManager } from "@/tabs/tabs-manager";
-import { shouldCacheComponentTab } from "./types";
+import { shouldCacheComponentTab } from "./tab-cache";
 
 interface ScrollSnapshotItem {
   path: number[];

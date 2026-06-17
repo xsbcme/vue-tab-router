@@ -4,7 +4,7 @@ import type { TabsManager } from "@/tabs/tabs-manager";
 import type { ITabsManagerOptions } from "@/types";
 import { clone, TabViewUrl } from "@/shared";
 import { DefaultNotFoundComponent } from "@/components/default-state";
-import { getTabCacheName, isIframeControllerTab } from "./types";
+import { getTabCacheName, isIframeControllerTab } from "./tab-cache";
 
 export function useComponentTabs(tabsManager: TabsManager, managerOptions: ITabsManagerOptions | null) {
   const tabWrapperMap = new Map<string, Component>();
