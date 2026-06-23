@@ -10,6 +10,7 @@ import { createIframeTabClientRequest, createIframeTabClientResponse } from "../
 import { createTabsManager, useTabsManager } from "../src/composables";
 import { defineIframeOptions } from "../src/composables";
 import { TabViewUrl } from "../src/shared";
+import { TABS_MANAGER_KEY } from "../src/tabs";
 import type { TabsManager } from "../src/tabs";
 import type { TabsManagerOptions } from "../src/types";
 
@@ -166,6 +167,54 @@ function mountDynamicIframe(initialLink: string) {
 }
 
 describe("DynamicContainer iframe rendering", () => {
+  it("allows useTabsManager outside setup after app install", () => {
+    const mounted = mountDynamicContainer();
+
+    expect(useTabsManager()).toBe(mounted.tabsManager);
+
+    mounted.app.unmount();
+    mounted.host.remove();
+    expect(() => useTabsManager()).toThrow("TabsManager 未提供");
+  });
+
+  it("keeps the latest installed TabsManager when an older app unmounts", () => {
+    const first = mountDynamicContainer();
+    const second = mountDynamicContainer();
+
+    expect(useTabsManager()).toBe(second.tabsManager);
+
+    first.app.unmount();
+    first.host.remove();
+
+    expect(useTabsManager()).toBe(second.tabsManager);
+
+    second.app.unmount();
+    second.host.remove();
+    expect(() => useTabsManager()).toThrow("TabsManager 未提供");
+  });
+
+  it("prefers local provided TabsManager inside setup", () => {
+    const mounted = mountDynamicContainer();
+    const localTabsManager = mounted.rootTabsManager.createScopedManager();
+    let injectedTabsManager!: TabsManager;
+
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      mounted.app.provide(TABS_MANAGER_KEY, localTabsManager);
+      mounted.app.runWithContext(() => {
+        injectedTabsManager = useTabsManager();
+      });
+    } finally {
+      warnSpy.mockRestore();
+    }
+
+    expect(injectedTabsManager).toBe(localTabsManager);
+    expect(useTabsManager()).toBe(mounted.tabsManager);
+
+    mounted.app.unmount();
+    mounted.host.remove();
+  });
+
   it("使用默认空状态组件，并允许 render 配置覆盖", async () => {
     const CustomEmpty = defineComponent({
       setup() {

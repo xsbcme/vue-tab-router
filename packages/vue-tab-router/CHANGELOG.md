@@ -1,5 +1,18 @@
 # @xsbcme/vue-tab-router
 
+## 1.2.0
+
+### Minor Changes
+
+- 8391ef4: 新增 Vue Router 标签页适配器第一阶段基础支持，支持通过 `route.meta.tab` 声明标签页标题、图标、缓存、关闭、固定、单例和匹配策略，并初步实现路由切换、标签切换、关闭标签和刷新恢复之间的同步流程。
+- 新增 `useTabsManager()` 的 app 级 fallback：在非 `setup`、非 Pinia 上下文中，只要应用已经执行过 `app.use(tabsManager)`，依然可以读取到已安装的 `TabsManager`；组件树内仍优先使用局部 `provide` 的实例。
+
+### Patch Changes
+
+- 6663849: 补充内置插件文档并修复 Pages 构建，完善内置插件说明与文档站构建链路。
+- 7e37278: 修正文档链接与锁文件同步问题，避免发布前文档与依赖锁文件不一致。
+- 1d35fb1: 修复 Pages 构建无法解析 URL 同步插件入口的问题，确保文档站与构建产物正常生成。
+
 ## 1.2.0-beta.1
 
 ### Minor Changes

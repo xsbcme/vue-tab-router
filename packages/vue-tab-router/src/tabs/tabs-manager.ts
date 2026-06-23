@@ -18,7 +18,7 @@ import {
 import { clone, createTabNotFoundError, findParentPathsByPath } from "../shared";
 import { TabsManagerHooks, TabsManagerPluginCleanup } from "./tabs-manager-plugin";
 import { EventManager } from "../shared";
-import { provideTabsManager, TabsSharedContext } from "./tabs-manager-context";
+import { clearCurrentTabsManager, provideTabsManager, TabsSharedContext } from "./tabs-manager-context";
 import { closeSingleTab, closeTabsInBatch } from "./tabs-manager-close";
 import { TabsPersistence } from "./tabs-persistence";
 import {
@@ -760,6 +760,7 @@ export class TabsManager {
   private destroy() {
     this.disposePlugins();
     this._iframeMessenger = undefined;
+    clearCurrentTabsManager(this._reactiveManager || undefined);
     this._app = null;
     this._reactiveManager = null;
   }

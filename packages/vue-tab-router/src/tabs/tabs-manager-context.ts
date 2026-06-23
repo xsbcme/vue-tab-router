@@ -13,6 +13,22 @@ import { DefaultErrorComponent, DefaultLoadingComponent } from "../components/de
 
 export const TABS_MANAGER_KEY = Symbol("TabsManager") as InjectionKey<TabsManager>;
 
+let currentTabsManager: TabsManager | undefined;
+
+export function setCurrentTabsManager(tabsManager: TabsManager | undefined) {
+  currentTabsManager = tabsManager;
+}
+
+export function clearCurrentTabsManager(tabsManager: TabsManager | undefined) {
+  if (currentTabsManager === tabsManager) {
+    currentTabsManager = undefined;
+  }
+}
+
+export function getCurrentTabsManager() {
+  return currentTabsManager;
+}
+
 export class TabsSharedContext {
   private app: App | null = null;
   private registered = false;
@@ -115,6 +131,7 @@ export class TabsSharedContext {
 
 export function provideTabsManager(app: App, tabsManager: TabsManager) {
   const reactiveTabsManager = reactive(tabsManager) as TabsManager;
+  setCurrentTabsManager(reactiveTabsManager);
   app.provide(TABS_MANAGER_KEY, reactiveTabsManager);
   app.config.globalProperties.$tabsManager = reactiveTabsManager;
   return reactiveTabsManager;

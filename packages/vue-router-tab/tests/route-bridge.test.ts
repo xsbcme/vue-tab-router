@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+
 import { createApp, h } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 import type { RouteLocationNormalizedLoaded } from "vue-router";
@@ -73,14 +75,18 @@ describe("createVueRouterTabsPlugin", () => {
       plugins: [createVueRouterTabsPlugin(router)],
     });
 
+    const host = document.createElement("div");
+    document.body.append(host);
     const app = createApp({ render: () => h("div") });
     app.use(router);
     app.use(tabsManager);
+    app.mount(host);
 
     expect(app.component(restoredCustomersViewUrl)).toBeTruthy();
     expect(app.component(restoredOrdersViewUrl)).toBeTruthy();
 
     app.unmount();
+    host.remove();
     sessionStorage.removeItem(storageKey);
   });
 

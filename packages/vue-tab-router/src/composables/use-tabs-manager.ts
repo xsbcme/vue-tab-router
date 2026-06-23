@@ -1,4 +1,4 @@
-import { inject, markRaw, onBeforeUnmount, toValue, watchEffect } from "vue";
+import { hasInjectionContext, inject, markRaw, onBeforeUnmount, toValue, watchEffect } from "vue";
 import type { IframePostMessageOptions } from "../iframe";
 import { TabsManager } from "../tabs";
 import { INJECT_CURRENT_TAB_KEY } from "../shared";
@@ -12,7 +12,7 @@ import {
   TabEnterGuard,
   TabLeaveGuard,
 } from "../types";
-import { TABS_MANAGER_KEY } from "../tabs";
+import { getCurrentTabsManager, TABS_MANAGER_KEY } from "../tabs";
 
 function normalizeTabsManagerOptions(options: TabsManagerOptions): ITabsManagerOptions {
   const views = options.views;
@@ -67,7 +67,8 @@ export function createTabsManager(options: TabsManagerOptions) {
 
 /** 获取响应式 TabsManager 实例。 */
 export function useTabsManager(): TabsManager {
-  const tabsManager = inject(TABS_MANAGER_KEY);
+  const injectedTabsManager = hasInjectionContext() ? inject(TABS_MANAGER_KEY) : undefined;
+  const tabsManager = injectedTabsManager || getCurrentTabsManager();
   if (!tabsManager) {
     throw new Error("TabsManager 未提供，请先通过 app.use(tabsManager) 安装或在局部容器中 provide TabsManager。");
   }
