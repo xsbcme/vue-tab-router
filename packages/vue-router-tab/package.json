@@ -1,6 +1,6 @@
 {
   "name": "@xsbcme/vue-router-tab",
-  "version": "1.2.0-beta.1",
+  "version": "1.2.0",
   "description": "Vue Router first adapter for @xsbcme/vue-tab-router.",
   "type": "module",
   "main": "./dist/index.cjs",

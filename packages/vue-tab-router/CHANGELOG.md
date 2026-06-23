@@ -4,14 +4,41 @@
 
 ### Minor Changes
 
-- 8391ef4: 新增 Vue Router 标签页适配器第一阶段基础支持，支持通过 `route.meta.tab` 声明标签页标题、图标、缓存、关闭、固定、单例和匹配策略，并初步实现路由切换、标签切换、关闭标签和刷新恢复之间的同步流程。
+- 3b6d344: 新增 iframe controller 模式，可通过 `TabViewUrl.createIframeController(controllerUrl, iframeSrc?)` 打开由 Vue 控制组件托管的 iframe 标签页。controller 组件隐藏挂载在宿主应用中，通过 `defineIframeOptions()` 局部声明 iframe 的 `src`、`styles`、`messageOrigins`、`onLoad` 和 `onMessage`，让 iframe 的加载、样式注入和消息处理跟随具体 tab 维护。
+
+  iframe controller 地址改为普通 URL query 结构：`iframe-controller:<controllerUrl>?src=<iframeSrc>&<业务参数>`。外部菜单或第三方系统可以直接配置单链接；除 `src` 外的 query 参数会合并进 tab `viewProps`，controller 可读取，也会作为默认查询参数透传给真实 iframe。`openTab(viewUrl, options)` 的显式参数优先于 URL query，controller 内 `defineIframeOptions({ src })` 可覆盖最终 iframe 地址，且最终 `src` 自身已有的同名 query 参数优先。
+
+  新增 iframe client 子入口和浏览器全局包。受控 iframe 页面可以从 `@xsbcme/vue-tab-router/iframe/client` 或 `dist/browser/iframe-client.global.js` 使用 `createIframeTabClient()`，通过内置协议请求获取当前 tab、更新当前 tab、打开子 tab、刷新、关闭和发送事件；浏览器全局包不依赖 Vue。
+
+  统一宿主向 iframe 发送消息的 API：`tabsManager.postIframeMessage(data, options?, tabId?)`。不传 `tabId` 时默认发送给当前激活 iframe，指定 tab 时把 `tabId` 放在第三个参数；第二个参数支持 `undefined` 或 `null` 表示无额外发送配置。页面组件内部新增 `useIframeMessenger().postMessage(data, options?)`，用于自动绑定当前 tab。
+
+  完善 iframe controller 的缓存、刷新和释放行为：controller 局部配置不会因为普通标签切换丢失；iframe 真实 `load` 后再注入局部样式并触发 controller `onLoad`；关闭、刷新或清空标签时会释放 iframe 引用和 controller 配置；controller `onMessage` 返回 `false` 时会阻止全局 iframe 消息处理。
+
+  补充 iframe 通信与样式、iframe client、iframe controller、单链接 controller 和百度直链 controller 演示，并在文档中说明 controller 的两层模型、URL 结构、参数透传、消息来源校验、生命周期顺序和释放边界。
+
+  BREAKING CHANGE：移除旧的 `iframe-controller:%2F...::...` 地址格式，不再兼容旧分隔符方案；移除 `postActiveIframeMessage`、`postCurrentIframeMessage` 和旧顺序 `postIframeMessage(tabId, data, options?)`，请改用 `postIframeMessage(data, options?, tabId?)` 或 `useIframeMessenger()`。
+
+- 7ed0e5f: 新增内置标签栏虚拟渲染能力，适配大量标签页且标签宽度不固定的场景。`DynamicTabsComponent` 现在会在标签数量达到阈值后自动启用横向虚拟列表，并通过真实宽度测量、可视范围计算和 overscan 渲染减少 DOM 数量，降低大量标签页下的渲染、滚动和拖拽卡顿。
+
+  拆分内置标签栏实现，将滚动控制、拖拽排序、右键菜单和虚拟列表逻辑拆分到独立组件与组合函数中，降低 `DynamicTabsComponent` 的复杂度，便于后续维护和性能优化。
+
+  调整内置标签栏配置结构，标签栏相关配置统一收口到 `render.tabs` 下：`render.tabs.titleMaxLength`、`render.tabs.draggable`、`render.tabs.showIcon` 和 `render.tabs.virtual`。旧的 `render.viewNameMaxLength`、`render.draggable`、`render.showIcon` 不再保留兼容。
+
+  调整新窗口打开配置，移除 `_viewOutsideProps`，现在可直接通过 `_viewOutside: { target, features }` 传递 `window.open` 配置；仅需默认新窗口打开时仍可使用 `_viewOutside: true`。
+
+  完善文档和示例，补充虚拟标签栏、标签栏配置、外部打开配置和主题使用说明；主题示例和主题指南从运行时源码目录迁移到文档项目，源码包仅保留实际运行时主题 API 与样式文件。
+
+- 8391ef4: 新增 Vue Router 标签页适配器第一阶段基础支持。`@xsbcme/vue-router-tab` 作为独立适配包连接 Vue Router 与核心 `TabsManager`，支持通过 `route.meta.tab` 声明标签页标题、图标、缓存、关闭、固定、单例和匹配策略，并初步实现路由切换、标签切换、关闭标签和刷新恢复之间的同步流程。
+
+  修复刷新后已恢复的路由标签页视图丢失问题：适配器会在初始化时重新注册已持久化的路由视图包装组件，避免切换标签后动态 RouteView 丢失。适配器元信息约定同步收紧，标题和图标统一放入 `meta.tab`，不再从 Vue Router 顶层 `meta.title`、`meta.icon` 或自定义 `props` 入口混合读取。
+
+  新增 `examples/vue-router-tab` 示例项目，用于验证登录页、工作台布局、移动端显示、动态路由、路由守卫和标签页同步等场景。该示例目前用于第一阶段能力验证，Vue Router 适配器尚未作为完整稳定能力对外承诺，后续仍需继续完善真实业务路由、守卫、缓存、动态参数和边界场景。
+
+  调整核心包的可选能力导出边界：`iframe client` 迁移到 `@xsbcme/vue-tab-router/iframe/client`，URL 同步插件迁移到 `@xsbcme/vue-tab-router/plugins/tab-url-sync`，避免主入口引入 iframe client 或 URL 同步插件实现。浏览器全局包 `dist/browser/iframe-client.global.js` 保持不变。
+
+  重构仓库示例与文档结构，将核心示例、Vue Router 适配示例、文档站和媒体资源分层管理，并同步 README、指南、API 文档、变更日志与示例说明。
+
 - 新增 `useTabsManager()` 的 app 级 fallback：在非 `setup`、非 Pinia 上下文中，只要应用已经执行过 `app.use(tabsManager)`，依然可以读取到已安装的 `TabsManager`；组件树内仍优先使用局部 `provide` 的实例。
-
-### Patch Changes
-
-- 6663849: 补充内置插件文档并修复 Pages 构建，完善内置插件说明与文档站构建链路。
-- 7e37278: 修正文档链接与锁文件同步问题，避免发布前文档与依赖锁文件不一致。
-- 1d35fb1: 修复 Pages 构建无法解析 URL 同步插件入口的问题，确保文档站与构建产物正常生成。
 
 ## 1.2.0-beta.1
 

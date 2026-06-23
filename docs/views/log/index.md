@@ -7,14 +7,10 @@
 
 ### 新增能力
 
-- 8391ef4: 新增 Vue Router 标签页适配器第一阶段基础支持，支持通过 `route.meta.tab` 声明标签页标题、图标、缓存、关闭、固定、单例和匹配策略，并初步实现路由切换、标签切换、关闭标签和刷新恢复之间的同步流程。
+- 3b6d344: 新增 iframe controller 模式，可通过 `TabViewUrl.createIframeController(controllerUrl, iframeSrc?)` 打开由 Vue 控制组件托管的 iframe 标签页。controller 组件隐藏挂载在宿主应用中，通过 `defineIframeOptions()` 局部声明 iframe 的 `src`、`styles`、`messageOrigins`、`onLoad` 和 `onMessage`，让 iframe 的加载、样式注入和消息处理跟随具体 tab 维护。
+- 7ed0e5f: 新增内置标签栏虚拟渲染能力，适配大量标签页且标签宽度不固定的场景。`DynamicTabsComponent` 现在会在标签数量达到阈值后自动启用横向虚拟列表，并通过真实宽度测量、可视范围计算和 overscan 渲染减少 DOM 数量，降低大量标签页下的渲染、滚动和拖拽卡顿。
+- 8391ef4: 新增 Vue Router 标签页适配器第一阶段基础支持。`@xsbcme/vue-router-tab` 作为独立适配包连接 Vue Router 与核心 `TabsManager`，支持通过 `route.meta.tab` 声明标签页标题、图标、缓存、关闭、固定、单例和匹配策略，并初步实现路由切换、标签切换、关闭标签和刷新恢复之间的同步流程。
 - 新增 `useTabsManager()` 的 app 级 fallback：在非 `setup`、非 Pinia 上下文中，只要应用已经执行过 `app.use(tabsManager)`，依然可以读取到已安装的 `TabsManager`；组件树内仍优先使用局部 `provide` 的实例。
-
-### 修复与优化
-
-- 6663849: 补充内置插件文档并修复 Pages 构建，完善内置插件说明与文档站构建链路。
-- 7e37278: 修正文档链接与锁文件同步问题，避免发布前文档与依赖锁文件不一致。
-- 1d35fb1: 修复 Pages 构建无法解析 URL 同步插件入口的问题，确保文档站与构建产物正常生成。
 
 ## 1.2.0-beta.1
 
