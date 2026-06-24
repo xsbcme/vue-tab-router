@@ -13,6 +13,12 @@ const pushLog = (logs: typeof hookLogs, message: string) => {
   logs.value = logs.value.slice(0, 30);
 };
 
+const pageTurnTransitionDuration = 460;
+
+const finishPageTurnTransition = (_el: Element, done: () => void) => {
+  window.setTimeout(done, pageTurnTransitionDuration);
+};
+
 const tabsManager = createTabsManager({
   views: {
     modules: import.meta.glob("@/views/**/page-index.vue", { eager: false }),
@@ -71,6 +77,7 @@ const tabsManager = createTabsManager({
         children: [
           { title: "插件 Hooks", icon: "IconApps", viewUrl: "/src/views/learning/plugin-hooks/page-index.vue" },
           { title: "主题与图标", icon: "IconApps", viewUrl: "/src/views/learning/theme/page-index.vue" },
+          { title: "页面翻书动画", icon: "IconApps", viewUrl: "/src/views/learning/page-turn/page-index.vue" },
           { title: "状态组件", icon: "IconApps", viewUrl: "/src/views/test-theme/state-components/page-index.vue" },
         ],
       },
@@ -142,6 +149,12 @@ const tabsManager = createTabsManager({
     adapter: storageAdapter,
   },
   render: {
+    transition: {
+      name: "page-turn",
+      mode: "default",
+      onEnter: finishPageTurnTransition,
+      onLeave: finishPageTurnTransition,
+    },
     noActiveComponent: createVNode(
       "div",
       {

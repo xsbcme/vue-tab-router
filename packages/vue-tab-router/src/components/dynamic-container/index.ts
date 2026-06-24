@@ -1,4 +1,4 @@
-import { KeepAlive, Transition, computed, createVNode, defineComponent, provide, ref } from "vue";
+import { Comment, KeepAlive, Transition, computed, createVNode, defineComponent, provide, ref } from "vue";
 import { INJECT_ACTIVE_TAB_KEY } from "@/shared";
 import { useTabsManager } from "@/composables";
 import type { ITabsManagerOptions } from "@/types";
@@ -38,16 +38,16 @@ export default defineComponent({
       }
 
       const activeTab = tabsManager.activeTab;
-      if (!activeTab || activeTab._isRefresh) {
-        return null;
+      if (!activeTab || activeTab._isRefresh || tabsManager.refreshAllTabFlag) {
+        return createVNode(Comment);
       }
 
       if (iframeTabs.activeCachedIframeTabId.value === tabId && !isIframeControllerTab(activeTab)) {
-        return null;
+        return createVNode(Comment);
       }
 
       if (isIframeTab(activeTab)) {
-        if (isIframeControllerTab(activeTab)) return null;
+        if (isIframeControllerTab(activeTab)) return createVNode(Comment);
         return iframeTabs.renderIframe(activeTab);
       }
 
@@ -57,7 +57,9 @@ export default defineComponent({
     const activeIframeControllerRender = () => {
       const tabId = activeTabId.value;
       const activeTab = tabsManager.activeTab;
-      if (!tabId || !activeTab || activeTab._isRefresh || !isIframeControllerTab(activeTab)) return null;
+      if (!tabId || !activeTab || activeTab._isRefresh || tabsManager.refreshAllTabFlag || !isIframeControllerTab(activeTab)) {
+        return createVNode(Comment);
+      }
 
       return createVNode(componentTabs.getTabWrapper(tabId), { key: tabId });
     };
@@ -75,7 +77,7 @@ export default defineComponent({
           ...keepAliveProps,
           include: keepAliveIncludes.value,
         },
-        activeTabRender
+        { default: activeTabRender }
       );
     };
 
@@ -87,12 +89,10 @@ export default defineComponent({
           mode: "out-in",
           ...transitionProps,
         },
-        { default: keepAliveRender }
+        { default: () => [keepAliveRender()] }
       );
 
     return () => {
-      if (tabsManager.refreshAllTabFlag) return null;
-
       return createVNode(
         "div",
         {
@@ -122,7 +122,7 @@ export default defineComponent({
                       ...keepAliveProps,
                       include: keepAliveIncludes.value,
                     },
-                    activeIframeControllerRender
+                    { default: activeIframeControllerRender }
                   ),
                 ]
               )

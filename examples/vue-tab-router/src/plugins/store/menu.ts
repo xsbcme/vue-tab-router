@@ -107,6 +107,10 @@ export default defineStore("menu", () => {
           url: "/src/views/learning/theme/page-index.vue",
         },
         {
+          name: "页面翻书动画",
+          url: "/src/views/learning/page-turn/page-index.vue",
+        },
+        {
           name: "状态组件",
           url: "/src/views/test-theme/state-components/page-index.vue",
         },

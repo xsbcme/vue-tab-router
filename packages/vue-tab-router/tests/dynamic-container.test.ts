@@ -297,6 +297,76 @@ describe("DynamicContainer iframe rendering", () => {
     host.remove();
   });
 
+  it("启用 Transition 时刷新组件 tab 不触发空插槽更新异常", async () => {
+    const viewUrl = "/transition-refresh-view.vue";
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [viewUrl]: OtherView,
+        },
+      },
+      render: {
+        transition: {
+          name: "refresh-test",
+          mode: "default",
+        },
+      },
+    });
+
+    try {
+      const tabId = await tabsManager.openTab(viewUrl, { _viewName: "过渡刷新页面" });
+      await flushTicks(4);
+
+      await tabsManager.refreshTab(tabId);
+      await flushTicks(4);
+
+      expect(host.textContent).toContain("其他页面");
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(warnSpy).not.toHaveBeenCalledWith(expect.stringContaining("Unhandled error during execution"));
+    } finally {
+      app.unmount();
+      host.remove();
+      errorSpy.mockRestore();
+      warnSpy.mockRestore();
+    }
+  });
+
+  it("启用 Transition 时全部刷新会经过页面过渡并恢复当前组件", async () => {
+    const viewUrl = "/transition-refresh-all-view.vue";
+    const onBeforeLeave = vi.fn();
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [viewUrl]: OtherView,
+        },
+      },
+      render: {
+        transition: {
+          name: "refresh-all-test",
+          mode: "default",
+          onBeforeLeave,
+        },
+      },
+    });
+
+    try {
+      await tabsManager.openTab(viewUrl, { _viewName: "过渡全部刷新页面" });
+      await flushTicks(4);
+      onBeforeLeave.mockClear();
+
+      await tabsManager.refreshTabAll();
+      await flushTicks(4);
+
+      expect(host.textContent).toContain("其他页面");
+      expect(onBeforeLeave).toHaveBeenCalled();
+    } finally {
+      app.unmount();
+      host.remove();
+    }
+  });
+
   it("使用默认错误组件，并允许 render 配置覆盖", async () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
@@ -363,6 +433,47 @@ describe("DynamicContainer iframe rendering", () => {
 
     app.unmount();
     host.remove();
+  });
+
+  it("异步组件 resolve 不会重复触发页面级 Transition", async () => {
+    const asyncViewUrl = "/transition-async-view.vue";
+    const onBeforeEnter = vi.fn();
+    let resolveView!: (component: typeof OtherView) => void;
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [asyncViewUrl]: () =>
+            new Promise(resolve => {
+              resolveView = resolve;
+            }),
+        },
+      },
+      render: {
+        transition: {
+          name: "async-test",
+          mode: "default",
+          onBeforeEnter,
+        },
+      },
+    });
+
+    try {
+      await tabsManager.openTab(asyncViewUrl, { _viewName: "异步过渡页面" });
+      await flushTicks(3);
+
+      expect(host.textContent).toContain("加载中...");
+      onBeforeEnter.mockClear();
+
+      resolveView(OtherView);
+      await flushTicks(4);
+
+      expect(host.textContent).toContain("其他页面");
+      expect(host.querySelector(".async-test-enter-active")?.textContent).toContain("其他页面");
+      expect(onBeforeEnter).not.toHaveBeenCalled();
+    } finally {
+      app.unmount();
+      host.remove();
+    }
   });
 
   it("同文档 iframe hash 变化不会进入加载状态，但会触发 load", async () => {
