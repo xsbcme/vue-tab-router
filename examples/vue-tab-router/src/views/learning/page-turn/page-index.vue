@@ -1,33 +1,48 @@
 <template>
-  <div class="page-turn-demo">
-    <section class="book-stage" aria-label="页面翻书动画示例">
-      <div class="book-spread">
-        <article class="paper paper-left">
-          <span class="paper-label">Chapter 01</span>
-          <h2>页面进入</h2>
-          <p>新页面从右侧书脊翻入，前半程带明显的页背暗面，后半程压下纸张并露出内容。</p>
-          <div class="paper-lines">
-            <span v-for="line in 7" :key="line" />
-          </div>
-        </article>
-
-        <article class="paper paper-right">
-          <span class="paper-label">Chapter 02</span>
-          <h2>页面离开</h2>
-          <p>旧页面向左翻出，阴影从书脊扫过页面，像纸页被手指带起后离开视野。</p>
-          <div class="paper-marks">
-            <span v-for="mark in marks" :key="mark">{{ mark }}</span>
-          </div>
-        </article>
+  <div class="workspace-motion-demo">
+    <section class="workspace-stage" aria-label="后台工作区切换动画示例">
+      <div class="workspace-shell">
+        <header class="workspace-toolbar">
+          <span />
+          <span />
+          <span />
+        </header>
+        <div class="workspace-body">
+          <aside class="workspace-rail">
+            <span v-for="item in 5" :key="item" />
+          </aside>
+          <main class="workspace-preview">
+            <div class="workspace-header">
+              <div>
+                <span class="preview-label">Workspace</span>
+                <h2>客户运营工作台</h2>
+              </div>
+              <span class="status-pill">Active</span>
+            </div>
+            <div class="metric-grid">
+              <article v-for="metric in metrics" :key="metric.label" class="metric-card">
+                <span>{{ metric.label }}</span>
+                <strong>{{ metric.value }}</strong>
+              </article>
+            </div>
+            <div class="preview-table">
+              <div v-for="row in 4" :key="row" class="preview-row">
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </main>
+        </div>
       </div>
     </section>
 
     <aside class="demo-panel">
       <div>
         <p class="eyebrow">Transition</p>
-        <h1>真实页面翻书动画</h1>
+        <h1>后台工作区切换</h1>
         <p class="summary">
-          这个页面用于观察全局 tab 切换动效。点击下面的目标页会触发当前页离开和目标页进入，两段动画方向相反、节奏连续。
+          这个页面用于观察全局 tab 切换动效。新效果使用短距离位移、淡入淡出和轻微阴影，节奏更接近后台系统里的工作区切换。
         </p>
       </div>
 
@@ -40,16 +55,16 @@
 
       <dl class="motion-spec">
         <div>
-          <dt>视角</dt>
-          <dd>1200px perspective</dd>
+          <dt>时长</dt>
+          <dd>280ms enter / 220ms leave</dd>
         </div>
         <div>
           <dt>进入</dt>
-          <dd>右页翻入</dd>
+          <dd>18px 横向滑入</dd>
         </div>
         <div>
           <dt>离开</dt>
-          <dd>左页翻出</dd>
+          <dd>10px 横向淡出</dd>
         </div>
       </dl>
     </aside>
@@ -60,7 +75,11 @@
 import { useTabsManager } from "@xsbcme/vue-tab-router";
 
 const tabsManager = useTabsManager();
-const marks = ["fold", "shadow", "spine", "paper"];
+const metrics = [
+  { label: "今日线索", value: "128" },
+  { label: "待跟进", value: "36" },
+  { label: "转化率", value: "18.6%" },
+];
 
 const pages = {
   theme: {
@@ -93,7 +112,7 @@ const openPage = (key: keyof typeof pages) => {
 </script>
 
 <style scoped>
-.page-turn-demo {
+.workspace-motion-demo {
   min-height: 100%;
   display: grid;
   grid-template-columns: minmax(420px, 1fr) minmax(300px, 380px);
@@ -102,12 +121,12 @@ const openPage = (key: keyof typeof pages) => {
   overflow: hidden;
   color: #1d2129;
   background:
-    linear-gradient(135deg, rgba(38, 126, 240, 0.08), transparent 36%),
-    linear-gradient(45deg, rgba(30, 170, 116, 0.08), transparent 42%),
+    linear-gradient(135deg, rgba(22, 93, 255, 0.07), transparent 34%),
+    linear-gradient(45deg, rgba(20, 201, 201, 0.06), transparent 42%),
     #f5f7fb;
 }
 
-.book-stage {
+  .workspace-stage {
   min-height: 520px;
   display: flex;
   align-items: center;
@@ -115,132 +134,152 @@ const openPage = (key: keyof typeof pages) => {
   padding: 28px;
   border: 1px solid rgba(78, 89, 105, 0.12);
   border-radius: 8px;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.92), rgba(232, 237, 246, 0.82));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(242, 245, 250, 0.9)),
+    radial-gradient(circle at 20% 20%, rgba(22, 93, 255, 0.12), transparent 34%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  perspective: 1400px;
 }
 
-.book-spread {
+.workspace-shell {
   position: relative;
   width: min(760px, 100%);
-  aspect-ratio: 1.55;
+  min-height: 420px;
+  overflow: hidden;
+  border: 1px solid rgba(78, 89, 105, 0.16);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 24px 44px rgba(29, 33, 41, 0.14);
+}
+
+.workspace-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  height: 44px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(78, 89, 105, 0.1);
+  background: #f7f9fc;
+}
+
+.workspace-toolbar span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #c9cdd4;
+}
+
+.workspace-body {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  transform-style: preserve-3d;
-  filter: drop-shadow(0 26px 34px rgba(29, 33, 41, 0.18));
+  grid-template-columns: 74px minmax(0, 1fr);
+  min-height: 376px;
 }
 
-.book-spread::before {
-  position: absolute;
-  inset: 6% calc(50% - 1px);
-  z-index: 3;
-  width: 2px;
-  background: linear-gradient(to bottom, transparent, rgba(78, 89, 105, 0.34), transparent);
-  content: "";
+.workspace-rail {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 18px 16px;
+  border-right: 1px solid rgba(78, 89, 105, 0.1);
+  background: #fbfcff;
 }
 
-.paper {
-  position: relative;
+.workspace-rail span {
+  height: 38px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(22, 93, 255, 0.1), rgba(78, 89, 105, 0.08));
+}
+
+.workspace-preview {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: clamp(22px, 4vw, 42px);
-  overflow: hidden;
+  gap: 18px;
+  padding: 22px;
   background:
-    linear-gradient(90deg, rgba(78, 89, 105, 0.12), transparent 8%),
-    repeating-linear-gradient(to bottom, transparent 0 31px, rgba(78, 89, 105, 0.08) 32px),
-    #fffdf8;
-  border: 1px solid rgba(78, 89, 105, 0.18);
-  transform-style: preserve-3d;
+    linear-gradient(180deg, #fff, #f7f9fc 72%),
+    #fff;
 }
 
-.paper-left {
-  border-radius: 8px 0 0 8px;
-  transform: rotateY(1.2deg);
-  transform-origin: right center;
+.workspace-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-.paper-right {
-  border-radius: 0 8px 8px 0;
-  transform: rotateY(-1.2deg);
-  transform-origin: left center;
-}
-
-.paper::after {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(90deg, rgba(29, 33, 41, 0.18), transparent 20%, transparent 76%, rgba(29, 33, 41, 0.08));
-  mix-blend-mode: multiply;
-  opacity: 0.52;
-  content: "";
-}
-
-.paper-label {
-  position: relative;
-  z-index: 1;
-  width: fit-content;
-  padding: 4px 8px;
-  border: 1px solid rgba(22, 93, 255, 0.18);
-  border-radius: 999px;
-  color: #165dff;
-  font-size: 12px;
-  line-height: 1.4;
-  background: rgba(22, 93, 255, 0.08);
-}
-
-.paper h2,
-.paper p,
-.paper-lines,
-.paper-marks {
-  position: relative;
-  z-index: 1;
-}
-
-.paper h2 {
+.workspace-header h2 {
   margin: 0;
-  font-size: clamp(24px, 4vw, 40px);
-  line-height: 1.12;
+  font-size: clamp(22px, 4vw, 32px);
+  line-height: 1.18;
   letter-spacing: 0;
 }
 
-.paper p {
-  margin: 0;
-  max-width: 28em;
-  color: #4e5969;
-  line-height: 1.8;
+.preview-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #86909c;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
 }
 
-.paper-lines {
-  display: grid;
-  gap: 10px;
-  margin-top: auto;
-}
-
-.paper-lines span {
-  height: 9px;
+.status-pill {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border: 1px solid rgba(0, 180, 42, 0.18);
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(78, 89, 105, 0.2), rgba(78, 89, 105, 0.05));
+  color: #00a82d;
+  background: rgba(0, 180, 42, 0.08);
 }
 
-.paper-lines span:nth-child(2n) {
-  width: 72%;
-}
-
-.paper-marks {
+.metric-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.metric-card {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid rgba(78, 89, 105, 0.1);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 18px rgba(29, 33, 41, 0.05);
+}
+
+.metric-card span {
+  display: block;
+  color: #86909c;
+}
+
+.metric-card strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.preview-table {
+  display: grid;
   gap: 10px;
   margin-top: auto;
 }
 
-.paper-marks span {
-  min-width: 0;
-  padding: 10px 12px;
-  border: 1px solid rgba(30, 170, 116, 0.18);
+.preview-row {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr 0.5fr;
+  gap: 14px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid rgba(78, 89, 105, 0.08);
   border-radius: 6px;
-  color: #0b7f5a;
-  background: rgba(30, 170, 116, 0.08);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.preview-row span {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(78, 89, 105, 0.14);
 }
 
 .demo-panel {
@@ -315,44 +354,36 @@ const openPage = (key: keyof typeof pages) => {
 }
 
 @media (max-width: 980px) {
-  .page-turn-demo {
+  .workspace-motion-demo {
     grid-template-columns: 1fr;
     overflow: auto;
   }
 
-  .book-stage,
+  .workspace-stage,
   .demo-panel {
     min-height: auto;
   }
 }
 
 @media (max-width: 640px) {
-  .page-turn-demo {
+  .workspace-motion-demo {
     padding: 10px;
   }
 
-  .book-stage {
+  .workspace-stage {
     padding: 12px;
   }
 
-  .book-spread {
+  .workspace-body {
     grid-template-columns: 1fr;
-    aspect-ratio: auto;
   }
 
-  .book-spread::before {
+  .workspace-rail {
     display: none;
   }
 
-  .paper-left,
-  .paper-right {
-    min-height: 260px;
-    border-radius: 8px;
-    transform: none;
-  }
-
-  .paper-right {
-    margin-top: -1px;
+  .metric-grid {
+    grid-template-columns: 1fr;
   }
 
   .action-grid {

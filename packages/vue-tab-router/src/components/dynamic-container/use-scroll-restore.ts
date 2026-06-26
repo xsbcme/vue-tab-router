@@ -20,7 +20,8 @@ interface ScrollSnapshot {
 export function useScrollRestore(
   tabsManager: TabsManager,
   activeTabId: ComputedRef<string | undefined>,
-  viewLayerRef: Ref<HTMLElement | undefined>
+  viewLayerRef: Ref<HTMLElement | undefined>,
+  waitForRenderReady?: () => Promise<void>
 ) {
   const scrollSnapshots = new Map<string, ScrollSnapshot>();
 
@@ -80,22 +81,36 @@ export function useScrollRestore(
     });
   };
 
+  const getScrollSnapshot = (tabId: string | undefined) => {
+    return tabId && shouldRestoreScroll(tabId) ? scrollSnapshots.get(tabId) : undefined;
+  };
+
+  const resetViewLayerScroll = () => {
+    const viewLayer = viewLayerRef.value;
+    if (!viewLayer) return;
+    viewLayer.scrollLeft = 0;
+    viewLayer.scrollTop = 0;
+  };
+
   const restoreScrollPosition = async (tabId: string | undefined) => {
     const viewLayer = viewLayerRef.value;
     if (!tabId || !viewLayer) return;
     await nextTick();
     if (activeTabId.value !== tabId) return;
 
-    if (!shouldRestoreScroll(tabId)) {
-      viewLayer.scrollLeft = 0;
-      viewLayer.scrollTop = 0;
+    const snapshot = getScrollSnapshot(tabId);
+    if (!snapshot) resetViewLayerScroll();
+
+    await waitForRenderReady?.();
+    if (activeTabId.value !== tabId) return;
+
+    if (!snapshot) {
       return;
     }
 
-    const snapshot = scrollSnapshots.get(tabId);
-    viewLayer.scrollLeft = snapshot?.layer.left || 0;
-    viewLayer.scrollTop = snapshot?.layer.top || 0;
-    snapshot?.items.forEach(item => {
+    viewLayer.scrollLeft = snapshot.layer.left;
+    viewLayer.scrollTop = snapshot.layer.top;
+    snapshot.items.forEach(item => {
       const element = getElementByPath(viewLayer, item.path);
       if (!element) return;
       element.scrollLeft = item.left;
@@ -118,6 +133,7 @@ export function useScrollRestore(
     activeTabId,
     (tabId, previousTabId) => {
       saveScrollPosition(previousTabId);
+      if (!getScrollSnapshot(tabId)) resetViewLayerScroll();
       restoreScrollPosition(tabId);
     },
     { flush: "pre" }

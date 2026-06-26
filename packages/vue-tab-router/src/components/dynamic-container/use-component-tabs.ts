@@ -58,14 +58,25 @@ export function useComponentTabs(tabsManager: TabsManager, managerOptions: ITabs
 
           const url = componentUrl.value;
           const comp = url ? tabsManager.resolveComponent(url) : undefined;
-          if (!comp) {
-            return createVNode(noExistComponent || DefaultNotFoundComponent);
-          }
+          const content = !comp
+            ? createVNode(noExistComponent || DefaultNotFoundComponent)
+            : asyncComponentRender.render(resolvedComponent =>
+                createVNode(resolvedComponent || comp, {
+                  ...clone(currentTab.viewProps || {}),
+                })
+              );
 
-          return asyncComponentRender.render(resolvedComponent =>
-            createVNode(resolvedComponent || comp, {
-              ...clone(currentTab.viewProps || {}),
-            })
+          return createVNode(
+            "div",
+            {
+              class: "dynamic-container__transition-item",
+              style: {
+                width: "100%",
+                height: "100%",
+                minHeight: 0,
+              },
+            },
+            [content]
           );
         };
       },

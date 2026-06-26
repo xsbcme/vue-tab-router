@@ -7,6 +7,7 @@ import { getTabCacheName, isIframeControllerTab, isIframeTab, shouldCacheCompone
 import { useComponentTabs } from "./use-component-tabs";
 import { useIframeTabs } from "./use-iframe-tabs";
 import { useScrollRestore } from "./use-scroll-restore";
+import { useTransitionRenderReady } from "./use-transition-render-ready";
 
 export default defineComponent({
   name: "DynamicContainer",
@@ -17,6 +18,7 @@ export default defineComponent({
     const componentTabs = useComponentTabs(tabsManager, managerOptions);
     const iframeTabs = useIframeTabs(tabsManager, managerOptions);
     const viewLayerRef = ref<HTMLElement>();
+    const transitionRenderReady = useTransitionRenderReady(transitionProps);
 
     const keepAliveIncludes = computed<string[]>(() => {
       const cacheNames = tabsManager.tabs.filter(shouldCacheComponentTab).map(item => getTabCacheName(item._id));
@@ -24,7 +26,7 @@ export default defineComponent({
     });
 
     const activeTabId = computed(() => tabsManager.activeTab?._id);
-    useScrollRestore(tabsManager, activeTabId, viewLayerRef);
+    useScrollRestore(tabsManager, activeTabId, viewLayerRef, transitionRenderReady.waitForRenderReady);
 
     provide(
       INJECT_ACTIVE_TAB_KEY,
@@ -69,6 +71,12 @@ export default defineComponent({
       return Boolean(activeTab && !activeTab._isRefresh && isIframeControllerTab(activeTab));
     });
 
+    const transitionFrameKey = computed(() => {
+      const tabId = activeTabId.value || "empty";
+      const refreshState = tabsManager.activeTab?._isRefresh || tabsManager.refreshAllTabFlag ? "refreshing" : "ready";
+      return `${tabId}:${refreshState}`;
+    });
+
     const keepAliveRender = () => {
       componentTabs.pruneStaleWrappers();
       return createVNode(
@@ -88,8 +96,31 @@ export default defineComponent({
           appear: true,
           mode: "out-in",
           ...transitionProps,
+          ...transitionRenderReady.renderReadyTransitionHooks,
         },
-        { default: () => [keepAliveRender()] }
+        {
+          default: () => [
+            createVNode(
+              "div",
+              {
+                key: transitionFrameKey.value,
+                class: "dynamic-container__transition-frame",
+                ariaHidden: "true",
+                style: {
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  minHeight: 0,
+                  overflow: "hidden",
+                  pointerEvents: "none",
+                  visibility: "hidden",
+                },
+              },
+              []
+            ),
+          ],
+        }
       );
 
     return () => {
@@ -137,12 +168,28 @@ export default defineComponent({
                 inset: 0,
                 width: "100%",
                 height: "100%",
-                overflow: "auto",
+                overflowX: transitionRenderReady.isRenderPending.value ? "hidden" : "auto",
+                overflowY: "auto",
+                scrollbarGutter: "stable",
                 pointerEvents: iframeTabs.hasActiveCachedIframe.value ? "none" : "auto",
                 zIndex: iframeTabs.hasActiveCachedIframe.value ? 0 : 2,
               },
             },
-            [(transitionProps?.name ? transitionRender : keepAliveRender)()]
+            [
+              createVNode(
+                "div",
+                {
+                  class: ["dynamic-container__transition-content", transitionRenderReady.renderTransitionClass.value],
+                  style: {
+                    width: "100%",
+                    height: "100%",
+                    minHeight: "100%",
+                  },
+                },
+                [keepAliveRender()]
+              ),
+              transitionProps?.name ? transitionRender() : null,
+            ]
           ),
         ]
       );

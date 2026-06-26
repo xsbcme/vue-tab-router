@@ -194,6 +194,22 @@ describe("DynamicTabsComponent virtual tabs", () => {
     host.remove();
   });
 
+  it("renders one leading divider for each non-first tab", async () => {
+    const { app, host, tabsManager } = mountDynamicTabs(3, { tabs: { virtual: false } });
+
+    await openTabs(tabsManager, 3);
+
+    const renderedTabs = Array.from(host.querySelectorAll(".tabs-nav__item"));
+    expect(renderedTabs).toHaveLength(3);
+    expect(renderedTabs[0].querySelector(".tabs-nav__divider")).toBeNull();
+    expect(renderedTabs[1].querySelector(".tabs-nav__divider")).toBeTruthy();
+    expect(renderedTabs[2].querySelector(".tabs-nav__divider")).toBeTruthy();
+    expect(host.querySelectorAll(".tabs-nav__divider")).toHaveLength(2);
+
+    app.unmount();
+    host.remove();
+  });
+
   it("uses component titleMaxLength and draggable before global tab options", async () => {
     const { app, host, tabsManager } = mountDynamicTabs(
       1,

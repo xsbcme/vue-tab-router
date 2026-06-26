@@ -25,173 +25,62 @@ ul {
 }
 
 .dynamic-container__view-layer {
-  perspective: 1400px;
-  perspective-origin: 50% 50%;
-  transform-style: preserve-3d;
   background: var(--color-fill-2);
   isolation: isolate;
 }
 
-.page-turn-enter-active,
-.page-turn-leave-active {
+.workspace-shift-enter-active,
+.workspace-shift-leave-active {
   position: absolute !important;
   inset: 0;
   width: 100%;
+  height: 100%;
   min-height: 100%;
   overflow: hidden;
-  transform-style: preserve-3d;
   backface-visibility: hidden;
   contain: paint;
+  background: var(--color-fill-2);
   will-change: transform, opacity;
 }
 
-.page-turn-enter-active {
+.workspace-shift-enter-active {
   z-index: 2;
-  animation: page-turn-enter 460ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: workspace-shift-enter 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.page-turn-leave-active {
+.workspace-shift-leave-active {
   z-index: 1;
   pointer-events: none;
-  transform-origin: left center;
-  animation: page-turn-leave 460ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: workspace-shift-leave 140ms cubic-bezier(0.4, 0, 1, 1) both;
 }
 
-.page-turn-enter-active::before,
-.page-turn-leave-active::before,
-.page-turn-enter-active::after,
-.page-turn-leave-active::after {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  pointer-events: none;
-  content: "";
-}
-
-.page-turn-enter-active::before {
-  background: linear-gradient(90deg, rgba(29, 33, 41, 0.38), rgba(29, 33, 41, 0.1) 36%, transparent 72%);
-  transform-origin: left center;
-  animation: page-turn-enter-shade 460ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-
-.page-turn-enter-active::after {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.48), rgba(29, 33, 41, 0.12), transparent 60%);
-  transform-origin: left center;
-  animation: page-turn-enter-fold 460ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-
-.page-turn-leave-active::before {
-  background: linear-gradient(90deg, transparent, rgba(29, 33, 41, 0.16) 54%, rgba(29, 33, 41, 0.36));
-  transform-origin: left center;
-  animation: page-turn-leave-shade 460ms cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-.page-turn-leave-active::after {
-  left: auto;
-  width: 34%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.46), rgba(29, 33, 41, 0.12));
-  transform-origin: left center;
-  animation: page-turn-leave-edge 460ms cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-@keyframes page-turn-enter {
+@keyframes workspace-shift-enter {
   0% {
-    opacity: 0.18;
-    transform: translate3d(18%, 0, 0) rotateY(-34deg) scale(0.992);
-    transform-origin: left center;
-  }
-
-  52% {
-    opacity: 0.84;
-    transform: translate3d(4%, 0, 0) rotateY(-10deg) scale(0.998);
-    transform-origin: left center;
+    opacity: 0.96;
+    transform: translate3d(0, 8px, 0) scale(0.998);
   }
 
   100% {
     opacity: 1;
-    transform: translate3d(0, 0, 0) rotateY(0) scale(1);
-    transform-origin: left center;
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
-@keyframes page-turn-leave {
+@keyframes workspace-shift-leave {
   0% {
     opacity: 1;
-    transform: translate3d(0, 0, 0) rotateY(0) scale(1);
-  }
-
-  54% {
-    opacity: 0.72;
-    transform: translate3d(-8%, 0, 0) rotateY(18deg) scale(0.996);
+    transform: translate3d(0, 0, 0) scale(1);
   }
 
   100% {
-    opacity: 0;
-    transform: translate3d(-20%, 0, 0) rotateY(38deg) scale(0.99);
-  }
-}
-
-@keyframes page-turn-enter-shade {
-  0% {
-    opacity: 0.72;
-  }
-
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes page-turn-enter-fold {
-  0% {
-    opacity: 0.54;
-    transform: translate3d(-12%, 0, 0) scaleX(0.4);
-  }
-
-  56% {
-    opacity: 0.2;
-    transform: translate3d(-4%, 0, 0) scaleX(0.18);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translate3d(0, 0, 0) scaleX(0.04);
-  }
-}
-
-@keyframes page-turn-leave-shade {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 0.46;
-  }
-}
-
-@keyframes page-turn-leave-edge {
-  0% {
-    opacity: 0;
-    transform: translate3d(24%, 0, 0) scaleX(0.24);
-  }
-
-  46% {
-    opacity: 0.62;
-    transform: translate3d(6%, 0, 0) scaleX(0.68);
-  }
-
-  100% {
-    opacity: 0.1;
-    transform: translate3d(-16%, 0, 0) scaleX(1);
+    opacity: 0.92;
+    transform: translate3d(0, -4px, 0) scale(0.998);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page-turn-enter-active,
-  .page-turn-leave-active,
-  .page-turn-enter-active::before,
-  .page-turn-leave-active::before,
-  .page-turn-enter-active::after,
-  .page-turn-leave-active::after {
+  .workspace-shift-enter-active,
+  .workspace-shift-leave-active {
     animation-duration: 1ms;
   }
 }

@@ -19,7 +19,7 @@
       </template>
       <TruncatedText :text="tab._loading ? '加载中...' : tab.viewName || '未命名'" :max-length="maxTitleLength" />
     </div>
-    <span class="tabs-nav__divider" />
+    <span v-if="showDivider" class="tabs-nav__divider" />
     <button
       v-if="!tab._noClose"
       class="tabs-nav__close"
@@ -46,6 +46,7 @@ defineProps<{
   defaultIcon?: string;
   maxTitleLength?: number;
   draggable?: boolean;
+  showDivider?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -198,9 +199,12 @@ const emit = defineEmits<{
   }
 
   &:hover .tabs-nav__divider,
-  &.is-active .tabs-nav__divider,
-  &:has(+ .tabs-nav__item:hover) .tabs-nav__divider,
-  &:has(+ .tabs-nav__item.is-active) .tabs-nav__divider {
+  &.is-active .tabs-nav__divider {
+    opacity: 0;
+  }
+
+  &:hover + .tabs-nav__item .tabs-nav__divider,
+  &.is-active + .tabs-nav__item .tabs-nav__divider {
     opacity: 0;
   }
 
@@ -213,7 +217,7 @@ const emit = defineEmits<{
 
 .tabs-nav__divider {
   position: absolute;
-  right: 0;
+  left: 0;
   top: 8px;
   bottom: 8px;
   width: 1px;

@@ -32,6 +32,7 @@
           :default-icon="defaultIcon"
           :max-title-length="titleMaxLength"
           :draggable="isTabDraggable(virtualTab.tab)"
+          :show-divider="virtualTab.index > 0"
           @select="emit('select', $event)"
           @close="emit('close', $event)"
           @contextmenu="emit('contextmenu', $event, virtualTab.tab)"

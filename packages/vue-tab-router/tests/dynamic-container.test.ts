@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { createApp, defineComponent, h, nextTick, ref } from "vue";
+import { createApp, defineComponent, h, nextTick, onMounted, ref } from "vue";
 import { describe, expect, it, vi } from "vitest";
 import DynamicIframeComponent from "../src/components/dynamic-iframe.vue";
 import DynamicContainerComponent from "../src/components/dynamic-container";
@@ -310,7 +310,7 @@ describe("DynamicContainer iframe rendering", () => {
       render: {
         transition: {
           name: "refresh-test",
-          mode: "default",
+          mode: "out-in",
         },
       },
     });
@@ -322,7 +322,7 @@ describe("DynamicContainer iframe rendering", () => {
       await tabsManager.refreshTab(tabId);
       await flushTicks(4);
 
-      expect(host.textContent).toContain("其他页面");
+      await expect.poll(() => host.textContent).toContain("其他页面");
       expect(errorSpy).not.toHaveBeenCalled();
       expect(warnSpy).not.toHaveBeenCalledWith(expect.stringContaining("Unhandled error during execution"));
     } finally {
@@ -476,6 +476,34 @@ describe("DynamicContainer iframe rendering", () => {
     }
   });
 
+  it("已加载的异步组件重新打开时不重新显示加载状态", async () => {
+    const firstViewUrl = "/async-first-view.vue";
+    const firstLoader = vi.fn(() => Promise.resolve(LongScrollView));
+    const { app, host, tabsManager } = mountDynamicContainer({
+      views: {
+        modules: {
+          [firstViewUrl]: firstLoader,
+        },
+      },
+    });
+
+    const firstTabId = await tabsManager.openTab(firstViewUrl, { _viewName: "异步长页面" });
+    await flushTicks(6);
+    expect(host.textContent).toContain("内部长内容");
+
+    await tabsManager.closeTab(firstTabId, { skipGuard: true });
+    await flushTicks(2);
+    await tabsManager.openTab(firstViewUrl, { _viewName: "异步长页面" });
+    await flushTicks(2);
+
+    expect(host.textContent).toContain("内部长内容");
+    expect(host.textContent).not.toContain("加载中");
+    expect(firstLoader).toHaveBeenCalledTimes(1);
+
+    app.unmount();
+    host.remove();
+  });
+
   it("同文档 iframe hash 变化不会进入加载状态，但会触发 load", async () => {
     const { app, host, link, loadEvents } = mountDynamicIframe("/iframe-test.html#overview");
     await flushTicks(2);
@@ -540,7 +568,8 @@ describe("DynamicContainer iframe rendering", () => {
     await tabsManager.openTab(iframeViewUrl, { _viewName: "Iframe 测试" });
     await flushTicks(2);
 
-    expect(host.querySelector<HTMLElement>(".dynamic-container__view-layer")?.style.overflow).toBe("auto");
+    expect(host.querySelector<HTMLElement>(".dynamic-container__view-layer")?.style.overflowX).toBe("auto");
+    expect(host.querySelector<HTMLElement>(".dynamic-container__view-layer")?.style.overflowY).toBe("auto");
     expect(host.querySelector<HTMLElement>(".dynamic-container__iframe-layer")?.style.overflow).toBe("hidden");
 
     app.unmount();
@@ -550,11 +579,24 @@ describe("DynamicContainer iframe rendering", () => {
   it("切换缓存组件 tab 时恢复滚动位置", async () => {
     const firstViewUrl = "/long-view.vue";
     const secondViewUrl = "/other-view.vue";
+    const firstMounted = vi.fn();
+    const CachedLongScrollView = defineComponent({
+      setup() {
+        onMounted(firstMounted);
+        return () => h(LongScrollView);
+      },
+    });
     const { app, host, tabsManager } = mountDynamicContainer({
       views: {
         modules: {
-          [firstViewUrl]: () => Promise.resolve(LongScrollView),
+          [firstViewUrl]: () => Promise.resolve(CachedLongScrollView),
           [secondViewUrl]: () => Promise.resolve(OtherView),
+        },
+      },
+      render: {
+        transition: {
+          name: "cache-switch-test",
+          mode: "out-in",
         },
       },
     });
@@ -564,6 +606,7 @@ describe("DynamicContainer iframe rendering", () => {
 
     const viewLayer = host.querySelector<HTMLElement>(".dynamic-container__view-layer");
     expect(viewLayer).toBeInstanceOf(HTMLElement);
+    await expect.poll(() => host.querySelector<HTMLElement>(".inner-scroll")).toBeInstanceOf(HTMLElement);
     const innerScroll = host.querySelector<HTMLElement>(".inner-scroll");
     expect(innerScroll).toBeInstanceOf(HTMLElement);
 
@@ -580,8 +623,87 @@ describe("DynamicContainer iframe rendering", () => {
 
     expect(viewLayer!.scrollTop).toBe(480);
     expect(host.querySelector<HTMLElement>(".inner-scroll")?.scrollTop).toBe(260);
+    expect(firstMounted).toHaveBeenCalledTimes(1);
 
     app.unmount();
+    host.remove();
+  });
+
+  it("启用 Transition 时等待进入动画结束后恢复滚动位置", async () => {
+    const firstViewUrl = "/transition-long-view.vue";
+    const secondViewUrl = "/transition-other-view.vue";
+    let viewLayerDuringEnterTop = -1;
+    const enterCallbacks: Array<() => void> = [];
+    let host!: HTMLElement;
+    const mounted = mountDynamicContainer({
+      views: {
+        modules: {
+          [firstViewUrl]: LongScrollView,
+          [secondViewUrl]: OtherView,
+        },
+      },
+      render: {
+        transition: {
+          name: "scroll-restore-test",
+          mode: "default",
+          css: false,
+          onAppear: (_element: Element, done: () => void) => enterCallbacks.push(done),
+          onBeforeEnter: () => {
+            const viewLayer = host.querySelector<HTMLElement>(".dynamic-container__view-layer");
+            viewLayerDuringEnterTop = viewLayer?.scrollTop ?? -1;
+          },
+          onEnter: (_element: Element, done: () => void) => enterCallbacks.push(done),
+        },
+      },
+    });
+    host = mounted.host;
+
+    const firstTabId = await mounted.tabsManager.openTab(firstViewUrl, { _viewName: "长页面" });
+    await flushTicks(4);
+    enterCallbacks.shift()?.();
+    await flushTicks(2);
+
+    const viewLayer = host.querySelector<HTMLElement>(".dynamic-container__view-layer");
+    expect(viewLayer).toBeInstanceOf(HTMLElement);
+    expect(viewLayer!.style.overflowX).toBe("auto");
+    expect(viewLayer!.style.overflowY).toBe("auto");
+    expect(viewLayer!.style.scrollbarGutter).toBe("stable");
+    const innerScroll = host.querySelector<HTMLElement>(".inner-scroll");
+    expect(innerScroll).toBeInstanceOf(HTMLElement);
+
+    viewLayer!.scrollTop = 480;
+    innerScroll!.scrollTop = 260;
+
+    await mounted.tabsManager.openTab(secondViewUrl, { _viewName: "其他页面" });
+    expect(viewLayer!.scrollTop).toBe(0);
+    await flushTicks(4);
+    expect(viewLayer!.scrollTop).toBe(0);
+    enterCallbacks.shift()?.();
+    await flushTicks(2);
+    expect(viewLayer!.scrollTop).toBe(0);
+
+    viewLayerDuringEnterTop = -1;
+    await mounted.tabsManager.changeActiveTab(firstTabId);
+    await flushTicks(4);
+
+    expect(viewLayerDuringEnterTop).toBe(0);
+    expect(host.querySelector<HTMLElement>(".dynamic-container__transition-frame")?.style.position).toBe("absolute");
+    expect(host.querySelector<HTMLElement>(".dynamic-container__transition-frame")?.style.height).toBe("100%");
+    expect(host.querySelector<HTMLElement>(".dynamic-container__transition-content")?.style.height).toBe("100%");
+    expect(host.querySelector<HTMLElement>(".dynamic-container__transition-item")?.style.height).toBe("100%");
+    expect(viewLayer!.scrollTop).toBe(0);
+    expect(viewLayer!.style.overflowX).toBe("hidden");
+    expect(viewLayer!.style.overflowY).toBe("auto");
+
+    enterCallbacks.shift()?.();
+    await flushTicks(2);
+
+    expect(viewLayer!.style.overflowX).toBe("auto");
+    expect(viewLayer!.style.overflowY).toBe("auto");
+    expect(viewLayer!.scrollTop).toBe(480);
+    expect(host.querySelector<HTMLElement>(".inner-scroll")?.scrollTop).toBe(260);
+
+    mounted.app.unmount();
     host.remove();
   });
 

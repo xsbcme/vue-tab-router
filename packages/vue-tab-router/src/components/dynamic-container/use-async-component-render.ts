@@ -11,6 +11,15 @@ export interface AsyncComponentRenderOptions {
   transitionProps?: TransitionProps;
 }
 
+const getAsyncLoader = (component: Component) => {
+  const asyncLoader = Reflect.get(component, "__asyncLoader");
+  return typeof asyncLoader === "function" ? asyncLoader : undefined;
+};
+
+const getResolvedAsyncComponent = (component: Component) => {
+  return Reflect.get(component, "__asyncResolved") as Component | undefined;
+};
+
 const omitTransitionHooks = (transitionProps: TransitionProps) => {
   const {
     onAfterAppear,
@@ -61,9 +70,15 @@ export function useAsyncComponentRender(options: AsyncComponentRenderOptions) {
     reset();
 
     if (!component) return;
-    const asyncLoader = Reflect.get(component, "__asyncLoader");
-    if (typeof asyncLoader !== "function") {
+    const asyncLoader = getAsyncLoader(component);
+    if (!asyncLoader) {
       resolvedAsyncComponent.value = component;
+      return;
+    }
+
+    const cachedComponent = getResolvedAsyncComponent(component);
+    if (cachedComponent) {
+      resolvedAsyncComponent.value = cachedComponent;
       return;
     }
 
@@ -89,9 +104,9 @@ export function useAsyncComponentRender(options: AsyncComponentRenderOptions) {
           }, timeout);
 
     preloadComponent(component)
-      .then(() => {
+      .then(resolvedComponent => {
         if (loadToken !== asyncLoadToken) return;
-        resolvedAsyncComponent.value = component;
+        resolvedAsyncComponent.value = resolvedComponent;
       })
       .catch(error => {
         if (loadToken !== asyncLoadToken) return;

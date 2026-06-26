@@ -4,6 +4,7 @@ import type { TabsVirtualOptions } from "@/types";
 
 export interface VirtualTab {
   tab: Tab;
+  index: number;
   offset: number;
 }
 
@@ -161,6 +162,7 @@ export function useTabVirtualList(options: UseTabVirtualListOptions) {
     if (!isVirtualEnabled.value) {
       return tabs.map((tab, index) => ({
         tab,
+        index,
         offset: virtualMetrics.value.offsets[index],
       }));
     }
@@ -180,6 +182,7 @@ export function useTabVirtualList(options: UseTabVirtualListOptions) {
       const tabIndex = startIndex + index;
       return {
         tab,
+        index: tabIndex,
         offset: offsets[tabIndex],
       };
     });
