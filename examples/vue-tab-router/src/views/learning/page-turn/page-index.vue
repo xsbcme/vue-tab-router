@@ -56,7 +56,7 @@
       <dl class="motion-spec">
         <div>
           <dt>时长</dt>
-          <dd>280ms enter / 220ms leave</dd>
+          <dd>180ms enter / 140ms leave</dd>
         </div>
         <div>
           <dt>进入</dt>

@@ -1,4 +1,4 @@
-import { ref, type TransitionProps } from "vue";
+import { nextTick, onBeforeUnmount, ref, type TransitionProps } from "vue";
 
 const callTransitionHook = (hook: unknown, ...args: unknown[]) => {
   if (Array.isArray(hook)) {
@@ -31,26 +31,40 @@ export function useTransitionRenderReady(transitionProps: TransitionProps | unde
   const renderTransitionClass = ref<string>();
   let renderReadyPromise: Promise<void> | undefined;
   let pendingRenderReadyResolve: (() => void) | undefined;
+  let isResolvingRenderReady = false;
 
   const getTransitionClass = (phase: "enter" | "leave") => {
     return transitionProps?.name ? `${transitionProps.name}-${phase}-active` : undefined;
   };
 
   const beginRenderReadyWait = () => {
-    pendingRenderReadyResolve?.();
+    if (isResolvingRenderReady) {
+      renderReadyPromise = undefined;
+      pendingRenderReadyResolve = undefined;
+      isResolvingRenderReady = false;
+    }
     isRenderPending.value = true;
-    renderTransitionClass.value = getTransitionClass("enter");
-    renderReadyPromise = new Promise<void>(resolve => {
-      pendingRenderReadyResolve = resolve;
-    });
+    if (!renderReadyPromise) {
+      renderReadyPromise = new Promise<void>(resolve => {
+        pendingRenderReadyResolve = resolve;
+      });
+    }
   };
 
   const resolveRenderReady = () => {
-    pendingRenderReadyResolve?.();
-    pendingRenderReadyResolve = undefined;
-    renderReadyPromise = undefined;
+    const resolvedPromise = renderReadyPromise;
+    const resolve = pendingRenderReadyResolve;
+    isResolvingRenderReady = true;
     isRenderPending.value = false;
     renderTransitionClass.value = undefined;
+    nextTick(() => {
+      resolve?.();
+      if (renderReadyPromise === resolvedPromise) {
+        pendingRenderReadyResolve = undefined;
+        renderReadyPromise = undefined;
+      }
+      isResolvingRenderReady = false;
+    });
   };
 
   const waitForRenderReady = () => {
@@ -61,13 +75,16 @@ export function useTransitionRenderReady(transitionProps: TransitionProps | unde
   const renderReadyTransitionHooks: Partial<TransitionProps> = {
     onBeforeAppear: element => {
       beginRenderReadyWait();
+      renderTransitionClass.value = getTransitionClass("enter");
       callTransitionHook(transitionProps?.onBeforeAppear, element);
     },
     onBeforeEnter: element => {
       beginRenderReadyWait();
+      renderTransitionClass.value = getTransitionClass("enter");
       callTransitionHook(transitionProps?.onBeforeEnter, element);
     },
     onBeforeLeave: element => {
+      beginRenderReadyWait();
       renderTransitionClass.value = getTransitionClass("leave");
       callTransitionHook(transitionProps?.onBeforeLeave, element);
     },
@@ -89,11 +106,9 @@ export function useTransitionRenderReady(transitionProps: TransitionProps | unde
     },
     onAfterLeave: element => {
       callTransitionHook(transitionProps?.onAfterLeave, element);
-      if (!isRenderPending.value) renderTransitionClass.value = undefined;
     },
     onLeaveCancelled: element => {
       callTransitionHook(transitionProps?.onLeaveCancelled, element);
-      if (!isRenderPending.value) renderTransitionClass.value = undefined;
     },
   };
 
@@ -114,6 +129,10 @@ export function useTransitionRenderReady(transitionProps: TransitionProps | unde
       });
     };
   }
+
+  onBeforeUnmount(() => {
+    resolveRenderReady();
+  });
 
   return {
     isRenderPending,

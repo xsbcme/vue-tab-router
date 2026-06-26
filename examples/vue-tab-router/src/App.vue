@@ -31,15 +31,7 @@ ul {
 
 .workspace-shift-enter-active,
 .workspace-shift-leave-active {
-  position: absolute !important;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  min-height: 100%;
-  overflow: hidden;
   backface-visibility: hidden;
-  contain: paint;
-  background: var(--color-fill-2);
   will-change: transform, opacity;
 }
 

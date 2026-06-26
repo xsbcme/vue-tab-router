@@ -593,12 +593,6 @@ describe("DynamicContainer iframe rendering", () => {
           [secondViewUrl]: () => Promise.resolve(OtherView),
         },
       },
-      render: {
-        transition: {
-          name: "cache-switch-test",
-          mode: "out-in",
-        },
-      },
     });
 
     const firstTabId = await tabsManager.openTab(firstViewUrl, { _viewName: "长页面" });
@@ -629,13 +623,28 @@ describe("DynamicContainer iframe rendering", () => {
     host.remove();
   });
 
-  it("启用 Transition 时等待进入动画结束后恢复滚动位置", async () => {
-    const firstViewUrl = "/transition-long-view.vue";
-    const secondViewUrl = "/transition-other-view.vue";
-    let viewLayerDuringEnterTop = -1;
-    const enterCallbacks: Array<() => void> = [];
-    let host!: HTMLElement;
-    const mounted = mountDynamicContainer({
+  it("out-in 页面动画切回缓存组件后恢复滚动位置", async () => {
+    const firstViewUrl = "/out-in-scroll-home.vue";
+    const secondViewUrl = "/out-in-scroll-other.vue";
+    const style = document.createElement("style");
+    style.textContent = `
+      .out-in-scroll-test-enter-active {
+        animation: out-in-scroll-test-enter 120ms ease both;
+      }
+      .out-in-scroll-test-leave-active {
+        animation: out-in-scroll-test-leave 120ms ease both;
+      }
+      @keyframes out-in-scroll-test-enter {
+        from { opacity: 0.98; }
+        to { opacity: 1; }
+      }
+      @keyframes out-in-scroll-test-leave {
+        from { opacity: 1; }
+        to { opacity: 0.98; }
+      }
+    `;
+    document.head.append(style);
+    const { app, host, tabsManager } = mountDynamicContainer({
       views: {
         modules: {
           [firstViewUrl]: LongScrollView,
@@ -644,67 +653,46 @@ describe("DynamicContainer iframe rendering", () => {
       },
       render: {
         transition: {
-          name: "scroll-restore-test",
-          mode: "default",
-          css: false,
-          onAppear: (_element: Element, done: () => void) => enterCallbacks.push(done),
-          onBeforeEnter: () => {
-            const viewLayer = host.querySelector<HTMLElement>(".dynamic-container__view-layer");
-            viewLayerDuringEnterTop = viewLayer?.scrollTop ?? -1;
-          },
-          onEnter: (_element: Element, done: () => void) => enterCallbacks.push(done),
+          name: "out-in-scroll-test",
+          mode: "out-in",
         },
       },
     });
-    host = mounted.host;
 
-    const firstTabId = await mounted.tabsManager.openTab(firstViewUrl, { _viewName: "长页面" });
+    const finishEnterTransition = async () => {
+      await flushTicks(2);
+    };
+
+    const firstTabId = await tabsManager.openTab(firstViewUrl, { _viewName: "首页" });
     await flushTicks(4);
-    enterCallbacks.shift()?.();
-    await flushTicks(2);
+    await finishEnterTransition();
 
-    const viewLayer = host.querySelector<HTMLElement>(".dynamic-container__view-layer");
-    expect(viewLayer).toBeInstanceOf(HTMLElement);
-    expect(viewLayer!.style.overflowX).toBe("auto");
-    expect(viewLayer!.style.overflowY).toBe("auto");
-    expect(viewLayer!.style.scrollbarGutter).toBe("stable");
     const innerScroll = host.querySelector<HTMLElement>(".inner-scroll");
     expect(innerScroll).toBeInstanceOf(HTMLElement);
+    innerScroll!.scrollTop = 520;
 
-    viewLayer!.scrollTop = 480;
-    innerScroll!.scrollTop = 260;
-
-    await mounted.tabsManager.openTab(secondViewUrl, { _viewName: "其他页面" });
-    expect(viewLayer!.scrollTop).toBe(0);
+    await tabsManager.openTab(secondViewUrl, { _viewName: "其他页面" });
     await flushTicks(4);
-    expect(viewLayer!.scrollTop).toBe(0);
-    enterCallbacks.shift()?.();
-    await flushTicks(2);
-    expect(viewLayer!.scrollTop).toBe(0);
+    await finishEnterTransition();
+    expect(host.querySelector<HTMLElement>(".inner-scroll")).toBeNull();
 
-    viewLayerDuringEnterTop = -1;
-    await mounted.tabsManager.changeActiveTab(firstTabId);
+    const transitionContent = host.querySelector<HTMLElement>(".dynamic-container__transition-content");
+    expect(transitionContent).toBeInstanceOf(HTMLElement);
+    const resetOnTransitionClassChange = new MutationObserver(() => {
+      host.querySelector<HTMLElement>(".inner-scroll")?.scrollTo({ top: 0 });
+    });
+    resetOnTransitionClassChange.observe(transitionContent!, { attributes: true, attributeFilter: ["class"] });
+
+    await tabsManager.changeActiveTab(firstTabId);
     await flushTicks(4);
+    expect(host.querySelector<HTMLElement>(".inner-scroll")?.scrollTop).toBe(520);
+    await finishEnterTransition();
+    resetOnTransitionClassChange.disconnect();
+    expect(host.querySelector<HTMLElement>(".inner-scroll")?.scrollTop).toBe(520);
 
-    expect(viewLayerDuringEnterTop).toBe(0);
-    expect(host.querySelector<HTMLElement>(".dynamic-container__transition-frame")?.style.position).toBe("absolute");
-    expect(host.querySelector<HTMLElement>(".dynamic-container__transition-frame")?.style.height).toBe("100%");
-    expect(host.querySelector<HTMLElement>(".dynamic-container__transition-content")?.style.height).toBe("100%");
-    expect(host.querySelector<HTMLElement>(".dynamic-container__transition-item")?.style.height).toBe("100%");
-    expect(viewLayer!.scrollTop).toBe(0);
-    expect(viewLayer!.style.overflowX).toBe("hidden");
-    expect(viewLayer!.style.overflowY).toBe("auto");
-
-    enterCallbacks.shift()?.();
-    await flushTicks(2);
-
-    expect(viewLayer!.style.overflowX).toBe("auto");
-    expect(viewLayer!.style.overflowY).toBe("auto");
-    expect(viewLayer!.scrollTop).toBe(480);
-    expect(host.querySelector<HTMLElement>(".inner-scroll")?.scrollTop).toBe(260);
-
-    mounted.app.unmount();
+    app.unmount();
     host.remove();
+    style.remove();
   });
 
   it("非缓存组件 tab 不恢复滚动位置", async () => {
